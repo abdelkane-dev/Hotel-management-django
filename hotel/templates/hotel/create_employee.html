@@ -1,0 +1,1249 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Créer un employé - Gestion Hôtel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-plus"></i>
+<span>Création d'employé</span>
+{% endblock %}
+
+{% block content %}
+<div class="employee-form-container">
+    <div class="form-wrapper">
+        <div class="form-header">
+            <div class="header-icon">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="header-content">
+                <h1>Créer un nouvel employé</h1>
+                <p class="header-subtitle">Ajoutez un nouveau membre à votre équipe hôtelière</p>
+            </div>
+        </div>
+        
+        <div class="form-body">
+            <form method="post" class="employee-form" id="employeeForm">
+                {% csrf_token %}
+                
+                <div class="form-sections">
+                    <!-- Section Compte utilisateur -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-user-lock"></i>
+                            <h3>Compte utilisateur</h3>
+                            <span class="section-badge required-badge">Obligatoire</span>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label required">
+                                    <i class="fas fa-user-tag"></i> Nom d'utilisateur
+                                </label>
+                                <input type="text" 
+                                       name="username" 
+                                       class="form-input" 
+                                       required
+                                       placeholder="ex: jdupont"
+                                       autocomplete="off"
+                                       id="username">
+                                <div class="input-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Utilisé pour la connexion au système
+                                </div>
+                                <div class="input-validation" id="username-validation">
+                                    <i class="fas fa-check-circle"></i>
+                                    Nom d'utilisateur disponible
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required">
+                                    <i class="fas fa-key"></i> Mot de passe
+                                </label>
+                                <div class="password-wrapper">
+                                    <input type="password" 
+                                           name="password" 
+                                           class="form-input" 
+                                           required
+                                           placeholder="Saisir un mot de passe sécurisé"
+                                           id="password">
+                                    <button type="button" class="password-toggle" id="password-toggle">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="password-strength" id="password-strength">
+                                    <div class="strength-bar">
+                                        <div class="strength-segment" id="segment1"></div>
+                                        <div class="strength-segment" id="segment2"></div>
+                                        <div class="strength-segment" id="segment3"></div>
+                                        <div class="strength-segment" id="segment4"></div>
+                                    </div>
+                                    <div class="strength-text" id="strength-text">Non défini</div>
+                                </div>
+                                
+                                <div class="password-requirements" id="password-requirements">
+                                    <h5><i class="fas fa-clipboard-check"></i> Exigences de sécurité</h5>
+                                    <ul>
+                                        <li id="req-length"><i class="fas fa-circle"></i> Minimum 8 caractères</li>
+                                        <li id="req-number"><i class="fas fa-circle"></i> Au moins un chiffre</li>
+                                        <li id="req-upper"><i class="fas fa-circle"></i> Au moins une majuscule</li>
+                                        <li id="req-lower"><i class="fas fa-circle"></i> Au moins une minuscule</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-envelope"></i> Email
+                                </label>
+                                <input type="email" 
+                                       name="email" 
+                                       class="form-input" 
+                                       placeholder="employe@hotel.com"
+                                       id="email">
+                                <div class="input-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Pour les communications et notifications
+                                </div>
+                                <div class="input-validation" id="email-validation">
+                                    <i class="fas fa-check-circle"></i>
+                                    Format d'email valide
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section Informations professionnelles -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-briefcase"></i>
+                            <h3>Informations professionnelles</h3>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label required">
+                                    <i class="fas fa-user-md"></i> Poste
+                                </label>
+                                <div class="select-wrapper">
+                                    {% if postes_choices %}
+                                    <select name="poste" class="form-input select-input" required>
+                                        <option value="">Sélectionner un poste</option>
+                                        {% for p in postes_choices %}
+                                            <option value="{{ p }}">{{ p }}</option>
+                                        {% endfor %}
+                                        <option value="custom">Autre...</option>
+                                    </select>
+                                    {% else %}
+                                    <input type="text" 
+                                           name="poste" 
+                                           class="form-input" 
+                                           required
+                                           placeholder="Ex: Réceptionniste">
+                                    {% endif %}
+                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                </div>
+                                <div class="custom-poste" id="custom-poste" style="display: none; margin-top: 1rem;">
+                                    <input type="text" 
+                                           name="poste_custom" 
+                                           class="form-input" 
+                                           placeholder="Saisir le nom du poste">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required">
+                                    <i class="fas fa-money-bill-wave"></i> Salaire (€)
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input type="number" 
+                                           name="salaire" 
+                                           class="form-input" 
+                                           required
+                                           placeholder="0.00"
+                                           step="0.01"
+                                           min="0"
+                                           id="salaire">
+                                </div>
+                                <div class="input-hint">
+                                    <i class="fas fa-calculator"></i>
+                                    Salaire mensuel brut
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required">
+                                    <i class="fas fa-calendar-day"></i> Date d'embauche
+                                </label>
+                                <input type="date" 
+                                       name="date_embauche" 
+                                       class="form-input" 
+                                       required
+                                       id="date-embauche">
+                                <div class="input-hint">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Date de début de contrat
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required">
+                                    <i class="fas fa-user-check"></i> Statut
+                                </label>
+                                <div class="status-selector">
+                                    <div class="status-option">
+                                        <input type="radio" 
+                                               name="statut_employe" 
+                                               value="actif" 
+                                               id="statut-actif"
+                                               checked>
+                                        <label for="statut-actif" class="status-label status-active">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Actif</span>
+                                        </label>
+                                    </div>
+                                    <div class="status-option">
+                                        <input type="radio" 
+                                               name="statut_employe" 
+                                               value="conge" 
+                                               id="statut-conge">
+                                        <label for="statut-conge" class="status-label status-leave">
+                                            <i class="fas fa-umbrella-beach"></i>
+                                            <span>En congé</span>
+                                        </label>
+                                    </div>
+                                    <div class="status-option">
+                                        <input type="radio" 
+                                               name="statut_employe" 
+                                               value="renvoye" 
+                                               id="statut-renvoye">
+                                        <label for="statut-renvoye" class="status-label status-dismissed">
+                                            <i class="fas fa-user-times"></i>
+                                            <span>Renvoyé</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section Permissions et accès -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-shield-alt"></i>
+                            <h3>Permissions système</h3>
+                            <span class="section-badge security-badge">
+                                <i class="fas fa-lock"></i> Sécurité
+                            </span>
+                        </div>
+                        
+                        <div class="permissions-grid">
+                            <div class="permission-item">
+                                <input type="checkbox" 
+                                       name="permission_reception" 
+                                       id="permission-reception"
+                                       checked>
+                                <label for="permission-reception">
+                                    <div class="permission-icon">
+                                        <i class="fas fa-concierge-bell"></i>
+                                    </div>
+                                    <div class="permission-content">
+                                        <h4>Réception</h4>
+                                        <p>Gestion des réservations et des clients</p>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div class="permission-item">
+                                <input type="checkbox" 
+                                       name="permission_chambres" 
+                                       id="permission-chambres"
+                                       checked>
+                                <label for="permission-chambres">
+                                    <div class="permission-icon">
+                                        <i class="fas fa-bed"></i>
+                                    </div>
+                                    <div class="permission-content">
+                                        <h4>Gestion des chambres</h4>
+                                        <p>Modification et maintenance des chambres</p>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div class="permission-item">
+                                <input type="checkbox" 
+                                       name="permission_facturation" 
+                                       id="permission-facturation">
+                                <label for="permission-facturation">
+                                    <div class="permission-icon">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                    </div>
+                                    <div class="permission-content">
+                                        <h4>Facturation</h4>
+                                        <p>Création et gestion des factures</p>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div class="permission-item">
+                                <input type="checkbox" 
+                                       name="permission_rapports" 
+                                       id="permission-rapports">
+                                <label for="permission-rapports">
+                                    <div class="permission-icon">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <div class="permission-content">
+                                        <h4>Rapports</h4>
+                                        <p>Accès aux statistiques et analyses</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section Informations supplémentaires -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="fas fa-info-circle"></i>
+                            <h3>Informations supplémentaires</h3>
+                            <span class="section-badge optional-badge">Optionnel</span>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-phone"></i> Téléphone professionnel
+                                </label>
+                                <input type="tel" 
+                                       name="telephone" 
+                                       class="form-input" 
+                                       placeholder="+33 1 23 45 67 89">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-clock"></i> Horaires de travail
+                                </label>
+                                <select name="horaires" class="form-input select-input">
+                                    <option value="">Sélectionner les horaires</option>
+                                    <option value="jour">Jour (8h-18h)</option>
+                                    <option value="nuit">Nuit (20h-6h)</option>
+                                    <option value="mixte">Mixte (rotations)</option>
+                                    <option value="flexible">Flexible</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label class="form-label">
+                                    <i class="fas fa-sticky-note"></i> Notes
+                                </label>
+                                <textarea name="notes" 
+                                          class="form-input textarea-input" 
+                                          rows="3"
+                                          placeholder="Notes supplémentaires, informations importantes..."></textarea>
+                                <div class="textarea-counter">
+                                    <span id="notes-counter">0</span> caractères
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions du formulaire -->
+                <div class="form-actions">
+                    <div class="form-summary">
+                        <div class="summary-item">
+                            <i class="fas fa-id-badge"></i>
+                            <div class="summary-content">
+                                <div class="summary-label">Identifiant</div>
+                                <div class="summary-value" id="summary-username">-</div>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <i class="fas fa-user-tag"></i>
+                            <div class="summary-content">
+                                <div class="summary-label">Poste</div>
+                                <div class="summary-value" id="summary-poste">-</div>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <div class="summary-content">
+                                <div class="summary-label">Salaire</div>
+                                <div class="summary-value" id="summary-salaire">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="#" onclick="history.back()" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                            <span>Annuler</span>
+                        </a>
+                        
+                        <button type="submit" class="btn btn-primary" id="submit-button">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Créer l'employé</span>
+                            <div class="button-loader" id="button-loader">
+                                <div class="loader-spinner"></div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour le formulaire employé */
+    .employee-form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .form-wrapper {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        color: white;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .header-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .header-content h1 {
+        margin: 0 0 0.3rem 0;
+        font-size: 1.8rem;
+        color: white;
+    }
+    
+    .header-subtitle {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    /* Form body */
+    .form-body {
+        padding: 2rem;
+    }
+    
+    .form-sections {
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        transition: var(--transition);
+    }
+    
+    .form-section:hover {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .section-header h3 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.2rem;
+        flex: 1;
+    }
+    
+    .section-header i {
+        color: var(--secondary-blue);
+        font-size: 1.2rem;
+    }
+    
+    .section-badge {
+        background: var(--secondary-blue);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .required-badge {
+        background: var(--danger-red);
+    }
+    
+    .security-badge {
+        background: var(--success-green);
+    }
+    
+    .optional-badge {
+        background: var(--text-light);
+    }
+    
+    /* Form grids */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-label.required:after {
+        content: "*";
+        color: var(--danger-red);
+        margin-left: 0.2rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        background: white;
+        font-family: inherit;
+    }
+    
+    .form-input:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    
+    .select-wrapper {
+        position: relative;
+    }
+    
+    .select-input {
+        appearance: none;
+        cursor: pointer;
+    }
+    
+    .select-arrow {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+        pointer-events: none;
+    }
+    
+    .input-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-group-text {
+        background: #f8f9fa;
+        border: 2px solid #dee2e6;
+        border-right: none;
+        padding: 0.9rem 0.8rem;
+        border-radius: 8px 0 0 8px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .input-group .form-input {
+        border-radius: 0 8px 8px 0;
+    }
+    
+    /* Password field */
+    .password-wrapper {
+        position: relative;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        padding: 0.5rem;
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .password-toggle:hover {
+        color: var(--secondary-blue);
+    }
+    
+    .password-strength {
+        margin-top: 0.8rem;
+    }
+    
+    .strength-bar {
+        display: flex;
+        gap: 4px;
+        margin: 0.5rem 0;
+    }
+    
+    .strength-segment {
+        flex: 1;
+        height: 6px;
+        background: #e0e0e0;
+        border-radius: 3px;
+        transition: var(--transition);
+    }
+    
+    .strength-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: right;
+    }
+    
+    .password-requirements {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .password-requirements h5 {
+        margin: 0 0 0.8rem 0;
+        color: var(--primary-blue);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .password-requirements ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    .password-requirements li {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+    }
+    
+    .password-requirements li.requirement-met {
+        color: var(--success-green);
+    }
+    
+    .password-requirements li.requirement-met i {
+        color: var(--success-green);
+    }
+    
+    /* Status selector */
+    .status-selector {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+        margin-top: 0.5rem;
+    }
+    
+    .status-option input {
+        display: none;
+    }
+    
+    .status-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+    }
+    
+    .status-label i {
+        font-size: 1.5rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .status-label span {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .status-active {
+        color: var(--success-green);
+        border-color: rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-leave {
+        color: var(--warning-orange);
+        border-color: rgba(243, 156, 18, 0.3);
+    }
+    
+    .status-dismissed {
+        color: var(--danger-red);
+        border-color: rgba(231, 76, 60, 0.3);
+    }
+    
+    .status-option input:checked + .status-label {
+        background: rgba(52, 152, 219, 0.1);
+        border-color: var(--secondary-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+    }
+    
+    /* Permissions grid */
+    .permissions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .permission-item input {
+        display: none;
+    }
+    
+    .permission-item label {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .permission-item input:checked + label {
+        border-color: var(--secondary-blue);
+        background: rgba(52, 152, 219, 0.05);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(52, 152, 219, 0.1);
+    }
+    
+    .permission-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .permission-content h4 {
+        margin: 0 0 0.3rem 0;
+        color: var(--primary-blue);
+        font-size: 1rem;
+    }
+    
+    .permission-content p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    /* Textarea */
+    .textarea-input {
+        resize: vertical;
+        min-height: 100px;
+        max-height: 200px;
+    }
+    
+    .textarea-counter {
+        text-align: right;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-top: 0.3rem;
+    }
+    
+    /* Form actions */
+    .form-actions {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .form-summary {
+        display: flex;
+        justify-content: space-around;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .summary-item i {
+        font-size: 1.5rem;
+        color: var(--secondary-blue);
+    }
+    
+    .summary-label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-bottom: 0.3rem;
+    }
+    
+    .summary-value {
+        font-weight: 600;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+        min-height: 1.2em;
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.9rem 1.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        position: relative;
+    }
+    
+    .btn-secondary {
+        background: #f8f9fa;
+        color: var(--text-dark);
+        border: 2px solid #dee2e6;
+    }
+    
+    .btn-secondary:hover {
+        background: #e9ecef;
+        color: var(--primary-blue);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        color: white;
+        min-width: 180px;
+        justify-content: center;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, var(--accent-blue), #2980b9);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+    
+    .button-loader {
+        display: none;
+        margin-left: 0.5rem;
+    }
+    
+    .loader-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Input validation */
+    .input-hint {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .input-validation {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--success-green);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    
+    .input-validation.valid {
+        opacity: 1;
+    }
+    
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .form-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .header-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .form-body {
+            padding: 1.5rem;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .status-selector {
+            grid-template-columns: 1fr;
+        }
+        
+        .permissions-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-summary {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .password-requirements ul {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('employeeForm');
+        const submitButton = document.getElementById('submit-button');
+        const buttonLoader = document.getElementById('button-loader');
+        
+        // Toggle password visibility
+        const passwordToggle = document.getElementById('password-toggle');
+        const passwordInput = document.getElementById('password');
+        
+        passwordToggle.addEventListener('click', function() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+        
+        // Password strength checker
+        const strengthSegments = document.querySelectorAll('.strength-segment');
+        const strengthText = document.getElementById('strength-text');
+        const requirements = {
+            length: document.getElementById('req-length'),
+            number: document.getElementById('req-number'),
+            upper: document.getElementById('req-upper'),
+            lower: document.getElementById('req-lower')
+        };
+        
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            
+            // Reset requirements
+            Object.values(requirements).forEach(req => {
+                req.classList.remove('requirement-met');
+                req.querySelector('i').classList.remove('fa-check-circle');
+                req.querySelector('i').classList.add('fa-circle');
+            });
+            
+            // Length requirement
+            if (password.length >= 8) {
+                strength++;
+                requirements.length.classList.add('requirement-met');
+                requirements.length.querySelector('i').classList.remove('fa-circle');
+                requirements.length.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Number requirement
+            if (/\d/.test(password)) {
+                strength++;
+                requirements.number.classList.add('requirement-met');
+                requirements.number.querySelector('i').classList.remove('fa-circle');
+                requirements.number.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Uppercase requirement
+            if (/[A-Z]/.test(password)) {
+                strength++;
+                requirements.upper.classList.add('requirement-met');
+                requirements.upper.querySelector('i').classList.remove('fa-circle');
+                requirements.upper.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Lowercase requirement
+            if (/[a-z]/.test(password)) {
+                strength++;
+                requirements.lower.classList.add('requirement-met');
+                requirements.lower.querySelector('i').classList.remove('fa-circle');
+                requirements.lower.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Update strength bar
+            strengthSegments.forEach((segment, index) => {
+                segment.style.background = index < strength ? getStrengthColor(strength) : '#e0e0e0';
+            });
+            
+            // Update strength text
+            const strengthLabels = ['Très faible', 'Faible', 'Moyen', 'Fort', 'Très fort'];
+            strengthText.textContent = password.length === 0 ? 'Non défini' : strengthLabels[strength];
+            strengthText.style.color = getStrengthColor(strength);
+        }
+        
+        function getStrengthColor(strength) {
+            switch(strength) {
+                case 0:
+                    return '#95a5a6'; // Grey
+                case 1:
+                    return '#e74c3c'; // Red
+                case 2:
+                    return '#f39c12'; // Orange
+                case 3:
+                    return '#f1c40f'; // Yellow
+                case 4:
+                    return '#2ecc71'; // Green
+                default:
+                    return '#e0e0e0';
+            }
+        }
+        
+        passwordInput.addEventListener('input', function(e) {
+            checkPasswordStrength(e.target.value);
+        });
+        
+        // Email validation
+        const emailInput = document.getElementById('email');
+        const emailValidation = document.getElementById('email-validation');
+        
+        emailInput.addEventListener('input', function() {
+            const email = this.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (email === '') {
+                emailValidation.classList.remove('valid');
+            } else if (emailRegex.test(email)) {
+                emailValidation.classList.add('valid');
+            } else {
+                emailValidation.classList.remove('valid');
+            }
+        });
+        
+        // Username validation
+        const usernameInput = document.getElementById('username');
+        const usernameValidation = document.getElementById('username-validation');
+        
+        // Simulate username availability check
+        usernameInput.addEventListener('blur', function() {
+            if (this.value.trim().length >= 3) {
+                // In a real app, this would be an AJAX call
+                setTimeout(() => {
+                    usernameValidation.classList.add('valid');
+                }, 300);
+            } else {
+                usernameValidation.classList.remove('valid');
+            }
+        });
+        
+        // Custom poste input
+        const posteSelect = document.querySelector('select[name="poste"]');
+        const customPosteDiv = document.getElementById('custom-poste');
+        const customPosteInput = document.querySelector('input[name="poste_custom"]');
+        
+        if (posteSelect) {
+            posteSelect.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customPosteDiv.style.display = 'block';
+                    customPosteInput.required = true;
+                } else {
+                    customPosteDiv.style.display = 'none';
+                    customPosteInput.required = false;
+                }
+            });
+        }
+        
+        // Notes character counter
+        const notesTextarea = document.querySelector('textarea[name="notes"]');
+        const notesCounter = document.getElementById('notes-counter');
+        
+        if (notesTextarea) {
+            notesTextarea.addEventListener('input', function() {
+                notesCounter.textContent = this.value.length;
+            });
+            notesCounter.textContent = notesTextarea.value.length;
+        }
+        
+        // Form summary updates
+        const summaryUsername = document.getElementById('summary-username');
+        const summaryPoste = document.getElementById('summary-poste');
+        const summarySalaire = document.getElementById('summary-salaire');
+        
+        usernameInput.addEventListener('input', function() {
+            summaryUsername.textContent = this.value || '-';
+        });
+        
+        if (posteSelect) {
+            posteSelect.addEventListener('change', function() {
+                if (this.value === 'custom' && customPosteInput) {
+                    customPosteInput.addEventListener('input', function() {
+                        summaryPoste.textContent = this.value || '-';
+                    });
+                } else {
+                    summaryPoste.textContent = this.options[this.selectedIndex].text || '-';
+                }
+            });
+        }
+        
+        const salaireInput = document.getElementById('salaire');
+        salaireInput.addEventListener('input', function() {
+            if (this.value) {
+                summarySalaire.textContent = parseFloat(this.value).toFixed(2) + ' €';
+            } else {
+                summarySalaire.textContent = '-';
+            }
+        });
+        
+        // Set default date to today
+        const dateEmbaucheInput = document.getElementById('date-embauche');
+        if (dateEmbaucheInput && !dateEmbaucheInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateEmbaucheInput.value = today;
+        }
+        
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            // Show loading state
+            submitButton.disabled = true;
+            buttonLoader.style.display = 'block';
+            
+            // Validate required fields
+            const requiredInputs = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.style.borderColor = 'var(--danger-red)';
+                } else {
+                    input.style.borderColor = '';
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Veuillez remplir tous les champs obligatoires.');
+                submitButton.disabled = false;
+                buttonLoader.style.display = 'none';
+                return;
+            }
+            
+            // Validate password strength
+            if (passwordInput.value.length < 8) {
+                e.preventDefault();
+                alert('Le mot de passe doit contenir au moins 8 caractères.');
+                submitButton.disabled = false;
+                buttonLoader.style.display = 'none';
+                return;
+            }
+            
+            // Validate custom poste
+            if (posteSelect && posteSelect.value === 'custom' && (!customPosteInput || !customPosteInput.value.trim())) {
+                e.preventDefault();
+                alert('Veuillez saisir le nom du poste.');
+                submitButton.disabled = false;
+                buttonLoader.style.display = 'none';
+                return;
+            }
+        });
+        
+        // Initialize summary
+        summaryUsername.textContent = usernameInput.value || '-';
+        if (posteSelect) {
+            summaryPoste.textContent = posteSelect.options[posteSelect.selectedIndex].text || '-';
+        }
+        summarySalaire.textContent = salaireInput.value ? parseFloat(salaireInput.value).toFixed(2) + ' €' : '-';
+    });
+</script>
+{% endblock %}

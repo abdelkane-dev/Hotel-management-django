@@ -1,0 +1,374 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Promouvoir - {{ employee.username }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-tie"></i>
+<span>Promouvoir un employé</span>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-user-plus me-2"></i>Modifier le poste de {{ employee.username }}</h2>
+    </div>
+    
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Vous êtes sur le point de modifier le poste et les responsabilités de cet employé.
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <form method="post" class="modern-form">
+                    {% csrf_token %}
+                    
+                    <!-- Informations actuelles -->
+                    <div class="info-card mb-4">
+                        <h4 class="mb-3"><i class="fas fa-user me-2"></i>Informations actuelles</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Nom complet</label>
+                                    <div class="info-value">
+                                        {% if employee.get_full_name %}
+                                            {{ employee.get_full_name }}
+                                        {% else %}
+                                            {{ employee.username }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Poste actuel</label>
+                                    <div class="info-value">
+                                        {{ profile.poste|default:"Non défini" }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <div class="info-value">
+                                        {{ employee.email|default:"Non défini" }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Date d'embauche</label>
+                                    <div class="info-value">
+                                        {{ employee.date_joined|date:"d/m/Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulaire de modification -->
+                    <div class="form-section">
+                        <h4 class="mb-3"><i class="fas fa-edit me-2"></i>Nouvelle affectation</h4>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Nouveau poste <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-briefcase"></i>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    name="poste" 
+                                    value="{{ profile.poste|default_if_none:'' }}" 
+                                    class="form-control" 
+                                    placeholder="Ex: Réceptionniste, Gestionnaire, Directeur..." 
+                                    required
+                                >
+                            </div>
+                            <div class="form-text">
+                                Définissez clairement le nouveau poste et les responsabilités associées.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Note / commentaire</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-comment-alt"></i>
+                                </span>
+                                <textarea 
+                                    name="note" 
+                                    class="form-control" 
+                                    rows="4"
+                                    placeholder="Explication du changement, nouvelles responsabilités, objectifs..."
+                                >{{ profile.note|default:'' }}</textarea>
+                            </div>
+                            <div class="form-text">
+                                Cette note sera enregistrée dans l'historique de l'employé.
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <a href="{% url 'employee_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Panel d'information -->
+                <div class="info-panel">
+                    <h4><i class="fas fa-lightbulb me-2"></i>Conseils</h4>
+                    <ul class="tip-list">
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Communication :</strong> Informez l'employé avant de procéder au changement.
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Clarté :</strong> Définissez clairement les nouvelles responsabilités.
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Suivi :</strong> Planifiez un suivi après le changement de poste.
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Formation :</strong> Prévoir une formation si nécessaire.
+                        </li>
+                    </ul>
+                    
+                    <!-- Statut employé -->
+                    <div class="status-card mt-4">
+                        <h5><i class="fas fa-chart-line me-2"></i>Statut actuel</h5>
+                        <div class="status-indicators">
+                            <div class="status-item">
+                                <span class="status-label">Type de compte :</span>
+                                <span class="status-value">
+                                    {% if employee.is_superuser %}
+                                        <span class="badge bg-purple">Administrateur</span>
+                                    {% elif employee.is_staff %}
+                                        <span class="badge bg-primary">Staff</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Standard</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Dernière connexion :</span>
+                                <span class="status-value">
+                                    {% if employee.last_login %}
+                                        {{ employee.last_login|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        Jamais
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Actif :</span>
+                                <span class="status-value">
+                                    {% if employee.is_active %}
+                                        <span class="badge bg-success">Oui</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Non</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modern-form {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 1px solid var(--light-blue);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-control {
+        border: 1px solid var(--light-blue);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        transition: var(--transition);
+    }
+    
+    .form-control:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .input-group {
+        margin-bottom: 1rem;
+    }
+    
+    .input-group-text {
+        background-color: var(--light-blue);
+        border: 1px solid var(--light-blue);
+        color: var(--primary-blue);
+    }
+    
+    .form-text {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+    
+    .info-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid var(--secondary-blue);
+    }
+    
+    .info-value {
+        background: var(--white);
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--light-blue);
+        font-weight: 500;
+    }
+    
+    .form-section {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(41, 128, 185, 0.05));
+        border-radius: 10px;
+        border: 1px solid rgba(52, 152, 219, 0.1);
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--light-blue);
+    }
+    
+    .info-panel {
+        background: linear-gradient(135deg, var(--white), #f8f9fa);
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 1px solid var(--light-blue);
+        box-shadow: var(--shadow);
+    }
+    
+    .tip-list {
+        padding-left: 0;
+    }
+    
+    .tip-list li {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(39, 174, 96, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid var(--success-green);
+    }
+    
+    .status-card {
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+    }
+    
+    .status-indicators {
+        margin-top: 1rem;
+    }
+    
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .status-item:last-child {
+        border-bottom: none;
+    }
+    
+    .status-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+    
+    .status-value {
+        font-weight: 600;
+    }
+    
+    .badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        border-radius: 4px;
+    }
+    
+    .bg-purple {
+        background-color: var(--purple);
+    }
+    
+    .bg-primary {
+        background-color: var(--secondary-blue);
+    }
+    
+    .bg-success {
+        background-color: var(--success-green);
+    }
+    
+    .bg-danger {
+        background-color: var(--danger-red);
+    }
+    
+    .bg-secondary {
+        background-color: var(--text-light);
+    }
+    
+    h4 {
+        color: var(--primary-blue);
+        margin-bottom: 1rem;
+    }
+    
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -0.75rem;
+    }
+    
+    .col-md-6, .col-md-8, .col-md-4 {
+        padding: 0 0.75rem;
+    }
+    
+    @media (max-width: 768px) {
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+        
+        .col-md-6, .col-md-8, .col-md-4 {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}

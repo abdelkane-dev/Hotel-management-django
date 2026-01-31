@@ -1,0 +1,398 @@
+{% extends 'hotel/base.html' %}
+{% load static %}
+
+{% block title %}{{ article.nom }} - Détail - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Fil d'Ariane -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'inventory_list' %}">Inventaire</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ article.nom }}</li>
+        </ol>
+    </nav>
+
+    <!-- En-tête avec actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2 text-gray-800">
+                <i class="fas fa-box me-2"></i>{{ article.nom }}
+            </h1>
+            <small class="text-muted">Référence: {{ article.reference }}</small>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" onclick="showMovementModal()">
+                <i class="fas fa-exchange-alt"></i> Nouveau mouvement
+            </button>            {% if user.is_staff %}
+            <button class="btn btn-primary" onclick="createInventoryCharge({{ article.pk }}, '{{ article.nom|escapejs }}')">
+                <i class="fas fa-receipt"></i> Créer charge
+            </button>
+            {% endif %}            <a href="{% url 'inventory_edit' article.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            {% if user.is_superuser %}
+                <button class="btn btn-danger" onclick="confirmDelete('{{ article.pk }}', '{{ article.nom|escapejs }}')">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Cartes d'information -->
+    <div class="row mb-4">
+        <!-- Carte principale -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Informations générales
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="text-muted fw-bold">Référence:</td>
+                                    <td><span class="badge bg-secondary">{{ article.reference }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Catégorie:</td>
+                                    <td><span class="badge bg-info">{{ article.categorie.nom }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">État:</td>
+                                    <td>
+                                        {% if article.etat == 'neuf' %}
+                                            <span class="badge bg-success">Neuf</span>
+                                        {% elif article.etat == 'bon' %}
+                                            <span class="badge bg-primary">Bon état</span>
+                                        {% elif article.etat == 'use' %}
+                                            <span class="badge bg-warning">Usé</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Hors service</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="text-muted fw-bold">Localisation:</td>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt text-muted"></i>
+                                        {{ article.get_localisation_principale_display }}
+                                        {% if article.localisation_detail %}
+                                            <br><small>{{ article.localisation_detail }}</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Date d'ajout:</td>
+                                    <td>{{ article.date_ajout|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-bold">Dernière MAJ:</td>
+                                    <td>{{ article.derniere_maj|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    {% if article.description %}
+                        <div class="mt-3">
+                            <h6 class="text-muted">Description</h6>
+                            <p class="text-gray-700">{{ article.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte de stock -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-2"></i>État des stocks
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Statut actuel -->
+                    <div class="text-center mb-4">
+                        {% if article.statut_stock == 'epuise' %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle fa-2x mb-2"></i>
+                                <h5>Stock épuisé</h5>
+                                <p class="mb-0">Cet article n'est plus disponible</p>
+                            </div>
+                        {% elif article.statut_stock == 'alerte' %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                <h5>Stock en alerte</h5>
+                                <p class="mb-0">Seuil d'alerte dépassé</p>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                <h5>Stock normal</h5>
+                                <p class="mb-0">Disponibilité satisfaisante</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Quantités -->
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="border-end">
+                                <h4 class="text-primary">{{ article.quantite_totale }}</h4>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border-end">
+                                <h4 class="text-success">{{ article.quantite_disponible }}</h4>
+                                <small class="text-muted">Disponible</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning">{{ article.quantite_utilisee }}</h4>
+                            <small class="text-muted">Utilisé</small>
+                        </div>
+                    </div>
+
+                    <!-- Seuil d'alerte -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Seuil d'alerte:</small>
+                            <span class="badge bg-info">{{ article.seuil_alerte }}</span>
+                        </div>
+                        <div class="progress mt-2" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historique des mouvements -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-history me-2"></i>Historique des mouvements
+            </h6>
+            <span class="badge bg-secondary">{{ mouvements|length }} mouvements</span>
+        </div>
+        <div class="card-body">
+            {% if mouvements %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Quantité</th>
+                                <th>Effectué par</th>
+                                <th>Localisation</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mouvement in mouvements %}
+                                <tr>
+                                    <td>
+                                        <small>{{ mouvement.date_mouvement|date:"d/m/Y H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if mouvement.type_mouvement == 'entree' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-arrow-down"></i> Entrée
+                                            </span>
+                                        {% elif mouvement.type_mouvement == 'sortie' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-arrow-up"></i> Sortie
+                                            </span>
+                                        {% elif mouvement.type_mouvement == 'affectation' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-share"></i> Affectation
+                                            </span>
+                                        {% elif mouvement.type_mouvement == 'retour' %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-undo"></i> Retour
+                                            </span>
+                                        {% elif mouvement.type_mouvement == 'perte' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation"></i> Perte
+                                            </span>
+                                        {% elif mouvement.type_mouvement == 'casse' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-broken"></i> Casse
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-adjust"></i> Ajustement
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold">{{ mouvement.quantite }}</td>
+                                    <td>
+                                        {% if mouvement.effectue_par %}
+                                            {{ mouvement.effectue_par.get_full_name|default:mouvement.effectue_par.username }}
+                                        {% else %}
+                                            <span class="text-muted">Système</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if mouvement.chambre %}
+                                            <small>
+                                                <i class="fas fa-door-open"></i>
+                                                Chambre {{ mouvement.chambre.numero }}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if mouvement.notes %}
+                                            <small>{{ mouvement.notes|truncatechars:50 }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Aucun mouvement enregistré</h5>
+                    <p class="text-muted">Les mouvements de stock apparaîtront ici</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Mouvement -->
+<div class="modal fade" id="movementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nouveau Mouvement de Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="movementForm" method="post" action="{% url 'inventory_movement' %}">
+                {% csrf_token %}
+                <input type="hidden" name="article" value="{{ article.pk }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Type de mouvement</label>
+                        <select name="type_mouvement" class="form-select" required>
+                            <option value="entree">Entrée en stock</option>
+                            <option value="sortie">Sortie de stock</option>
+                            <option value="affectation">Affectation</option>
+                            <option value="retour">Retour en stock</option>
+                            <option value="perte">Perte/Vol</option>
+                            <option value="casse">Casse</option>
+                            <option value="ajustement">Ajustement</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantité</label>
+                        <input type="number" name="quantite" class="form-control" min="1" required>
+                        <small class="form-text text-muted">Disponible: {{ article.quantite_disponible }}</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showMovementModal() {
+    const modal = new bootstrap.Modal(document.getElementById('movementModal'));
+    modal.show();
+}
+
+function confirmDelete(id, name) {
+    if (confirm('Etes-vous sur de vouloir supprimer l article ' + name + ' ? Cette action est irreversible.')) {
+        window.location.href = '/inventory/' + id + '/delete/';
+    }
+}
+
+// Gestion du formulaire de mouvement
+document.getElementById('movementForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('{% url "inventory_movement" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
+            location.reload();
+        } else {
+            alert('Erreur: ' + (data.error || 'Échec'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur lors de l enregistrement du mouvement');
+    });
+});
+
+function createInventoryCharge(articleId, articleName) {
+    const montant = prompt('Montant HT pour la charge (en €) :', '0.00');
+    if (montant === null) return;
+    const fournisseur = prompt('Fournisseur (optionnel) :', '');
+    const description = 'Achat: ' + articleName;
+    const csrfElem = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    const csrfToken = csrfElem ? csrfElem.value : '';
+
+    fetch('{% url "billing_create_inventory_charge" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            libelle: 'Achat ' + articleName,
+            montant_ht: montant,
+            fournisseur: fournisseur,
+            description: description
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Charge créée avec succès');
+            window.location.href = '/billing/';
+        } else {
+            alert('Erreur: ' + (data.error || 'Échec'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur lors de la création de la charge');
+    });
+}
+
+</script>
+{% endblock %}

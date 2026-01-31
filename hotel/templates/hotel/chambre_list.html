@@ -1,0 +1,599 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Liste des chambres - Gestion Hôtel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-bed"></i>
+<span>Gestion des Chambres</span>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h2><i class="fas fa-list"></i> Liste des chambres</h2>
+        <a href="{% url 'chambre_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Ajouter une chambre
+        </a>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="card-body">
+        <div class="filter-card mb-4">
+            <h4 class="mb-3"><i class="fas fa-filter"></i> Filtres</h4>
+            <form method="get" class="filter-form">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Type de chambre</label>
+                        <div class="select-wrapper">
+                            <i class="fas fa-door-closed select-icon"></i>
+                            <select class="filter-select" name="type">
+                                <option value="">Tous les types</option>
+                                {% for value, label in types %}
+                                <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Statut</label>
+                        <div class="select-wrapper">
+                            <i class="fas fa-circle select-icon"></i>
+                            <select class="filter-select" name="statut">
+                                <option value="">Tous les statuts</option>
+                                {% for value, label in statuts %}
+                                <option value="{{ value }}" {% if statut_filter == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary filter-btn">
+                            <i class="fas fa-filter"></i> Appliquer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Liste des chambres -->
+        <div class="chambre-grid">
+            {% if chambres %}
+                {% for chambre in chambres %}
+                <div class="chambre-card">
+                    <div class="chambre-card-header">
+                        <div class="chambre-number">
+                            <i class="fas fa-hashtag"></i> {{ chambre.numero }}
+                        </div>
+                        <div class="chambre-status">
+                            {% if chambre.statut == 'libre' %}
+                                <span class="status-badge status-free">
+                                    <i class="fas fa-check-circle"></i> Libre
+                                </span>
+                            {% elif chambre.statut == 'occupee' %}
+                                <span class="status-badge status-occupied">
+                                    <i class="fas fa-user-clock"></i> Occupée
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-maintenance">
+                                    <i class="fas fa-tools"></i> Maintenance
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="chambre-image">
+                        {% if chambre.images.count %}
+                            <img src="{{ chambre.images.all.0.image.url }}" alt="Chambre {{ chambre.numero }}" />
+                            <div class="image-overlay">
+                                <span class="image-count">
+                                    <i class="fas fa-images"></i> {{ chambre.images.count }}
+                                </span>
+                            </div>
+                        {% else %}
+                            <div class="no-image">
+                                <i class="fas fa-image"></i>
+                                <span>Aucune image</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="chambre-info">
+                        <h3 class="chambre-type">
+                            <i class="fas fa-star"></i> {{ chambre.get_type_chambre_display }}
+                        </h3>
+                        
+                        <div class="chambre-details">
+                            <div class="detail-item">
+                                <i class="fas fa-euro-sign"></i>
+                                <div class="detail-content">
+                                    <span class="detail-label">Prix/nuit</span>
+                                    <span class="detail-value">{{ chambre.prix_par_nuit|floatformat:2 }} €</span>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <i class="fas fa-users"></i>
+                                <div class="detail-content">
+                                    <span class="detail-label">Capacité</span>
+                                    <span class="detail-value">{{ chambre.capacite }} personne(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chambre-equipements">
+                            <h4><i class="fas fa-cogs"></i> Équipements</h4>
+                            <div class="equipement-list">
+                                {% if chambre.climatisation %}
+                                <span class="equipement-item">
+                                    <i class="fas fa-wind"></i> Climatisation
+                                </span>
+                                {% endif %}
+                                {% if chambre.wifi %}
+                                <span class="equipement-item">
+                                    <i class="fas fa-wifi"></i> WiFi
+                                </span>
+                                {% endif %}
+                                {% if chambre.television %}
+                                <span class="equipement-item">
+                                    <i class="fas fa-tv"></i> Télévision
+                                </span>
+                                {% endif %}
+                                {% if chambre.minibar %}
+                                <span class="equipement-item">
+                                    <i class="fas fa-glass-cheers"></i> Minibar
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if chambre.description %}
+                        <div class="chambre-description">
+                            <p>{{ chambre.description|truncatewords:20 }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="chambre-actions">
+                        <a href="{% url 'chambre_update' chambre.pk %}" class="btn-action btn-edit">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <a href="{% url 'chambre_delete' chambre.pk %}" class="btn-action btn-delete">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-data">
+                    <i class="fas fa-bed fa-3x"></i>
+                    <h3>Aucune chambre trouvée</h3>
+                    <p>Créez votre première chambre en cliquant sur le bouton "Ajouter une chambre"</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if chambres %}
+        <div class="chambre-summary">
+            <div class="summary-item">
+                <i class="fas fa-bed"></i>
+                <span class="summary-count">{{ chambres.count }}</span>
+                <span class="summary-label">Chambre(s)</span>
+            </div>
+            <div class="summary-item">
+                <i class="fas fa-check-circle"></i>
+                <span class="summary-count">{{ chambres_libres_count|default:0 }}</span>
+                <span class="summary-label">Libre(s)</span>
+            </div>
+            <div class="summary-item">
+                <i class="fas fa-user-clock"></i>
+                <span class="summary-count">{{ chambres_occupees_count|default:0 }}</span>
+                <span class="summary-label">Occupée(s)</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour la page liste des chambres */
+    .filter-card {
+        background: var(--light-blue);
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .filter-card h4 {
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .filter-form {
+        width: 100%;
+    }
+    
+    .filter-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .filter-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .select-wrapper {
+        position: relative;
+    }
+    
+    .select-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--secondary-blue);
+        font-size: 0.9rem;
+        pointer-events: none;
+    }
+    
+    .filter-select {
+        width: 100%;
+        padding: 0.8rem 1rem 0.8rem 2.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        transition: var(--transition);
+        cursor: pointer;
+        appearance: none;
+    }
+    
+    .filter-select:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    
+    .filter-btn {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Grille des chambres */
+    .chambre-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .chambre-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+        border: 1px solid #eaeaea;
+    }
+    
+    .chambre-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .chambre-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        color: white;
+    }
+    
+    .chambre-number {
+        font-size: 1.2rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .status-free {
+        background: rgba(39, 174, 96, 0.2);
+        color: var(--success-green);
+    }
+    
+    .status-occupied {
+        background: rgba(243, 156, 18, 0.2);
+        color: var(--warning-orange);
+    }
+    
+    .status-maintenance {
+        background: rgba(231, 76, 60, 0.2);
+        color: var(--danger-red);
+    }
+    
+    .chambre-image {
+        height: 180px;
+        position: relative;
+        background: #f8f9fa;
+        overflow: hidden;
+    }
+    
+    .chambre-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .chambre-card:hover .chambre-image img {
+        transform: scale(1.05);
+    }
+    
+    .image-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+    }
+    
+    .no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-light);
+        gap: 0.5rem;
+    }
+    
+    .no-image i {
+        font-size: 2.5rem;
+        opacity: 0.5;
+    }
+    
+    .chambre-info {
+        padding: 1.5rem;
+    }
+    
+    .chambre-type {
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .chambre-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .detail-item i {
+        color: var(--secondary-blue);
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
+    }
+    
+    .detail-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-label {
+        font-size: 0.8rem;
+        color: var(--text-light);
+    }
+    
+    .detail-value {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .chambre-equipements {
+        margin-bottom: 1.5rem;
+    }
+    
+    .chambre-equipements h4 {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .equipement-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .equipement-item {
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--secondary-blue);
+        padding: 0.3rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .chambre-description {
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+    
+    .chambre-description p {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        line-height: 1.5;
+        margin: 0;
+    }
+    
+    .chambre-actions {
+        padding: 1rem 1.5rem;
+        background: #fafafa;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 0.8rem;
+    }
+    
+    .btn-action {
+        flex: 1;
+        text-align: center;
+        padding: 0.6rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-edit {
+        background: rgba(243, 156, 18, 0.1);
+        color: var(--warning-orange);
+    }
+    
+    .btn-edit:hover {
+        background: var(--warning-orange);
+        color: white;
+    }
+    
+    .btn-delete {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger-red);
+    }
+    
+    .btn-delete:hover {
+        background: var(--danger-red);
+        color: white;
+    }
+    
+    /* Message aucun résultat */
+    .no-data {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-light);
+    }
+    
+    .no-data i {
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+    
+    .no-data h3 {
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .no-data p {
+        opacity: 0.7;
+    }
+    
+    /* Résumé */
+    .chambre-summary {
+        display: flex;
+        justify-content: space-around;
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        margin-top: 2rem;
+    }
+    
+    .summary-item {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .summary-item i {
+        font-size: 1.5rem;
+        color: var(--secondary-blue);
+    }
+    
+    .summary-count {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+    
+    .summary-label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .filter-row {
+            flex-direction: column;
+        }
+        
+        .filter-group {
+            width: 100%;
+        }
+        
+        .chambre-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .chambre-details {
+            grid-template-columns: 1fr;
+        }
+        
+        .chambre-summary {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}

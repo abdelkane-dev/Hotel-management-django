@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation - Hôtel de Luxe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Variables CSS - Palette bleue */
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f9f9f9;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header et navigation */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: var(--white);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-weight: 500;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .btn-login {
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .btn-login:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--white);
+            margin-top: 80px;
+            padding: 2rem;
+        }
+
+        .page-header-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-header-content p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Section Réservation */
+        .booking-section {
+            padding: 4rem 0;
+            background: var(--white);
+        }
+
+        .booking-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        /* Formulaire */
+        .booking-form-container {
+            background: var(--light-blue);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .booking-form-container h2 {
+            color: var(--primary-blue);
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .booking-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--white);
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Bouton */
+        .btn {
+            display: inline-block;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        /* Résumé */
+        .booking-summary {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--light-blue);
+            position: sticky;
+            top: 120px;
+        }
+
+        .booking-summary h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .summary-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--light-blue);
+        }
+
+        .summary-item span:first-child {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .summary-item span:last-child {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            margin-top: 1rem;
+            border-top: 2px solid var(--primary-blue);
+            font-size: 1.2rem;
+        }
+
+        .summary-total span:first-child {
+            color: var(--primary-blue);
+            font-weight: 700;
+        }
+
+        .summary-total span:last-child {
+            color: var(--success-green);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        /* Services inclus */
+        .booking-features {
+            background: var(--light-blue);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 2rem;
+        }
+
+        .booking-features h4 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .booking-features ul {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .booking-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: var(--text-dark);
+        }
+
+        .booking-features i {
+            color: var(--success-green);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-blue);
+            color: var(--white);
+            padding: 4rem 0 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 0 5% 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--secondary-blue);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .footer-section p, .footer-section a {
+            color: var(--light-blue);
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .footer-section i {
+            margin-right: 10px;
+            color: var(--secondary-blue);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            color: var(--secondary-blue);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* Menu burger pour mobile */
+        .burger {
+            display: none;
+            cursor: pointer;
+        }
+
+        .burger div {
+            width: 25px;
+            height: 3px;
+            background-color: var(--primary-blue);
+            margin: 5px;
+            transition: var(--transition);
+        }
+
+        /* Animation du menu burger */
+        .toggle .line1 {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .toggle .line2 {
+            opacity: 0;
+        }
+
+        .toggle .line3 {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 1024px) {
+            .booking-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .booking-summary {
+                position: static;
+                order: -1;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                right: -100%;
+                top: 80px;
+                height: calc(100vh - 80px);
+                width: 50%;
+                background-color: var(--white);
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 2rem;
+                transition: var(--transition);
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .burger {
+                display: block;
+            }
+
+            .page-header-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .page-header-content p {
+                font-size: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .booking-form-container,
+            .booking-summary {
+                padding: 2rem;
+            }
+        }
+
+        /* Modal de confirmation */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            color: var(--success-green);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-content h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            color: var(--text-dark);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* Messages d'erreur/succès */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Chambres disponibles */
+        .rooms-available {
+            display: none;
+            margin-top: 2rem;
+            background: var(--light-blue);
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+
+        .rooms-available h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .rooms-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .room-option {
+            background: var(--white);
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .room-option:hover {
+            border-color: var(--secondary-blue);
+            transform: translateY(-2px);
+        }
+
+        .room-option.selected {
+            border-color: var(--success-green);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .room-info h4 {
+            color: var(--primary-blue);
+            margin-bottom: 0.3rem;
+        }
+
+        .room-price {
+            color: var(--success-green);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* Flatpickr custom */
+        .flatpickr-calendar {
+            box-shadow: var(--shadow);
+            border: 1px solid var(--light-blue);
+        }
+
+        .flatpickr-day.selected {
+            background: var(--secondary-blue);
+            border-color: var(--secondary-blue);
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: relative;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--secondary-blue);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--white);
+        }
+
+        .profile-trigger:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar i {
+            color: var(--secondary-blue);
+            font-size: 1rem;
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .profile-trigger i.fa-chevron-down {
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .profile-trigger.active i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: var(--transition);
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .profile-dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-blue);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-avatar-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--light-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-large i {
+            color: var(--secondary-blue);
+            font-size: 1.5rem;
+        }
+
+        .profile-info h4 {
+            color: var(--primary-blue);
+            margin: 0 0 0.3rem 0;
+            font-size: 1.1rem;
+        }
+
+        .profile-info p {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .profile-menu-items {
+            padding: 0.5rem;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .profile-menu-item:hover {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .profile-menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .profile-menu-item.logout {
+            color: var(--danger-red);
+        }
+
+        .profile-menu-item.logout:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger-red);
+        }
+
+        .profile-divider {
+            height: 1px;
+            background: var(--light-blue);
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Hôtel de Luxe</div>
+            <div class="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/client/dashboard">Accueil</a></li>
+                <li><a href="/client/chambres">Chambres</a></li>
+                <li><a href="/client/reservation" class="active">Réservation</a></li>
+                <li><a href="/client/contact">Contact</a></li>
+                <li class="profile-dropdown">
+                    <div class="profile-trigger" onclick="toggleProfileDropdown()">
+                        <div class="profile-avatar">
+                            {% if client.photo %}
+                                <img src="{{ client.photo.url }}" alt="Photo de profil">
+                            {% else %}
+                                <i class="fas fa-user"></i>
+                            {% endif %}
+                        </div>
+                        <span class="profile-name">
+                            {% if client %}{{ client.nom_complet|truncatewords:2 }}{% else %}{{ user.get_full_name|default:user.username|truncatewords:2 }}{% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="profile-header">
+                            <div class="profile-avatar-large">
+                                {% if client.photo %}
+                                    <img src="{{ client.photo.url }}" alt="Photo de profil">
+                                {% else %}
+                                    <i class="fas fa-user"></i>
+                                {% endif %}
+                            </div>
+                            <div class="profile-info">
+                                <h4>{% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}</h4>
+                                <p>{% if client %}{{ client.email|default:user.email }}{% else %}{{ user.email }}{% endif %}</p>
+                            </div>
+                        </div>
+                        <div class="profile-menu-items">
+                            <a href="/client/profile" class="profile-menu-item">
+                                <i class="fas fa-user-cog"></i>
+                                <span>Mon Profil</span>
+                            </a>
+                            <a href="/client/settings" class="profile-menu-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Paramètres</span>
+                            </a>
+                            <div class="profile-divider"></div>
+                            <a href="/logout" class="profile-menu-item logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Déconnexion</span>
+                            </a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="page-header-content">
+                <h1>Réserver une chambre</h1>
+                <p>Réservez votre séjour dans notre hôtel de luxe</p>
+            </div>
+        </section>
+
+        <section class="booking-section">
+            <div class="container">
+                <!-- Messages d'alerte -->
+                <div id="alert-message" class="alert" style="display: none;"></div>
+                
+                <div class="booking-container">
+                    <div class="booking-form-container">
+                        <h2>Vos informations de réservation</h2>
+                        <form id="booking-form" class="booking-form" method="POST" action="{% url 'reservation_create' %}">
+                            {% csrf_token %}
+                            
+                            <div class="form-group">
+                                <label for="check-in">Date d'arrivée</label>
+                                <input type="text" id="check-in" name="check-in" class="datepicker" placeholder="Sélectionnez une date" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="check-out">Date de départ</label>
+                                <input type="text" id="check-out" name="check-out" class="datepicker" placeholder="Sélectionnez une date" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="room-type">Type de chambre</label>
+                                <select id="room-type" name="room-type" required>
+                                    <option value="">Sélectionnez un type de chambre</option>
+                                    {% for type_code, type_name in types_chambre %}
+                                    <option value="{{ type_code }}">{{ type_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label for="adults">Adultes</label>
+                                    <select id="adults" name="adults" required>
+                                        <option value="1">1 Adulte</option>
+                                        <option value="2" selected>2 Adultes</option>
+                                        <option value="3">3 Adultes</option>
+                                        <option value="4">4 Adultes</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group half">
+                                    <label for="children">Enfants</label>
+                                    <select id="children" name="children">
+                                        <option value="0" selected>Aucun</option>
+                                        <option value="1">1 Enfant</option>
+                                        <option value="2">2 Enfants</option>
+                                        <option value="3">3 Enfants</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="special-requests">Demandes spéciales</label>
+                                <textarea id="special-requests" name="special-requests" rows="4" placeholder="Avez-vous des demandes particulières ?"></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-block">Vérifier la disponibilité</button>
+                        </form>
+
+                        <!-- Section chambres disponibles -->
+                        <div id="rooms-available" class="rooms-available">
+                            <h3>Chambres disponibles</h3>
+                            <div id="rooms-list" class="rooms-list">
+                                <!-- Les chambres seront chargées ici dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="booking-summary">
+                        <h3>Résumé de la réservation</h3>
+                        <div class="summary-details">
+                            <div class="summary-item">
+                                <span>Dates</span>
+                                <span id="summary-dates">Non spécifiées</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Durée</span>
+                                <span id="summary-nights">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Type de chambre</span>
+                                <span id="summary-room-type">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Occupants</span>
+                                <span id="summary-guests">-</span>
+                            </div>
+                            <div class="summary-total">
+                                <span>Total estimé</span>
+                                <span id="summary-total">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="booking-features">
+                            <h4>Nos services inclus</h4>
+                            <ul>
+                                <li><i class="fas fa-check"></i> Petit-déjeuner buffet inclus</li>
+                                <li><i class="fas fa-check"></i> Accès à la piscine</li>
+                                <li><i class="fas fa-check"></i> WiFi haut débit gratuit</li>
+                                <li><i class="fas fa-check"></i> Service de chambre 24h/24</li>
+                                <li><i class="fas fa-check"></i> Parking sécurisé</li>
+                                <li><i class="fas fa-check"></i> Accès au spa</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Chatbot (uniquement si connecté) -->
+    {% if user.is_authenticated %}
+    <div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button id="chatbot-toggle" class="pulse" title="Assistant IA" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #3498db, #2c3e50); color: white; border: none; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); cursor: pointer; font-size: 1.5rem;">
+            <i class="fas fa-robot"></i>
+        </button>
+        <div id="chatbot-box" style="position: fixed; bottom: 90px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 1001; overflow: hidden;">
+            <div id="chatbot-header" style="background: linear-gradient(135deg, #2c3e50, #1a2530); color: white; padding: 1.2rem 1.5rem; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-robot me-2"></i> Assistant IA</span>
+                <button id="chatbot-close" style="background: none; border: none; color: white; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chatbot-messages" style="flex: 1; padding: 1.5rem; overflow-y: auto; background-color: #fafafa;">
+                <div class="message bot" style="margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    Bonjour {% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %} ! 👋<br>
+                    Je suis votre assistant IA. Comment puis-je vous aider pour votre réservation ?
+                </div>
+            </div>
+            <div id="chatbot-input-container" style="padding: 1rem 1.5rem; border-top: 1px solid #ecf0f1; display: flex; gap: 0.8rem; background: white;">
+                <input type="text" id="chatbot-input" placeholder="Posez votre question..." style="flex: 1; border: 1px solid #ecf0f1; border-radius: 20px; padding: 0.8rem 1.2rem; font-size: 0.9rem; outline: none;">
+                <button id="chatbot-send" style="background: #3498db; color: white; border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modal de confirmation -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Réservation confirmée !</h2>
+            <p id="confirmation-message">
+                Votre réservation a été enregistrée avec succès. 
+                Un email de confirmation vous sera envoyé dans quelques instants.
+            </p>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeConfirmationModal()">
+                    <i class="fas fa-home"></i> Retour à l'accueil
+                </button>
+                <button class="btn" style="background: var(--primary-blue);" onclick="viewBookingDetails()">
+                    <i class="fas fa-eye"></i> Voir les détails
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p><i class="fas fa-map-marker-alt"></i> Faladjie, Bamako</p>
+                <p><i class="fas fa-phone"></i> +223 77 12 34 56</p>
+                <p><i class="fas fa-envelope"></i> contact@hotel-luxe.com</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Liens rapides</h3>
+                <ul>
+                    <li><a href="/client/dashboard">Accueil</a></li>
+                    <li><a href="/client/chambres">Nos chambres</a></li>
+                    <li><a href="/client/reservation">Réservation</a></li>
+                    <li><a href="/client/contact">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Suivez-nous</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-tripadvisor"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2024 Hôtel de Luxe. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    <script>
+                // Chatbot functionality
+                {% if user.is_authenticated %}
+                const chatbotToggle = document.getElementById('chatbot-toggle');
+                const chatbotBox = document.getElementById('chatbot-box');
+                const chatbotClose = document.getElementById('chatbot-close');
+                const chatbotInput = document.getElementById('chatbot-input');
+                const chatbotSend = document.getElementById('chatbot-send');
+                const chatbotMessages = document.getElementById('chatbot-messages');
+
+                // Ouvrir/Fermer le chatbot
+                chatbotToggle.addEventListener('click', () => {
+                    chatbotBox.classList.toggle('show');
+                    chatbotToggle.classList.remove('pulse');
+                    chatbotBox.style.display = chatbotBox.classList.contains('show') ? 'flex' : 'none';
+                    if (chatbotBox.classList.contains('show')) {
+                        chatbotInput.focus();
+                    }
+                });
+                chatbotClose.addEventListener('click', () => {
+                    chatbotBox.classList.remove('show');
+                    chatbotBox.style.display = 'none';
+                });
+                document.addEventListener('click', (e) => {
+                    if (chatbotBox && !chatbotBox.contains(e.target) && !chatbotToggle.contains(e.target)) {
+                        chatbotBox.classList.remove('show');
+                        chatbotBox.style.display = 'none';
+                    }
+                });
+                async function sendMessage() {
+                    const message = chatbotInput.value.trim();
+                    if (!message) return;
+                    const userMessageDiv = document.createElement('div');
+                    userMessageDiv.className = 'message user';
+                    userMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; margin-left: auto; border-radius: 12px 12px 0 12px;';
+                    userMessageDiv.textContent = message;
+                    chatbotMessages.appendChild(userMessageDiv);
+                    chatbotInput.value = '';
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.className = 'message bot';
+                    typingIndicator.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
+                    typingIndicator.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                    chatbotMessages.appendChild(typingIndicator);
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    try {
+                        const currentPath = window.location.pathname;
+                        let pageContext = 'client_reservation';
+                        const response = await fetch('{% url "chatbot_api" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({ 
+                                message: message,
+                                page_context: pageContext,
+                                user_type: 'client'
+                            })
+                        });
+                        const data = await response.json();
+                        typingIndicator.remove();
+                        const botMessageDiv = document.createElement('div');
+                        botMessageDiv.className = 'message bot';
+                        botMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        botMessageDiv.textContent = data.message;
+                        chatbotMessages.appendChild(botMessageDiv);
+                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'message bot';
+                        errorDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        errorDiv.textContent = 'Désolé, une erreur s\'est produite. Veuillez réessayer.';
+                        chatbotMessages.appendChild(errorDiv);
+                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    }
+                }
+                chatbotSend.addEventListener('click', sendMessage);
+                chatbotInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                {% endif %}
+        // Menu burger
+        const burger = document.querySelector('.burger');
+        const nav = document.querySelector('.nav-links');
+        
+        if (burger) {
+            burger.addEventListener('click', () => {
+                nav.classList.toggle('active');
+                burger.classList.toggle('toggle');
+            });
+        }
+
+        // Fermer le menu au clic sur un lien
+        if (nav) {
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    nav.classList.remove('active');
+                    if (burger) {
+                        burger.classList.remove('toggle');
+                    }
+                });
+            });
+        }
+
+        // Profile Dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            const trigger = document.querySelector('.profile-trigger');
+            
+            dropdown.classList.toggle('active');
+            trigger.classList.toggle('active');
+        }
+
+        // Fermer le dropdown profil uniquement si le clic est à l'extérieur du profil ET du chatbot
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const profileTrigger = document.querySelector('.profile-trigger');
+            const dropdown = document.getElementById('profileDropdown');
+            const chatbotContainer = document.getElementById('chatbot-container');
+            if (!profileDropdown.contains(event.target) && !(chatbotContainer && chatbotContainer.contains(event.target))) {
+                dropdown.classList.remove('active');
+                profileTrigger.classList.remove('active');
+            }
+        });
+
+        // Fermer le chatbot uniquement si le clic est à l'extérieur du chatbot ET du profil
+        document.addEventListener('click', function(event) {
+            const chatbotBox = document.getElementById('chatbot-box');
+            const chatbotToggle = document.getElementById('chatbot-toggle');
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            if (chatbotBox && chatbotBox.classList.contains('show')) {
+                if (!chatbotBox.contains(event.target) && !chatbotToggle.contains(event.target) && !(profileDropdown && profileDropdown.contains(event.target))) {
+                    chatbotBox.classList.remove('show');
+                    chatbotBox.style.display = 'none';
+                }
+            }
+        });
+
+        // Initialiser Flatpickr pour les dates
+        const today = new Date();
+        const tomorrow = new Date();
+        tomorrow.setDate(today.getDate() + 1);
+        
+        const checkInPicker = flatpickr("#check-in", {
+            locale: "fr",
+            dateFormat: "d/m/Y",
+            minDate: "today",
+            onChange: updateSummary
+        });
+
+        const checkOutPicker = flatpickr("#check-out", {
+            locale: "fr",
+            dateFormat: "d/m/Y",
+            minDate: "today",
+            onChange: updateSummary
+        });
+
+        // Mettre à jour le résumé
+        function updateSummary() {
+            const checkIn = document.getElementById('check-in').value;
+            const checkOut = document.getElementById('check-out').value;
+            const roomType = document.getElementById('room-type').value;
+            const adults = document.getElementById('adults').value;
+            const children = document.getElementById('children').value;
+            
+            // Mettre à jour les dates
+            if (checkIn && checkOut) {
+                document.getElementById('summary-dates').textContent = `${checkIn} - ${checkOut}`;
+                
+                // Calculer le nombre de nuits
+                const [dayIn, monthIn, yearIn] = checkIn.split('/').map(Number);
+                const [dayOut, monthOut, yearOut] = checkOut.split('/').map(Number);
+                const dateIn = new Date(yearIn, monthIn - 1, dayIn);
+                const dateOut = new Date(yearOut, monthOut - 1, dayOut);
+                const diffTime = Math.abs(dateOut - dateIn);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                document.getElementById('summary-nights').textContent = `${diffDays} nuit${diffDays > 1 ? 's' : ''}`;
+                
+                // Mettre à jour le total estimé
+                const pricePerNight = getRoomPrice(roomType);
+                if (pricePerNight) {
+                    const total = pricePerNight * diffDays;
+                    document.getElementById('summary-total').textContent = `${total.toFixed(2)} €`;
+                }
+            }
+            
+            // Mettre à jour le type de chambre
+            const roomTypeSelect = document.getElementById('room-type');
+            const selectedRoomType = roomTypeSelect.options[roomTypeSelect.selectedIndex].text;
+            if (roomType) {
+                document.getElementById('summary-room-type').textContent = selectedRoomType;
+            }
+            
+            // Mettre à jour les occupants
+            if (adults || children) {
+                let guestsText = `${adults} adulte${adults > 1 ? 's' : ''}`;
+                if (children > 0) {
+                    guestsText += `, ${children} enfant${children > 1 ? 's' : ''}`;
+                }
+                document.getElementById('summary-guests').textContent = guestsText;
+            }
+        }
+
+        // Prix par type de chambre
+        function getRoomPrice(roomType) {
+            const prices = {
+                'standard': 120,
+                'deluxe': 180,
+                'suite': 250,
+                'presidential': 450
+            };
+            
+            // Récupérer les prix réels depuis Django
+            // À remplacer par une requête AJAX ou les données du contexte
+            return prices[roomType] || 0;
+        }
+
+        // Écouter les changements dans le formulaire
+        document.getElementById('room-type').addEventListener('change', updateSummary);
+        document.getElementById('adults').addEventListener('change', updateSummary);
+        document.getElementById('children').addEventListener('change', updateSummary);
+
+        // Gestion du formulaire de réservation
+        document.getElementById('booking-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const checkIn = document.getElementById('check-in').value;
+            const checkOut = document.getElementById('check-out').value;
+            const roomType = document.getElementById('room-type').value;
+            const adults = document.getElementById('adults').value;
+            const children = document.getElementById('children').value;
+
+            // Validation basique
+            if (!checkIn || !checkOut || !roomType || !adults) {
+                showAlert('Veuillez remplir tous les champs obligatoires.', 'error');
+                return;
+            }
+
+            // Vérifier que la date de départ est après la date d'arrivée
+            const [dayIn, monthIn, yearIn] = checkIn.split('/').map(Number);
+            const [dayOut, monthOut, yearOut] = checkOut.split('/').map(Number);
+            const dateIn = new Date(yearIn, monthIn - 1, dayIn);
+            const dateOut = new Date(yearOut, monthOut - 1, dayOut);
+
+            if (dateOut <= dateIn) {
+                showAlert('La date de départ doit être après la date d\'arrivée.', 'error');
+                return;
+            }
+
+            showAlert('Vérification de la disponibilité en cours...', 'success');
+
+            // Appel AJAX vers Django pour récupérer les vraies chambres disponibles
+            try {
+                const response = await fetch('/api/chambres-disponibles/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        check_in: checkIn,
+                        check_out: checkOut,
+                        room_type: roomType,
+                        adults: adults,
+                        children: children
+                    })
+                });
+                if (!response.ok) {
+                    let errorMsg = 'Erreur lors de la récupération des chambres.';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData && errorData.error) {
+                            errorMsg += ' Détail : ' + errorData.error;
+                        }
+                    } catch (e) {}
+                    showAlert(errorMsg, 'error');
+                    return;
+                }
+                const availableRooms = await response.json();
+                console.log('Chambres reçues:', availableRooms); // Debug
+                displayAvailableRooms(availableRooms);
+                showAlert(`${availableRooms.length} chambres disponibles pour vos dates.`, 'success');
+            } catch (error) {
+                showAlert('Une erreur est survenue lors de la vérification de disponibilité.', 'error');
+            }
+        });
+
+        // Afficher les chambres disponibles
+        function displayAvailableRooms(rooms) {
+            console.log('displayAvailableRooms appelé avec:', rooms); // Debug
+            const roomsList = document.getElementById('rooms-list');
+            const roomsAvailable = document.getElementById('rooms-available');
+            
+            console.log('roomsList:', roomsList); // Debug
+            console.log('roomsAvailable:', roomsAvailable); // Debug
+            
+            if (!roomsList) {
+                console.error('rooms-list element not found!');
+                return;
+            }
+            
+            roomsList.innerHTML = '';
+            
+            // Afficher la section des chambres
+            if (roomsAvailable) {
+                roomsAvailable.style.display = 'block';
+            }
+            
+            if (!rooms || rooms.length === 0) {
+                roomsList.innerHTML = '<p>Aucune chambre disponible pour ces dates.</p>';
+                return;
+            }
+            rooms.forEach(room => {
+                console.log('Traitement chambre:', room); // Debug
+                let imageUrl = room.images && room.images.length > 0 ? `/media/${room.images[0]}` : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA4MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg2MFY0MEgyMFYyMFoiIGZpbGw9IiNEREREREQiLz4KPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iNSIgZmlsbD0iIzM0OThkYiIvPgo8L3N2Zz4=';
+                const imgTag = `<img src="${imageUrl}" alt="Chambre" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA4MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0yMCAyMEg2MFY0MEgyMFYyMFoiIGZpbGw9IiNEREREREQiLz4KPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iNSIgZmlsbD0iIzM0OThkYiIvPgo8L3N2Zz4='" style="width:80px;height:60px;border-radius:8px;object-fit:cover;">`;
+                const roomHtml = `
+                    <div class="room-option" data-room-id="${room.id}" style="border: 1px solid #ddd; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; cursor: pointer; background: white;">
+                        <div class="room-info" style="display: flex; gap: 1rem; align-items: center;">
+                            ${imgTag}
+                            <div>
+                                <h4 style="margin: 0; color: var(--primary-blue);">Chambre ${room.numero} - ${room.type_chambre}</h4>
+                                <p style="margin: 0.5rem 0; color: var(--text-light);">${room.description || ''}</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;">Capacité : ${room.capacite} personnes</p>
+                                <p style="margin: 0.25rem 0; font-size: 0.9rem;">Équipements : ${(room.equipements || []).join(', ')}</p>
+                            </div>
+                        </div>
+                        <div class="room-price" style="font-size: 1.2rem; font-weight: bold; color: var(--success-green); text-align: right;">
+                            ${room.prix_par_nuit} € / nuit
+                        </div>
+                    </div>
+                `;
+                roomsList.innerHTML += roomHtml;
+                console.log('Chambre ajoutée au DOM'); // Debug
+            });
+            
+            // Ajout de la sélection et du bouton de validation
+            const roomOptions = document.querySelectorAll('.room-option');
+            let selectedRoomId = null;
+            roomOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    roomOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedRoomId = this.getAttribute('data-room-id');
+                    showConfirmationButton(selectedRoomId);
+                });
+            });
+        }
+
+        function showConfirmationButton(roomId) {
+            let btn = document.getElementById('confirm-room-btn');
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.id = 'confirm-room-btn';
+                btn.className = 'btn btn-block';
+                btn.textContent = 'Valider la réservation';
+                document.getElementById('rooms-list').appendChild(btn);
+            }
+            btn.style.display = 'block';
+            btn.onclick = function() {
+                confirmReservation(roomId);
+            };
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function confirmReservation(roomId) {
+            console.log('Confirmation réservation pour chambre:', roomId); // Debug
+            
+            // Récupérer les données du formulaire
+            const checkIn = document.getElementById('check-in').value;
+            const checkOut = document.getElementById('check-out').value;
+            const adults = document.getElementById('adults').value;
+            const children = document.getElementById('children').value;
+            
+            if (!checkIn || !checkOut || !roomId) {
+                showAlert('Veuillez remplir tous les champs.', 'error');
+                return;
+            }
+            
+            showAlert('Création de votre réservation...', 'success');
+            
+            // Appel AJAX vers l'API Django pour créer la réservation réelle
+            fetch('/api/creer-reservation/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    chambre_id: roomId,
+                    check_in: checkIn,
+                    check_out: checkOut,
+                    adults: adults,
+                    children: children
+                })
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    let errorMsg = 'Erreur lors de la création de la réservation.';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData && errorData.error) {
+                            errorMsg += ' Détail : ' + errorData.error;
+                        }
+                    } catch (e) {}
+                    showAlert(errorMsg, 'error');
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Réservation créée:', data); // Debug
+                
+                if (data.success) {
+                    // Afficher le modal de confirmation avec les vraies données
+                    showConfirmationModal(data);
+                    
+                    // Réinitialiser le formulaire
+                    document.getElementById('booking-form').reset();
+                    document.getElementById('rooms-available').style.display = 'none';
+                    updateSummary();
+                    
+                    // Supprimer le bouton de confirmation
+                    const confirmButton = document.getElementById('confirm-room-btn');
+                    if (confirmButton) {
+                        confirmButton.remove();
+                    }
+                } else {
+                    showAlert('Erreur: ' + (data.error || 'Échec de la réservation'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Erreur lors de la création de la réservation', 'error');
+            });
+        }
+        
+        // Afficher le modal de confirmation avec les vraies données
+        function showConfirmationModal(reservationData) {
+            const modal = document.getElementById('confirmationModal');
+            const modalContent = modal.querySelector('.modal-content');
+            
+            modalContent.innerHTML = `
+                <div class="modal-header">
+                    <h3 style="color: var(--success-green);">
+                        <i class="fas fa-check-circle"></i> Réservation Confirmée !
+                    </h3>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="success-message">
+                        <i class="fas fa-check-circle fa-3x" style="color: var(--success-green); margin-bottom: 1rem;"></i>
+                        <h4>${reservationData.message}</h4>
+                        <div class="reservation-details" style="background: var(--light-blue); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <h5 style="margin-bottom: 0.5rem;">Détails de la réservation:</h5>
+                            <p><strong>Chambre:</strong> ${reservationData.details.chambre}</p>
+                            <p><strong>Dates:</strong> ${reservationData.details.dates}</p>
+                            <p><strong>Nuits:</strong> ${reservationData.details.nuits}</p>
+                            <p><strong>Total:</strong> ${reservationData.details.total}</p>
+                            <p><strong>Statut:</strong> <span style="color: var(--warning-orange);">En attente de confirmation</span></p>
+                        </div>
+                        <p style="margin-top: 1rem; color: var(--text-light);">
+                            Vous recevrez une confirmation par email dès que votre réservation sera validée par l'équipe de l'hôtel.
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="closeModal()">
+                        <i class="fas fa-check"></i> OK
+                    </button>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        // Fonctions pour le modal de confirmation
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            window.location.href = '/';
+        }
+
+        function viewBookingDetails() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            window.location.href = '/dashboard';
+        }
+
+        // Fonction pour afficher les alertes
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert-message');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            // Masquer l'alerte après 5 secondes
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Initialiser le résumé
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSummary();
+            
+            // Rendre le résumé sticky sur scroll
+            const summary = document.querySelector('.booking-summary');
+            if (summary) {
+                window.addEventListener('scroll', function() {
+                    if (window.innerWidth > 1024) {
+                        const offset = window.pageYOffset;
+                        const start = summary.parentElement.offsetTop - 100;
+                        const end = start + summary.parentElement.offsetHeight - summary.offsetHeight;
+                        
+                        if (offset > start && offset < end) {
+                            summary.style.top = '120px';
+                        }
+                    }
+                });
+            }
+        });
+
+        // Gestion de la réservation en temps réel
+        document.addEventListener('DOMContentLoaded', function() {
+            // Si l'utilisateur est connecté, pré-remplir certaines informations
+            {% if user.is_authenticated %}
+            // Vous pouvez pré-remplir avec les informations de l'utilisateur
+            // document.getElementById('email').value = '{{ user.email }}';
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1361 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Supprimer employé - Gestion Hôtel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-times"></i>
+<span>Suppression d'employé</span>
+{% endblock %}
+
+{% block content %}
+<div class="employee-deletion-container">
+    <div class="employee-deletion-card">
+        <!-- En-tête avec avertissement critique -->
+        <div class="deletion-header">
+            <div class="deletion-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="deletion-title">
+                <h1>Suppression d'employé</h1>
+                <p class="deletion-subtitle">Action irréversible - Analyse d'impact requise</p>
+            </div>
+        </div>
+        
+        <div class="deletion-body">
+            <!-- Informations employé -->
+            <div class="employee-info-section">
+                <div class="employee-card">
+                    <div class="employee-header">
+                        <div class="employee-avatar danger-avatar">
+                            <span>{{ employee.username|slice:":1"|upper }}</span>
+                        </div>
+                        <div class="employee-details">
+                            <h3>{{ employee.username }}</h3>
+                            <div class="employee-meta">
+                                {% if employee.get_full_name %}
+                                <span class="meta-item">
+                                    <i class="fas fa-user"></i>
+                                    {{ employee.get_full_name }}
+                                </span>
+                                {% endif %}
+                                {% if employee.email %}
+                                <span class="meta-item">
+                                    <i class="fas fa-envelope"></i>
+                                    {{ employee.email }}
+                                </span>
+                                {% endif %}
+                                <span class="meta-item">
+                                    <i class="fas fa-user-tie"></i>
+                                    {{ employee.employeeprofile.poste|default:"Poste non défini" }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Depuis {{ employee.date_joined|date:"d/m/Y" }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="employee-status">
+                            <div class="status-badge status-{% if employee.is_active %}active{% else %}inactive{% endif %}">
+                                {% if employee.is_active %}
+                                    <i class="fas fa-check-circle"></i> Actif
+                                {% else %}
+                                    <i class="fas fa-times-circle"></i> Inactif
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="employee-stats">
+                        {% with responsibilities_count=0 %}
+                        <div class="stat-item">
+                            <div class="stat-icon responsibilities-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">{{ responsibilities_count }}</div>
+                                <div class="stat-label">Responsabilités</div>
+                            </div>
+                        </div>
+                        {% endwith %}
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon seniority-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number" id="seniority-years">0</div>
+                                <div class="stat-label">Années d'ancienneté</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon role-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-role">
+                                    {% if employee.is_superuser %}
+                                        Administrateur
+                                    {% elif employee.is_staff %}
+                                        Staff
+                                    {% else %}
+                                        Utilisateur
+                                    {% endif %}
+                                </div>
+                                <div class="stat-label">Niveau d'accès</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analyse d'impact -->
+            <div class="impact-analysis">
+                <div class="section-header">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Analyse d'impact</h3>
+                    <span class="section-badge critical-badge">Critique</span>
+                </div>
+                
+                <div class="impact-grid">
+                    <div class="impact-card impact-critical">
+                        <div class="impact-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="impact-content">
+                            <h4>Perte de données</h4>
+                            <ul class="impact-list">
+                                <li><i class="fas fa-times"></i> Historique des actions</li>
+                                <li><i class="fas fa-times"></i> Données de performance</li>
+                                <li><i class="fas fa-times"></i> Préférences système</li>
+                                <li><i class="fas fa-times"></i> Fichiers personnels</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="impact-card impact-operational">
+                        <div class="impact-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="impact-content">
+                            <h4>Impact opérationnel</h4>
+                            <ul class="impact-list">
+                                <li><i class="fas fa-exclamation"></i> Réassignation des tâches</li>
+                                <li><i class="fas fa-exclamation"></i> Transfert des accès</li>
+                                <li><i class="fas fa-exclamation"></i> Formation du remplaçant</li>
+                                <li><i class="fas fa-exclamation"></i> Période de transition</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="impact-card impact-legal">
+                        <div class="impact-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="impact-content">
+                            <h4>Aspects légaux</h4>
+                            <ul class="impact-list">
+                                <li><i class="fas fa-file-contract"></i> Respect du contrat</li>
+                                <li><i class="fas fa-user-clock"></i> Période de préavis</li>
+                                <li><i class="fas fa-euro-sign"></i> Indemnités dues</li>
+                                <li><i class="fas fa-archive"></i> Archivage légal</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="impact-warning">
+                    <div class="warning-icon">
+                        <i class="fas fa-radiation"></i>
+                    </div>
+                    <div class="warning-content">
+                        <h5><i class="fas fa-skull-crossbones"></i> Impact critique sur l'organisation</h5>
+                        <p>
+                            La suppression d'un employé affecte directement la continuité des opérations 
+                            et nécessite une planification minutieuse pour éviter les interruptions de service.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Étapes de vérification -->
+            <div class="verification-steps">
+                <div class="section-header">
+                    <i class="fas fa-clipboard-check"></i>
+                    <h3>Vérifications préalables</h3>
+                </div>
+                
+                <div class="steps-list">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Transfert des responsabilités</h4>
+                            <p>Assurez-vous que toutes les tâches et responsabilités ont été transférées à d'autres membres de l'équipe.</p>
+                            <div class="step-check">
+                                <input type="checkbox" id="check-transfer" name="check_transfer">
+                                <label for="check-transfer">
+                                    <i class="fas fa-check-circle"></i>
+                                    Toutes les responsabilités ont été réassignées
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Révocation des accès</h4>
+                            <p>Tous les accès systèmes, applications et ressources doivent être révoqués avant la suppression.</p>
+                            <div class="step-check">
+                                <input type="checkbox" id="check-access" name="check_access">
+                                <label for="check-access">
+                                    <i class="fas fa-check-circle"></i>
+                                    Tous les accès ont été révoqués
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Sauvegarde des données</h4>
+                            <p>Les données importantes doivent être sauvegardées avant suppression définitive.</p>
+                            <div class="step-check">
+                                <input type="checkbox" id="check-backup" name="check_backup">
+                                <label for="check-backup">
+                                    <i class="fas fa-check-circle"></i>
+                                    Une sauvegarde complète a été effectuée
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Conformité légale</h4>
+                            <p>Vérifiez la conformité avec les obligations légales et contractuelles.</p>
+                            <div class="step-check">
+                                <input type="checkbox" id="check-legal" name="check_legal">
+                                <label for="check-legal">
+                                    <i class="fas fa-check-circle"></i>
+                                    Toutes les obligations légales sont respectées
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alternatives suggérées -->
+            <div class="alternatives-section">
+                <div class="section-header">
+                    <i class="fas fa-random"></i>
+                    <h3>Alternatives recommandées</h3>
+                </div>
+                
+                <div class="alternatives-grid">
+                    <div class="alternative-card">
+                        <div class="alternative-icon">
+                            <i class="fas fa-user-slash"></i>
+                        </div>
+                        <div class="alternative-content">
+                            <h4>Désactivation du compte</h4>
+                            <p>Conservez les données tout en empêchant l'accès au système.</p>
+                            <ul class="alternative-benefits">
+                                <li><i class="fas fa-check"></i> Conservation des données</li>
+                                <li><i class="fas fa-check"></i> Réversible</li>
+                                <li><i class="fas fa-check"></i> Historique préservé</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="alternative-card">
+                        <div class="alternative-icon">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <div class="alternative-content">
+                            <h4>Mise en congé prolongé</h4>
+                            <p>Suspendre l'accès temporairement avant décision finale.</p>
+                            <ul class="alternative-benefits">
+                                <li><i class="fas fa-check"></i> Période de réflexion</li>
+                                <li><i class="fas fa-check"></i> Pas de perte de données</li>
+                                <li><i class="fas fa-check"></i> Flexibilité maximale</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="alternative-card">
+                        <div class="alternative-icon">
+                            <i class="fas fa-user-edit"></i>
+                        </div>
+                        <div class="alternative-content">
+                            <h4>Réaffectation</h4>
+                            <p>Changer le poste ou les responsabilités de l'employé.</p>
+                            <ul class="alternative-benefits">
+                                <li><i class="fas fa-check"></i> Conservation des compétences</li>
+                                <li><i class="fas fa-check"></i> Continuité de service</li>
+                                <li><i class="fas fa-check"></i> Coût réduit</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Formulaire de confirmation -->
+            <form method="post" class="deletion-form" id="deletionForm">
+                {% csrf_token %}
+                
+                <div class="confirmation-section">
+                    <div class="section-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Confirmation finale</h3>
+                        <span class="section-badge final-badge">Dernière étape</span>
+                    </div>
+                    
+                    <div class="confirmation-content">
+                        <div class="final-warning">
+                            <div class="warning-header">
+                                <i class="fas fa-radiation"></i>
+                                <h4>ATTENTION : ACTION IRRÉVERSIBLE</h4>
+                            </div>
+                            <p>
+                                Vous êtes sur le point de supprimer définitivement <strong>{{ employee.username }}</strong> 
+                                du système. Cette action ne peut être annulée et entraînera la perte permanente 
+                                de toutes les données associées à cet employé.
+                            </p>
+                        </div>
+                        
+                        <div class="confirmation-checks">
+                            <div class="confirmation-check">
+                                <input type="checkbox" 
+                                       id="confirm-understand" 
+                                       name="confirm_understand" 
+                                       required>
+                                <label for="confirm-understand">
+                                    <i class="fas fa-check-square"></i>
+                                    Je comprends que cette suppression est <strong>irréversible</strong> et 
+                                    que toutes les données seront perdues de manière permanente.
+                                </label>
+                            </div>
+                            
+                            <div class="confirmation-check">
+                                <input type="checkbox" 
+                                       id="confirm-responsibility" 
+                                       name="confirm_responsibility" 
+                                       required>
+                                <label for="confirm-responsibility">
+                                    <i class="fas fa-check-square"></i>
+                                    Je prends l'entière responsabilité de cette décision et 
+                                    confirme que toutes les vérifications ont été effectuées.
+                                </label>
+                            </div>
+                            
+                            <div class="confirmation-check">
+                                <input type="checkbox" 
+                                       id="confirm-alternatives" 
+                                       name="confirm_alternatives" 
+                                       required>
+                                <label for="confirm-alternatives">
+                                    <i class="fas fa-check-square"></i>
+                                    J'ai bien examiné les alternatives proposées et confirme 
+                                    que la suppression est la seule option appropriée.
+                                </label>
+                            </div>
+                            
+                            <div class="confirmation-check">
+                                <input type="checkbox" 
+                                       id="confirm-notify" 
+                                       name="confirm_notify">
+                                <label for="confirm-notify">
+                                    <i class="fas fa-bell"></i>
+                                    Notifier les départements concernés de cette suppression 
+                                    (Recommandé pour la continuité des opérations).
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="final-validation">
+                            <label class="validation-label required">
+                                <i class="fas fa-keyboard"></i> Tapez le nom d'utilisateur pour confirmer
+                            </label>
+                            <input type="text" 
+                                   class="validation-input" 
+                                   id="username-confirmation"
+                                   placeholder="Tapez '{{ employee.username }}' pour confirmer"
+                                   required>
+                            <div class="validation-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Cette mesure de sécurité empêche les suppressions accidentelles.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'employee_list' %}" class="btn btn-alternative">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Revenir en arrière</span>
+                        <span class="action-hint">Option sécurisée</span>
+                    </a>
+                    
+                    <div class="deletion-actions">
+                        <a href="#" class="btn btn-warning" id="deactivateButton">
+                            <i class="fas fa-user-slash"></i>
+                            <span>Désactiver au lieu de supprimer</span>
+                        </a>
+                        
+                        <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                            <i class="fas fa-trash"></i>
+                            <span>Supprimer définitivement</span>
+                            <span class="countdown" id="countdown">10</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour la suppression d'employé */
+    .employee-deletion-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .employee-deletion-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        animation: pulseWarning 2s infinite;
+    }
+    
+    @keyframes pulseWarning {
+        0% {
+            box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+        }
+    }
+    
+    /* En-tête */
+    .deletion-header {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: white;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .deletion-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .deletion-title h1 {
+        margin: 0 0 0.3rem 0;
+        font-size: 1.8rem;
+        color: white;
+    }
+    
+    .deletion-subtitle {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    /* Corps */
+    .deletion-body {
+        padding: 2rem;
+    }
+    
+    /* Informations employé */
+    .employee-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 2px solid #dee2e6;
+    }
+    
+    .employee-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .employee-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .danger-avatar {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+    
+    .employee-details h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary-blue);
+        font-size: 1.4rem;
+    }
+    
+    .employee-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        background: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .employee-status {
+        margin-left: auto;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-active {
+        background: rgba(39, 174, 96, 0.1);
+        color: var(--success-green);
+        border: 1px solid rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-inactive {
+        background: rgba(149, 165, 166, 0.1);
+        color: #95a5a6;
+        border: 1px solid rgba(149, 165, 166, 0.3);
+    }
+    
+    .employee-stats {
+        display: flex;
+        gap: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .responsibilities-icon {
+        background: linear-gradient(135deg, var(--purple), #8e44ad);
+    }
+    
+    .seniority-icon {
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+    }
+    
+    .role-icon {
+        background: linear-gradient(135deg, var(--warning-orange), #f39c12);
+    }
+    
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+    
+    .stat-role {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-blue);
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    /* Sections */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .section-header h3 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.3rem;
+        flex: 1;
+    }
+    
+    .section-header i {
+        color: var(--secondary-blue);
+        font-size: 1.2rem;
+    }
+    
+    .section-badge {
+        background: var(--secondary-blue);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .critical-badge {
+        background: var(--danger-red);
+    }
+    
+    .final-badge {
+        background: var(--warning-orange);
+    }
+    
+    /* Analyse d'impact */
+    .impact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .impact-card {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 10px;
+        align-items: flex-start;
+    }
+    
+    .impact-critical {
+        background: rgba(231, 76, 60, 0.1);
+        border: 2px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .impact-operational {
+        background: rgba(243, 156, 18, 0.1);
+        border: 2px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .impact-legal {
+        background: rgba(52, 152, 219, 0.1);
+        border: 2px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .impact-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .impact-critical .impact-icon {
+        background: var(--danger-red);
+    }
+    
+    .impact-operational .impact-icon {
+        background: var(--warning-orange);
+    }
+    
+    .impact-legal .impact-icon {
+        background: var(--secondary-blue);
+    }
+    
+    .impact-content h4 {
+        margin: 0 0 1rem 0;
+        color: inherit;
+        font-size: 1.1rem;
+    }
+    
+    .impact-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .impact-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: inherit;
+        opacity: 0.9;
+    }
+    
+    .impact-warning {
+        background: rgba(231, 76, 60, 0.1);
+        border: 2px solid rgba(231, 76, 60, 0.3);
+        border-radius: 10px;
+        padding: 1.5rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        color: var(--danger-red);
+    }
+    
+    .warning-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--danger-red);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .warning-content h5 {
+        margin: 0 0 0.5rem 0;
+        color: inherit;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .warning-content p {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        opacity: 0.9;
+    }
+    
+    /* Étapes de vérification */
+    .steps-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .step-item {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: var(--secondary-blue);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .step-content {
+        flex: 1;
+    }
+    
+    .step-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .step-content p {
+        margin: 0 0 1rem 0;
+        font-size: 0.95rem;
+        color: var(--text-light);
+        line-height: 1.5;
+    }
+    
+    .step-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+    
+    .step-check input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-top: 0.2rem;
+        cursor: pointer;
+        accent-color: var(--secondary-blue);
+    }
+    
+    .step-check label {
+        flex: 1;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .step-check label i {
+        color: var(--success-green);
+        margin-top: 0.1rem;
+    }
+    
+    /* Alternatives */
+    .alternatives-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .alternative-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 2px solid #dee2e6;
+        transition: var(--transition);
+    }
+    
+    .alternative-card:hover {
+        border-color: var(--success-green);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(39, 174, 96, 0.1);
+    }
+    
+    .alternative-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--success-green), #27ae60);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    
+    .alternative-content h4 {
+        margin: 0 0 1rem 0;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .alternative-content p {
+        margin: 0 0 1rem 0;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        line-height: 1.5;
+    }
+    
+    .alternative-benefits {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .alternative-benefits li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    .alternative-benefits li i {
+        color: var(--success-green);
+    }
+    
+    /* Confirmation finale */
+    .confirmation-content {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .final-warning {
+        background: rgba(231, 76, 60, 0.1);
+        border: 2px solid rgba(231, 76, 60, 0.3);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--danger-red);
+    }
+    
+    .warning-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .warning-header h4 {
+        margin: 0;
+        color: inherit;
+        font-size: 1.3rem;
+    }
+    
+    .final-warning p {
+        margin: 0;
+        line-height: 1.5;
+        color: inherit;
+        opacity: 0.9;
+    }
+    
+    .confirmation-checks {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .confirmation-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+    
+    .confirmation-check input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-top: 0.2rem;
+        cursor: pointer;
+        accent-color: var(--danger-red);
+    }
+    
+    .confirmation-check label {
+        flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        cursor: pointer;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .confirmation-check label i {
+        color: var(--danger-red);
+        margin-top: 0.1rem;
+    }
+    
+    .confirmation-check label strong {
+        color: var(--danger-red);
+    }
+    
+    /* Validation finale */
+    .final-validation {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 2px solid #dee2e6;
+    }
+    
+    .validation-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .validation-label.required:after {
+        content: "*";
+        color: var(--danger-red);
+        margin-left: 0.2rem;
+    }
+    
+    .validation-input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+    
+    .validation-input:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    
+    .validation-input.valid {
+        border-color: var(--success-green);
+        background: rgba(39, 174, 96, 0.05);
+    }
+    
+    .validation-input.invalid {
+        border-color: var(--danger-red);
+        background: rgba(231, 76, 60, 0.05);
+    }
+    
+    .validation-hint {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.5rem;
+        border-top: 2px solid #e9ecef;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.9rem 1.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        position: relative;
+    }
+    
+    .btn-alternative {
+        background: #f8f9fa;
+        color: var(--text-dark);
+        border: 2px solid #dee2e6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+        min-width: 160px;
+    }
+    
+    .btn-alternative:hover {
+        background: #e9ecef;
+        color: var(--primary-blue);
+    }
+    
+    .action-hint {
+        font-size: 0.8rem;
+        font-weight: normal;
+        opacity: 0.7;
+    }
+    
+    .deletion-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .btn-warning {
+        background: linear-gradient(135deg, var(--warning-orange), #f39c12);
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        background: linear-gradient(135deg, #e67e22, #f39c12);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: white;
+        min-width: 200px;
+        justify-content: center;
+    }
+    
+    .btn-danger:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    .btn-danger:not(:disabled):hover {
+        background: linear-gradient(135deg, #a93226, #c0392b);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+    }
+    
+    .countdown {
+        background: rgba(255, 255, 255, 0.2);
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-left: 0.5rem;
+    }
+    
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .deletion-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .deletion-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .employee-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .employee-status {
+            margin-left: 0;
+            margin-top: 1rem;
+        }
+        
+        .employee-stats {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .impact-grid,
+        .alternatives-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .step-item {
+            flex-direction: column;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .deletion-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .deletion-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Calcul de l'ancienneté
+        const joinDate = new Date('{{ employee.date_joined|date:"Y-m-d" }}');
+        const today = new Date();
+        const seniorityYears = Math.floor((today - joinDate) / (365.25 * 24 * 60 * 60 * 1000));
+        document.getElementById('seniority-years').textContent = seniorityYears;
+        
+        // Validation de la confirmation par nom d'utilisateur
+        const confirmationInput = document.getElementById('username-confirmation');
+        const deleteButton = document.getElementById('deleteButton');
+        const countdownElement = document.getElementById('countdown');
+        const checkboxes = document.querySelectorAll('.confirmation-check input[type="checkbox"]');
+        const verificationCheckboxes = document.querySelectorAll('.step-check input[type="checkbox"]');
+        
+        let countdown = 10;
+        let countdownInterval;
+        
+        function updateDeleteButton() {
+            const usernameCorrect = confirmationInput.value.trim() === '{{ employee.username }}';
+            const allConfirmed = Array.from(checkboxes).every(cb => cb.checked);
+            
+            // Vérifier les cases de vérification
+            const verificationChecked = Array.from(verificationCheckboxes).filter(cb => cb.checked).length;
+            
+            // Style de l'input de confirmation
+            if (confirmationInput.value === '') {
+                confirmationInput.classList.remove('valid', 'invalid');
+            } else if (usernameCorrect) {
+                confirmationInput.classList.remove('invalid');
+                confirmationInput.classList.add('valid');
+            } else {
+                confirmationInput.classList.remove('valid');
+                confirmationInput.classList.add('invalid');
+            }
+            
+            // Activer/désactiver le bouton de suppression
+            if (usernameCorrect && allConfirmed) {
+                deleteButton.disabled = false;
+                
+                // Démarrer le compte à rebours
+                if (!countdownInterval) {
+                    countdown = 10;
+                    countdownElement.textContent = countdown;
+                    
+                    countdownInterval = setInterval(() => {
+                        countdown--;
+                        countdownElement.textContent = countdown;
+                        
+                        if (countdown <= 0) {
+                            clearInterval(countdownInterval);
+                            deleteButton.innerHTML = '<i class="fas fa-trash"></i><span>Supprimer définitivement</span>';
+                        }
+                    }, 1000);
+                }
+            } else {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                deleteButton.disabled = true;
+                countdownElement.textContent = '10';
+            }
+            
+            // Avertissement sur les vérifications manquantes
+            if (verificationChecked < 4) {
+                const missing = 4 - verificationChecked;
+                deleteButton.setAttribute('title', `${missing} vérification(s) manquante(s)`);
+            } else {
+                deleteButton.removeAttribute('title');
+            }
+        }
+        
+        // Écouter les changements
+        confirmationInput.addEventListener('input', updateDeleteButton);
+        checkboxes.forEach(cb => cb.addEventListener('change', updateDeleteButton));
+        verificationCheckboxes.forEach(cb => cb.addEventListener('change', updateDeleteButton));
+        
+        // Initialiser l'état du bouton
+        updateDeleteButton();
+        
+        // Bouton de désactivation
+        document.getElementById('deactivateButton').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const confirmed = confirm(
+                'Désactivation d\'employé\n\n' +
+                'Souhaitez-vous vraiment désactiver ' + '{{ employee.username }}' + ' au lieu de le supprimer ?\n\n' +
+                'Avantages :\n' +
+                '• Conservation des données\n' +
+                '• Réversible\n' +
+                '• Historique préservé\n\n' +
+                'Cette action peut être annulée à tout moment.'
+            );
+            
+            if (confirmed) {
+                // Redirection vers la page de désactivation (à implémenter)
+                window.location.href = '#';
+                alert('Redirection vers la page de désactivation...');
+            }
+        });
+        
+        // Soumission du formulaire de suppression
+        document.getElementById('deletionForm').addEventListener('submit', function(e) {
+            // Dernière confirmation
+            const confirmed = confirm(
+                '⚠️ DERNIER AVERTISSEMENT ⚠️\n\n' +
+                'Vous êtes sur le point de supprimer définitivement ' + '{{ employee.username }}' + '.\n\n' +
+                'Cette action va :\n' +
+                '• SUPPRIMER toutes les données associées\n' +
+                '• Être IRRÉVERSIBLE\n' +
+                '• Affecter la continuité des opérations\n\n' +
+                'ÊTES-VOUS ABSOLUMENT SÛR DE VOULOIR CONTINUER ?'
+            );
+            
+            if (!confirmed) {
+                e.preventDefault();
+                // Réinitialiser le compte à rebours
+                clearInterval(countdownInterval);
+                confirmationInput.value = '';
+                checkboxes.forEach(cb => cb.checked = false);
+                updateDeleteButton();
+            } else {
+                // Ajouter un effet de chargement
+                deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Suppression en cours...</span>';
+                deleteButton.disabled = true;
+            }
+        });
+        
+        // Empêcher la soumission par Entrée
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+        
+        // Avertissement avant de quitter la page
+        window.addEventListener('beforeunload', function(e) {
+            if (confirmationInput.value.trim() === '{{ employee.username }}') {
+                e.preventDefault();
+                e.returnValue = 'Vous avez des modifications non sauvegardées. Êtes-vous sûr de vouloir quitter ?';
+            }
+        });
+    });
+</script>
+{% endblock %}

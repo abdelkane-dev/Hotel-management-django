@@ -1,0 +1,881 @@
+{% extends 'hotel/base.html' %}
+{% load static %}
+
+{% block title %}Inventaire - Hôtel de Luxe Admin{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-boxes"></i>
+<span>Gestion de l'Inventaire</span>
+{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <!-- Cartes de statistiques -->
+    <div class="stats-grid mb-4">
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-box"></i> Total Articles</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number">{{ total_articles }}</div>
+                <div class="stat-label">Articles enregistrés</div>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-check-circle"></i> Disponible</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number text-success">{{ total_disponible }}</div>
+                <div class="stat-label">Articles disponibles</div>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Alertes</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number text-warning">{{ stock_alertes }}</div>
+                <div class="stat-label">Articles en alerte</div>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-times-circle"></i> Ruptures</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number text-danger">{{ ruptures_stock }}</div>
+                <div class="stat-label">Articles en rupture</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions et filtres -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="card-header-content">
+                <h2><i class="fas fa-filter"></i> Filtres et Recherche</h2>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="filter-container">
+                <form method="get" class="filter-form">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label><i class="fas fa-search"></i> Recherche</label>
+                            <input type="text" name="q" class="form-input" placeholder="Nom, référence..." value="{{ request.GET.q }}">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Catégorie</label>
+                            <select name="categorie" class="form-select">
+                                <option value="">Toutes</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {% if request.GET.categorie == cat.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ cat.nom }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>État</label>
+                            <select name="etat" class="form-select">
+                                <option value="">Tous</option>
+                                <option value="neuf" {% if request.GET.etat == 'neuf' %}selected{% endif %}>Neuf</option>
+                                <option value="bon" {% if request.GET.etat == 'bon' %}selected{% endif %}>Bon état</option>
+                                <option value="use" {% if request.GET.etat == 'use' %}selected{% endif %}>Usé</option>
+                                <option value="hors_service" {% if request.GET.etat == 'hors_service' %}selected{% endif %}>Hors service</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Statut Stock</label>
+                            <select name="statut_stock" class="form-select">
+                                <option value="">Tous</option>
+                                <option value="normal" {% if request.GET.statut_stock == 'normal' %}selected{% endif %}>Normal</option>
+                                <option value="alerte" {% if request.GET.statut_stock == 'alerte' %}selected{% endif %}>Alerte</option>
+                                <option value="epuise" {% if request.GET.statut_stock == 'epuise' %}selected{% endif %}>Épuisé</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Localisation</label>
+                            <select name="localisation" class="form-select">
+                                <option value="">Toutes</option>
+                                <option value="reception" {% if request.GET.localisation == 'reception' %}selected{% endif %}>Réception</option>
+                                <option value="cuisine" {% if request.GET.localisation == 'cuisine' %}selected{% endif %}>Cuisine</option>
+                                <option value="menage" {% if request.GET.localisation == 'menage' %}selected{% endif %}>Service ménage</option>
+                                <option value="maintenance" {% if request.GET.localisation == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                                <option value="depot" {% if request.GET.localisation == 'depot' %}selected{% endif %}>Dépôt</option>
+                                <option value="autre" {% if request.GET.localisation == 'autre' %}selected{% endif %}>Autre</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Appliquer
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des articles -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-header-content">
+                <h2><i class="fas fa-list"></i> Liste des Articles ({{ articles|length }})</h2>
+                <div class="card-actions">
+                    <a href="{% url 'inventory_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Ajouter un article
+                    </a>
+                    <button class="btn btn-success" onclick="showMovementModal()">
+                        <i class="fas fa-exchange-alt"></i> Nouveau mouvement
+                    </button>
+                    <a href="{% url 'inventory_export' %}" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Exporter
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            {% if articles %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th>État</th>
+                                <th>Stock</th>
+                                <th>Disponible</th>
+                                <th>Utilisé</th>
+                                <th>Statut</th>
+                                <th>Localisation</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in articles %}
+                                <tr class="data-row {% if article.statut_stock == 'alerte' %}row-warning{% elif article.statut_stock == 'epuise' %}row-danger{% endif %}">
+                                    <td>
+                                        <span class="badge">{{ article.reference }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="item-name">{{ article.nom }}</div>
+                                        {% if article.description %}
+                                            <div class="item-description">{{ article.description|truncatechars:50 }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="category-badge">{{ article.categorie.nom }}</span>
+                                    </td>
+                                    <td>
+                                        {% if article.etat == 'neuf' %}
+                                            <span class="status-badge status-success">Neuf</span>
+                                        {% elif article.etat == 'bon' %}
+                                            <span class="status-badge status-primary">Bon état</span>
+                                        {% elif article.etat == 'use' %}
+                                            <span class="status-badge status-warning">Usé</span>
+                                        {% else %}
+                                            <span class="status-badge status-danger">Hors service</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="quantity">{{ article.quantite_totale }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="quantity available">{{ article.quantite_disponible }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="quantity used">{{ article.quantite_utilisee }}</span>
+                                    </td>
+                                    <td>
+                                        {% if article.statut_stock == 'epuise' %}
+                                            <span class="status-badge status-danger">
+                                                <i class="fas fa-times-circle"></i> Épuisé
+                                            </span>
+                                        {% elif article.statut_stock == 'alerte' %}
+                                            <span class="status-badge status-warning">
+                                                <i class="fas fa-exclamation-triangle"></i> Alerte
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge status-success">
+                                                <i class="fas fa-check-circle"></i> Normal
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="location-info">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>{{ article.get_localisation_principale_display }}</span>
+                                            {% if article.localisation_detail %}
+                                                <div class="location-detail">{{ article.localisation_detail }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'inventory_detail' article.pk %}" class="btn-icon" title="Voir détails">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'inventory_edit' article.pk %}" class="btn-icon" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn-icon" onclick="showQuickMovement('{{ article.pk }}')" title="Mouvement rapide">
+                                                <i class="fas fa-exchange-alt"></i>
+                                            </button>
+                                            {% if user.is_superuser %}
+                                                <button class="btn-icon btn-danger" onclick="confirmDelete('{{ article.pk }}', '{{ article.nom|escapejs }}')" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="pagination-current">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-box-open fa-3x"></i>
+                    <h3>Aucun article trouvé</h3>
+                    <p>
+                        {% if request.GET.q or request.GET.categorie or request.GET.etat %}
+                            Essayez de modifier vos filtres de recherche.
+                        {% else %}
+                            Commencez par ajouter des articles à votre inventaire.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'inventory_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Ajouter le premier article
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Mouvement de Stock -->
+<div id="movementModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-exchange-alt"></i> Nouveau Mouvement de Stock</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="movementForm" method="post" action="{% url 'inventory_movement' %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Article</label>
+                    <select name="article" id="articleSelect" class="form-select" required>
+                        <option value="">Sélectionner un article...</option>
+                        {% for article in all_articles %}
+                            <option value="{{ article.pk }}">{{ article.nom }} ({{ article.quantite_disponible }} dispo)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Type de mouvement</label>
+                    <select name="type_mouvement" class="form-select" required>
+                        <option value="entree">Entrée en stock</option>
+                        <option value="sortie">Sortie de stock</option>
+                        <option value="affectation">Affectation</option>
+                        <option value="retour">Retour en stock</option>
+                        <option value="perte">Perte/Vol</option>
+                        <option value="casse">Casse</option>
+                        <option value="ajustement">Ajustement</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Quantité</label>
+                    <input type="number" name="quantite" class="form-input" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea name="notes" class="form-textarea" rows="3" placeholder="Notes supplémentaires..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Styles spécifiques pour la page d'inventaire */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    text-align: center;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.stat-card .card-header {
+    background: var(--white);
+    border-bottom: none;
+    padding: 1.2rem 1.5rem;
+}
+
+.stat-card .card-header h3 {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Filtres */
+.filter-container {
+    background: var(--light-blue);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.filter-form {
+    width: 100%;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+/* Tableau */
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--light-blue);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.data-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--secondary-blue);
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid var(--light-blue);
+    transition: var(--transition);
+}
+
+.data-table tbody tr:hover {
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.data-table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.row-warning {
+    background: rgba(243, 156, 18, 0.05);
+}
+
+.row-danger {
+    background: rgba(231, 76, 60, 0.05);
+}
+
+/* Badges */
+.badge {
+    background: var(--secondary-blue);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.category-badge {
+    background: var(--purple);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-success {
+    background: rgba(39, 174, 96, 0.15);
+    color: var(--success-green);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.status-primary {
+    background: rgba(52, 152, 219, 0.15);
+    color: var(--secondary-blue);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.status-warning {
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--warning-orange);
+    border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.status-danger {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--danger-red);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* Informations articles */
+.item-name {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.item-description {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 0.3rem;
+}
+
+.quantity {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.quantity.available {
+    color: var(--success-green);
+}
+
+.quantity.used {
+    color: var(--text-light);
+}
+
+.location-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.location-info i {
+    color: var(--secondary-blue);
+    margin-right: 0.5rem;
+}
+
+.location-detail {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-left: 1.5rem;
+}
+
+/* Boutons d'action */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    background: var(--light-blue);
+    border: none;
+    color: var(--text-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.btn-icon:hover {
+    background: var(--secondary-blue);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-icon.btn-danger:hover {
+    background: var(--danger-red);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--light-blue);
+}
+
+.pagination-btn, .pagination-current {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.pagination-btn {
+    background: var(--light-blue);
+    color: var(--text-dark);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.pagination-btn:hover {
+    background: var(--secondary-blue);
+    color: white;
+}
+
+.pagination-current {
+    background: var(--secondary-blue);
+    color: white;
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    color: var(--light-blue);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 15px;
+    width: 500px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--light-blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    color: var(--primary-blue);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-light);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--light-blue);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--light-blue);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--secondary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Responsive */
+@media screen and (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .data-table th, .data-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+}
+</style>
+
+<script>
+function showMovementModal() {
+    document.getElementById('movementModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('movementModal').classList.remove('show');
+}
+
+function showQuickMovement(articleId) {
+    document.getElementById('articleSelect').value = articleId;
+    showMovementModal();
+}
+
+function confirmDelete(id, name) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer l\'article "' + name + '" ? Cette action est irréversible.')) {
+        window.location.href = '/inventory/' + id + '/delete/';
+    }
+}
+
+// Fermer la modal en cliquant à l'extérieur
+window.onclick = function(event) {
+    const modal = document.getElementById('movementModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+
+// Auto-rafraîchissement pour les stocks critiques
+setInterval(function() {
+    const hasAlerts = document.querySelector('.status-warning, .status-danger');
+    if (hasAlerts) {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(html, 'text/html');
+                const newStats = newDoc.querySelectorAll('.stat-number');
+                const currentStats = document.querySelectorAll('.stat-number');
+                
+                // Mettre à jour les statistiques
+                newStats.forEach((newStat, index) => {
+                    if (currentStats[index]) {
+                        currentStats[index].textContent = newStat.textContent;
+                    }
+                });
+                
+                // Mettre à jour le tableau si nécessaire
+                const urgentItems = newDoc.querySelectorAll('.row-warning, .row-danger');
+                const currentUrgent = document.querySelectorAll('.row-warning, .row-danger');
+                
+                if (urgentItems.length !== currentUrgent.length) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Erreur de rafraîchissement:', error));
+    }
+}, 30000); // Toutes les 30 secondes
+
+// Tri des colonnes (optionnel)
+document.addEventListener('DOMContentLoaded', function() {
+    const tableHeaders = document.querySelectorAll('.data-table th[data-sortable]');
+    tableHeaders.forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function() {
+            const column = this.getAttribute('data-column');
+            const currentOrder = this.getAttribute('data-order') || 'asc';
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            
+            // Réinitialiser tous les headers
+            tableHeaders.forEach(h => {
+                h.removeAttribute('data-order');
+                h.innerHTML = h.innerHTML.replace(/ [↑↓]/, '');
+            });
+            
+            // Mettre à jour le header actuel
+            this.setAttribute('data-order', newOrder);
+            const arrow = newOrder === 'asc' ? ' ↑' : ' ↓';
+            this.innerHTML += arrow;
+            
+            // Ici, vous pourriez ajouter une requête AJAX pour trier les données
+            // Pour l'instant, nous allons simplement recharger la page avec les paramètres de tri
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', column);
+            url.searchParams.set('order', newOrder);
+            window.location.href = url.toString();
+        });
+    });
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+{% endblock %}

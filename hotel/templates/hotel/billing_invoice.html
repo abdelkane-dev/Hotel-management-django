@@ -1,0 +1,260 @@
+{% extends 'hotel/base.html' %}
+{% load humanize %}
+
+{% block title %}Facture #{{ reservation.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .invoice-header {
+        padding: 20px 0;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 30px;
+    }
+    .invoice-status {
+        font-size: 1.1rem;
+        padding: 5px 15px;
+        border-radius: 20px;
+    }
+    .invoice-details {
+        margin: 30px 0;
+    }
+    .invoice-amounts {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="invoice-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2>Facture #{{ reservation.id }}</h2>
+                <p class="text-muted mb-0">Date d'émission: {{ reservation.date_creation|date:'d/m/Y' }}</p>
+            </div>
+            <div class="text-end">
+                <span class="badge {% if reservation.statut == 'terminee' %}bg-success{% elif est_en_retard %}bg-danger{% else %}bg-warning{% endif %} invoice-status">
+                    {% if reservation.statut == 'terminee' %}
+                        <i class="fas fa-check-circle me-1"></i> Payée
+                    {% elif est_en_retard %}
+                        <i class="fas fa-exclamation-circle me-1"></i> En retard
+                    {% else %}
+                        <i class="fas fa-clock me-1"></i> En attente
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row invoice-details">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Client</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ reservation.client.nom_complet }}</h6>
+                    <p class="mb-1">
+                        <i class="fas fa-envelope me-2 text-muted"></i>
+                        {{ reservation.client.email|default:'-' }}
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-phone me-2 text-muted"></i>
+                        {{ reservation.client.telephone|default:'-' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mt-3 mt-md-0">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Détails de la réservation</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Chambre:</strong> Chambre {{ reservation.chambre.numero }}
+                        <span class="text-muted">({{ reservation.chambre.type_chambre }})</span>
+                    </p>
+                    <p class="mb-2">
+                        <strong>Période:</strong> 
+                        du {{ reservation.date_entree|date:'d/m/Y' }} 
+                        au {{ reservation.date_sortie|date:'d/m/Y' }}
+                        <span class="text-muted">({{ reservation.nombre_jours }} nuit{{ reservation.nombre_jours|pluralize }})</span>
+                    </p>
+                    <p class="mb-0">
+                        <strong>Nombre de personnes:</strong> {{ reservation.nombre_personnes }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Détails de la facture</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Description</th>
+                                <th class="text-end">Prix unitaire</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>Séjour en chambre {{ reservation.chambre.type_chambre }}</strong><br>
+                                    <small class="text-muted">
+                                        {{ reservation.nombre_jours }} nuit{{ reservation.nombre_jours|pluralize }} 
+                                        ({{ reservation.date_entree|date:'d/m/Y' }} - {{ reservation.date_sortie|date:'d/m/Y' }})
+                                    </small>
+                                </td>
+                                <td class="text-end">{{ reservation.chambre.prix_par_nuit|floatformat:2|intcomma }} €</td>
+                                <td class="text-end">{{ montant_ht|floatformat:2|intcomma }} €</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-end"><strong>Sous-total HT</strong></td>
+                                <td class="text-end">{{ montant_ht|floatformat:2|intcomma }} €</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-end">
+                                    <strong>TVA ({{ tva|floatformat:0 }}%)</strong>
+                                </td>
+                                <td class="text-end">{{ montant_tva|floatformat:2|intcomma }} €</td>
+                            </tr>
+                            <tr class="table-active">
+                                <td colspan="2" class="text-end"><strong>Total TTC</strong></td>
+                                <td class="text-end"><strong>{{ montant_ttc|floatformat:2|intcomma }} €</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if reservation.remarques %}
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Remarques</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ reservation.remarques }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="sticky-top" style="top: 20px;">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Paiement</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if reservation.statut == 'terminee' %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Facture réglée le {{ reservation.date_mise_a_jour|date:'d/m/Y' }}
+                            </div>
+                        {% else %}
+                            {% if est_en_retard %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Facture en retard depuis le {{ reservation.date_sortie|date:'d/m/Y' }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                    <i class="fas fa-money-bill-wave me-2"></i>Enregistrer un paiement
+                                </button>
+                                <a href="#" class="btn btn-outline-secondary">
+                                    <i class="fas fa-file-pdf me-2"></i>Générer un PDF
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'billing_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                            </a>
+                            {% if reservation.statut != 'terminee' %}
+                                <a href="{% url 'reservation_update' reservation.id %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit me-2"></i>Modifier la réservation
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de paiement -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Enregistrer un paiement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <form method="post" action="{% url 'record_payment' reservation.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Montant à payer</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="amount" 
+                                   value="{{ montant_ttc|floatformat:2 }}" step="0.01" min="0.01" 
+                                   max="{{ montant_ttc|floatformat:2 }}" required>
+                            <span class="input-group-text">€</span>
+                        </div>
+                        <div class="form-text">Montant total dû: {{ montant_ttc|floatformat:2|intcomma }} €</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Moyen de paiement</label>
+                        <select class="form-select" name="payment_method" required>
+                            <option value="especes">Espèces</option>
+                            <option value="carte">Carte bancaire</option>
+                            <option value="virement">Virement</option>
+                            <option value="cheque">Chèque</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date du paiement</label>
+                        <input type="date" class="form-control" name="payment_date" 
+                               value="{% now 'Y-m-d' %}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Valider le paiement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialisation des tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+</script>
+{% endblock %}

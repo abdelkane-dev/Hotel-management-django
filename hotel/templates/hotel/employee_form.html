@@ -1,0 +1,1539 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Modifier employé - Gestion Hôtel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-edit"></i>
+<span>Modification d'employé</span>
+{% endblock %}
+
+{% block content %}
+<div class="employee-edit-container">
+    <div class="employee-edit-card">
+        <!-- En-tête avec infos employé -->
+        <div class="employee-header">
+            <div class="employee-avatar">
+                <span>{{ employee.username|slice:":1"|upper }}</span>
+            </div>
+            <div class="employee-info">
+                <h2>{{ employee.username }}</h2>
+                <div class="employee-meta">
+                    <span class="meta-item">
+                        <i class="fas fa-user-tie"></i>
+                        {{ employee.profile.poste|default:"Poste non défini" }}
+                    </span>
+                    <span class="meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        Employé depuis {{ employee.date_joined|date:"d/m/Y" }}
+                    </span>
+                    <span class="meta-item">
+                        <i class="fas fa-shield-alt"></i>
+                        {% if employee.is_superuser %}
+                            Administrateur
+                        {% elif employee.is_staff %}
+                            Staff
+                        {% else %}
+                            Utilisateur
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="employee-status-badge">
+                <div class="status-indicator {% if employee.is_active %}active{% else %}inactive{% endif %}">
+                    {% if employee.is_active %}
+                        <i class="fas fa-check-circle"></i> Actif
+                    {% else %}
+                        <i class="fas fa-times-circle"></i> Inactif
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <form method="post" class="employee-edit-form" id="employeeEditForm">
+            {% csrf_token %}
+            
+            <div class="form-sections">
+                <!-- Section Informations de base -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-id-card"></i>
+                        <h3>Informations de base</h3>
+                        <span class="section-badge required-badge">Obligatoire</span>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label required">
+                                <i class="fas fa-user-tag"></i> Nom d'utilisateur
+                            </label>
+                            <input type="text" 
+                                   name="username" 
+                                   value="{{ employee.username }}" 
+                                   class="form-input" 
+                                   required
+                                   placeholder="ex: jdupont"
+                                   autocomplete="off"
+                                   id="username">
+                            <div class="input-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Identifiant unique pour la connexion
+                            </div>
+                            <div class="input-validation" id="username-validation">
+                                <i class="fas fa-check-circle"></i>
+                                Nom d'utilisateur valide
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input type="email" 
+                                   name="email" 
+                                   value="{{ employee.email|default:'' }}" 
+                                   class="form-input" 
+                                   placeholder="employe@hotel.com"
+                                   id="email">
+                            <div class="input-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Pour les notifications et récupération
+                            </div>
+                            <div class="input-validation" id="email-validation">
+                                <i class="fas fa-check-circle"></i>
+                                Format d'email valide
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Informations professionnelles -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-briefcase"></i>
+                        <h3>Informations professionnelles</h3>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user-md"></i> Poste
+                            </label>
+                            <input type="text" 
+                                   name="poste" 
+                                   value="{{ employee.profile.poste|default_if_none:'' }}" 
+                                   class="form-input" 
+                                   placeholder="Ex: Réceptionniste, Manager..."
+                                   id="poste">
+                            <div class="input-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Fonction principale dans l'hôtel
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-money-bill-wave"></i> Salaire (€)
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">€</span>
+                                <input type="number" 
+                                       name="salaire" 
+                                       value="{{ employee.profile.salaire|default_if_none:'' }}" 
+                                       class="form-input" 
+                                       placeholder="0.00"
+                                       step="0.01"
+                                       min="0"
+                                       id="salaire">
+                            </div>
+                            <div class="input-hint">
+                                <i class="fas fa-calculator"></i>
+                                Salaire mensuel brut
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-day"></i> Date d'embauche
+                            </label>
+                            <input type="date" 
+                                   name="date_embauche" 
+                                   value="{{ employee.profile.date_embauche|date:'Y-m-d'|default_if_none:'' }}" 
+                                   class="form-input" 
+                                   id="date-embauche">
+                            <div class="input-hint">
+                                <i class="fas fa-calendar-alt"></i>
+                                Date de début de contrat
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user-check"></i> Statut employé
+                        </label>
+                        <div class="status-selector">
+                            <div class="status-option">
+                                <input type="radio" 
+                                       name="statut_employe" 
+                                       value="actif" 
+                                       id="statut-actif"
+                                       {% if employee.profile.statut_employe == 'actif' or not employee.profile.statut_employe %}checked{% endif %}>
+                                <label for="statut-actif" class="status-label status-active">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Actif</span>
+                                    <span class="status-description">En poste actuellement</span>
+                                </label>
+                            </div>
+                            <div class="status-option">
+                                <input type="radio" 
+                                       name="statut_employe" 
+                                       value="conge" 
+                                       id="statut-conge"
+                                       {% if employee.profile.statut_employe == 'conge' %}checked{% endif %}>
+                                <label for="statut-conge" class="status-label status-leave">
+                                    <i class="fas fa-umbrella-beach"></i>
+                                    <span>En congé</span>
+                                    <span class="status-description">Absence temporaire</span>
+                                </label>
+                            </div>
+                            <div class="status-option">
+                                <input type="radio" 
+                                       name="statut_employe" 
+                                       value="renvoye" 
+                                       id="statut-renvoye"
+                                       {% if employee.profile.statut_employe == 'renvoye' %}checked{% endif %}>
+                                <label for="statut-renvoye" class="status-label status-dismissed">
+                                    <i class="fas fa-user-times"></i>
+                                    <span>Renvoyé</span>
+                                    <span class="status-description">Contrat terminé</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Permissions et accès -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Permissions système</h3>
+                        <span class="section-badge security-badge">
+                            <i class="fas fa-lock"></i> Sécurité
+                        </span>
+                    </div>
+                    
+                    <div class="permissions-grid">
+                        <div class="permission-card">
+                            <div class="permission-toggle">
+                                <input type="checkbox" 
+                                       name="is_active" 
+                                       id="is_active" 
+                                       class="toggle-input"
+                                       {% if employee.is_active %}checked{% endif %}>
+                                <label for="is_active" class="toggle-label">
+                                    <span class="toggle-handle"></span>
+                                    <span class="toggle-text-on">
+                                        <i class="fas fa-check"></i> Activé
+                                    </span>
+                                    <span class="toggle-text-off">
+                                        <i class="fas fa-times"></i> Désactivé
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="permission-content">
+                                <h4>Compte actif</h4>
+                                <p>Permet à l'employé de se connecter au système</p>
+                                <div class="permission-warning" id="active-warning" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    La désactivation empêchera toute connexion
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="permission-card">
+                            <div class="permission-toggle">
+                                <input type="checkbox" 
+                                       name="is_staff" 
+                                       id="is_staff" 
+                                       class="toggle-input"
+                                       {% if employee.is_staff %}checked{% endif %}>
+                                <label for="is_staff" class="toggle-label">
+                                    <span class="toggle-handle"></span>
+                                    <span class="toggle-text-on">
+                                        <i class="fas fa-check"></i> Activé
+                                    </span>
+                                    <span class="toggle-text-off">
+                                        <i class="fas fa-times"></i> Désactivé
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="permission-content">
+                                <h4>Accès staff</h4>
+                                <p>Accès au panneau d'administration et aux outils employés</p>
+                                <div class="permission-warning" id="staff-warning" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    La désactivation retirera les droits administrateur
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="permissions-warning">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="warning-content">
+                            <strong>Modification des permissions</strong>
+                            <p>Les changements de permissions prennent effet immédiatement et peuvent affecter l'accès aux fonctionnalités critiques.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Sécurité -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-key"></i>
+                        <h3>Sécurité du compte</h3>
+                        <span class="section-badge optional-badge">Optionnel</span>
+                    </div>
+                    
+                    <div class="security-section">
+                        <div class="security-notice">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Laisser le champ mot de passe vide pour conserver le mot de passe actuel.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-key"></i> Nouveau mot de passe
+                            </label>
+                            <div class="password-wrapper">
+                                <input type="password" 
+                                       name="password" 
+                                       class="form-input" 
+                                       placeholder="Laisser vide pour ne pas changer"
+                                       id="password">
+                                <button type="button" class="password-toggle" id="password-toggle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="password-strength">
+                                <div class="strength-bar">
+                                    <div class="strength-segment" id="segment1"></div>
+                                    <div class="strength-segment" id="segment2"></div>
+                                    <div class="strength-segment" id="segment3"></div>
+                                    <div class="strength-segment" id="segment4"></div>
+                                </div>
+                                <div class="strength-text" id="strength-text">Non défini</div>
+                            </div>
+                            
+                            <div class="password-requirements" id="password-requirements">
+                                <h5><i class="fas fa-clipboard-check"></i> Exigences de sécurité</h5>
+                                <ul>
+                                    <li id="req-length"><i class="fas fa-circle"></i> Minimum 8 caractères</li>
+                                    <li id="req-number"><i class="fas fa-circle"></i> Au moins un chiffre</li>
+                                    <li id="req-upper"><i class="fas fa-circle"></i> Au moins une majuscule</li>
+                                    <li id="req-lower"><i class="fas fa-circle"></i> Au moins une minuscule</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="security-actions">
+                            <button type="button" class="btn btn-secondary btn-sm" id="generate-password">
+                                <i class="fas fa-random"></i> Générer un mot de passe
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="clear-password">
+                                <i class="fas fa-times"></i> Effacer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Informations supplémentaires -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-sticky-note"></i>
+                        <h3>Notes et informations supplémentaires</h3>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-comment-alt"></i> Notes de modification
+                        </label>
+                        <textarea name="modification_notes" 
+                                  class="form-input textarea-input" 
+                                  rows="3"
+                                  placeholder="Décrivez les raisons des modifications apportées..."></textarea>
+                        <div class="textarea-counter">
+                            <span id="notes-counter">0</span> caractères
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Résumé des modifications -->
+            <div class="changes-summary">
+                <div class="summary-header">
+                    <h4><i class="fas fa-exchange-alt"></i> Récapitulatif des modifications</h4>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-item">
+                        <span class="summary-label">Identifiant :</span>
+                        <span class="summary-value" id="summary-username">{{ employee.username }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Poste :</span>
+                        <span class="summary-value" id="summary-poste">{{ employee.profile.poste|default:"Non défini" }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Statut :</span>
+                        <span class="summary-value" id="summary-statut">
+                            {% if employee.profile.statut_employe == 'actif' %}
+                                Actif
+                            {% elif employee.profile.statut_employe == 'conge' %}
+                                En congé
+                            {% elif employee.profile.statut_employe == 'renvoye' %}
+                                Renvoyé
+                            {% else %}
+                                Non défini
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Permissions modifiées :</span>
+                        <span class="summary-value" id="summary-permissions">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="form-actions">
+                <div class="action-group">
+                    <a href="{% url 'employee_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        <span>Annuler</span>
+                    </a>
+                    <a href="{% url 'employee_delete' employee.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i>
+                        <span>Supprimer</span>
+                    </a>
+                </div>
+                
+                <div class="action-group">
+                    <button type="button" class="btn btn-warning" id="preview-button">
+                        <i class="fas fa-eye"></i>
+                        <span>Prévisualiser</span>
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submit-button">
+                        <i class="fas fa-save"></i>
+                        <span>Enregistrer les modifications</span>
+                        <div class="button-loader" id="button-loader">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour la modification d'employé */
+    .employee-edit-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .employee-edit-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+    
+    /* En-tête employé */
+    .employee-header {
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        color: white;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .employee-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 600;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .employee-info {
+        flex: 1;
+    }
+    
+    .employee-info h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.8rem;
+        color: white;
+    }
+    
+    .employee-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+    }
+    
+    .employee-status-badge {
+        flex-shrink: 0;
+    }
+    
+    .status-indicator {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .status-indicator.active {
+        background: rgba(39, 174, 96, 0.3);
+        border: 2px solid rgba(39, 174, 96, 0.5);
+    }
+    
+    .status-indicator.inactive {
+        background: rgba(149, 165, 166, 0.3);
+        border: 2px solid rgba(149, 165, 166, 0.5);
+    }
+    
+    /* Corps du formulaire */
+    .form-sections {
+        padding: 2rem;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        transition: var(--transition);
+    }
+    
+    .form-section:hover {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .section-header h3 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.2rem;
+        flex: 1;
+    }
+    
+    .section-header i {
+        color: var(--secondary-blue);
+        font-size: 1.2rem;
+    }
+    
+    .section-badge {
+        background: var(--secondary-blue);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .required-badge {
+        background: var(--danger-red);
+    }
+    
+    .security-badge {
+        background: var(--success-green);
+    }
+    
+    .optional-badge {
+        background: var(--text-light);
+    }
+    
+    /* Grille de formulaire */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-label.required:after {
+        content: "*";
+        color: var(--danger-red);
+        margin-left: 0.2rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        background: white;
+        font-family: inherit;
+    }
+    
+    .form-input:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    
+    .input-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-group-text {
+        background: #f8f9fa;
+        border: 2px solid #dee2e6;
+        border-right: none;
+        padding: 0.9rem 0.8rem;
+        border-radius: 8px 0 0 8px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .input-group .form-input {
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .input-hint {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .input-validation {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--success-green);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    
+    .input-validation.valid {
+        opacity: 1;
+    }
+    
+    /* Sélecteur de statut */
+    .status-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .status-option input {
+        display: none;
+    }
+    
+    .status-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.2rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+    }
+    
+    .status-label i {
+        font-size: 1.5rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .status-label span {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .status-description {
+        font-size: 0.8rem;
+        font-weight: normal;
+        color: var(--text-light);
+        margin-top: 0.2rem;
+    }
+    
+    .status-active {
+        color: var(--success-green);
+        border-color: rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-leave {
+        color: var(--warning-orange);
+        border-color: rgba(243, 156, 18, 0.3);
+    }
+    
+    .status-dismissed {
+        color: var(--danger-red);
+        border-color: rgba(231, 76, 60, 0.3);
+    }
+    
+    .status-option input:checked + .status-label {
+        background: rgba(52, 152, 219, 0.1);
+        border-color: var(--secondary-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+    }
+    
+    /* Permissions */
+    .permissions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .permission-card {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+        align-items: center;
+    }
+    
+    .permission-toggle {
+        flex-shrink: 0;
+    }
+    
+    .toggle-input {
+        display: none;
+    }
+    
+    .toggle-label {
+        position: relative;
+        display: block;
+        width: 80px;
+        height: 36px;
+        background: #ddd;
+        border-radius: 18px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .toggle-input:checked + .toggle-label {
+        background: var(--success-green);
+    }
+    
+    .toggle-handle {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 30px;
+        height: 30px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .toggle-input:checked + .toggle-label .toggle-handle {
+        transform: translateX(44px);
+    }
+    
+    .toggle-text-on,
+    .toggle-text-off {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .toggle-text-on {
+        left: 10px;
+        opacity: 0;
+    }
+    
+    .toggle-text-off {
+        right: 10px;
+        opacity: 1;
+    }
+    
+    .toggle-input:checked + .toggle-label .toggle-text-on {
+        opacity: 1;
+    }
+    
+    .toggle-input:checked + .toggle-label .toggle-text-off {
+        opacity: 0;
+    }
+    
+    .permission-content {
+        flex: 1;
+    }
+    
+    .permission-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .permission-content p {
+        margin: 0 0 0.5rem 0;
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .permission-warning {
+        font-size: 0.85rem;
+        color: var(--warning-orange);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(243, 156, 18, 0.1);
+        border-radius: 6px;
+        margin-top: 0.5rem;
+    }
+    
+    .permissions-warning {
+        background: rgba(243, 156, 18, 0.1);
+        border: 1px solid rgba(243, 156, 18, 0.3);
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        color: var(--warning-orange);
+    }
+    
+    .warning-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--warning-orange);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .warning-content strong {
+        display: block;
+        margin-bottom: 0.3rem;
+    }
+    
+    .warning-content p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    /* Section sécurité */
+    .security-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .security-notice {
+        background: rgba(52, 152, 219, 0.1);
+        border: 1px solid rgba(52, 152, 219, 0.3);
+        border-radius: 6px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        color: var(--secondary-blue);
+    }
+    
+    .security-notice i {
+        font-size: 1.2rem;
+    }
+    
+    .password-wrapper {
+        position: relative;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        padding: 0.5rem;
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .password-toggle:hover {
+        color: var(--secondary-blue);
+    }
+    
+    .password-strength {
+        margin-top: 0.8rem;
+    }
+    
+    .strength-bar {
+        display: flex;
+        gap: 4px;
+        margin: 0.5rem 0;
+    }
+    
+    .strength-segment {
+        flex: 1;
+        height: 6px;
+        background: #e0e0e0;
+        border-radius: 3px;
+        transition: var(--transition);
+    }
+    
+    .strength-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: right;
+    }
+    
+    .password-requirements {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .password-requirements h5 {
+        margin: 0 0 0.8rem 0;
+        color: var(--primary-blue);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .password-requirements ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    .password-requirements li {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+    }
+    
+    .password-requirements li.requirement-met {
+        color: var(--success-green);
+    }
+    
+    .password-requirements li.requirement-met i {
+        color: var(--success-green);
+    }
+    
+    .security-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-sm {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Textarea */
+    .textarea-input {
+        resize: vertical;
+        min-height: 100px;
+        max-height: 200px;
+    }
+    
+    .textarea-counter {
+        text-align: right;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-top: 0.3rem;
+    }
+    
+    /* Résumé des modifications */
+    .changes-summary {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border: 1px solid #dee2e6;
+    }
+    
+    .summary-header h4 {
+        margin: 0 0 1rem 0;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .summary-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .summary-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    
+    .summary-label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .summary-value {
+        font-weight: 600;
+        color: var(--primary-blue);
+        font-size: 1rem;
+    }
+    
+    /* Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.5rem;
+        border-top: 2px solid #e9ecef;
+    }
+    
+    .action-group {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.9rem 1.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        position: relative;
+    }
+    
+    .btn-secondary {
+        background: #f8f9fa;
+        color: var(--text-dark);
+        border: 2px solid #dee2e6;
+    }
+    
+    .btn-secondary:hover {
+        background: #e9ecef;
+        color: var(--primary-blue);
+    }
+    
+    .btn-danger {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger-red);
+        border: 2px solid rgba(231, 76, 60, 0.3);
+    }
+    
+    .btn-danger:hover {
+        background: var(--danger-red);
+        color: white;
+    }
+    
+    .btn-warning {
+        background: rgba(243, 156, 18, 0.1);
+        color: var(--warning-orange);
+        border: 2px solid rgba(243, 156, 18, 0.3);
+    }
+    
+    .btn-warning:hover {
+        background: var(--warning-orange);
+        color: white;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        color: white;
+        min-width: 180px;
+        justify-content: center;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, var(--accent-blue), #2980b9);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+    
+    .button-loader {
+        display: none;
+        margin-left: 0.5rem;
+    }
+    
+    .loader-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .employee-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .employee-avatar {
+            width: 60px;
+            height: 60px;
+            font-size: 1.4rem;
+        }
+        
+        .employee-meta {
+            justify-content: center;
+        }
+        
+        .form-sections {
+            padding: 1.5rem;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .status-selector {
+            grid-template-columns: 1fr;
+        }
+        
+        .permissions-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .permission-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .password-requirements ul {
+            grid-template-columns: 1fr;
+        }
+        
+        .summary-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .action-group {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .action-group .btn {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Éléments du formulaire
+        const form = document.getElementById('employeeEditForm');
+        const submitButton = document.getElementById('submit-button');
+        const buttonLoader = document.getElementById('button-loader');
+        const previewButton = document.getElementById('preview-button');
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('password-toggle');
+        
+        // Initialiser la date d'embauche si vide
+        const dateEmbaucheInput = document.getElementById('date-embauche');
+        if (!dateEmbaucheInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateEmbaucheInput.value = today;
+        }
+        
+        // Validation en temps réel
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const usernameValidation = document.getElementById('username-validation');
+        const emailValidation = document.getElementById('email-validation');
+        
+        // Validation du nom d'utilisateur
+        usernameInput.addEventListener('blur', function() {
+            if (this.value.trim().length >= 3) {
+                usernameValidation.classList.add('valid');
+            } else {
+                usernameValidation.classList.remove('valid');
+            }
+        });
+        
+        // Validation de l'email
+        emailInput.addEventListener('input', function() {
+            const email = this.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (email === '') {
+                emailValidation.classList.remove('valid');
+            } else if (emailRegex.test(email)) {
+                emailValidation.classList.add('valid');
+            } else {
+                emailValidation.classList.remove('valid');
+            }
+        });
+        
+        // Toggle password visibility
+        passwordToggle.addEventListener('click', function() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+        
+        // Password strength checker
+        const strengthSegments = document.querySelectorAll('.strength-segment');
+        const strengthText = document.getElementById('strength-text');
+        const requirements = {
+            length: document.getElementById('req-length'),
+            number: document.getElementById('req-number'),
+            upper: document.getElementById('req-upper'),
+            lower: document.getElementById('req-lower')
+        };
+        
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            
+            // Reset requirements
+            Object.values(requirements).forEach(req => {
+                req.classList.remove('requirement-met');
+                req.querySelector('i').classList.remove('fa-check-circle');
+                req.querySelector('i').classList.add('fa-circle');
+            });
+            
+            // Skip if password is empty
+            if (password.length === 0) {
+                strengthSegments.forEach(segment => {
+                    segment.style.background = '#e0e0e0';
+                });
+                strengthText.textContent = 'Non défini';
+                strengthText.style.color = '#95a5a6';
+                return;
+            }
+            
+            // Length requirement
+            if (password.length >= 8) {
+                strength++;
+                requirements.length.classList.add('requirement-met');
+                requirements.length.querySelector('i').classList.remove('fa-circle');
+                requirements.length.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Number requirement
+            if (/\d/.test(password)) {
+                strength++;
+                requirements.number.classList.add('requirement-met');
+                requirements.number.querySelector('i').classList.remove('fa-circle');
+                requirements.number.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Uppercase requirement
+            if (/[A-Z]/.test(password)) {
+                strength++;
+                requirements.upper.classList.add('requirement-met');
+                requirements.upper.querySelector('i').classList.remove('fa-circle');
+                requirements.upper.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Lowercase requirement
+            if (/[a-z]/.test(password)) {
+                strength++;
+                requirements.lower.classList.add('requirement-met');
+                requirements.lower.querySelector('i').classList.remove('fa-circle');
+                requirements.lower.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Update strength bar
+            strengthSegments.forEach((segment, index) => {
+                segment.style.background = index < strength ? getStrengthColor(strength) : '#e0e0e0';
+            });
+            
+            // Update strength text
+            const strengthLabels = ['Très faible', 'Faible', 'Moyen', 'Fort', 'Très fort'];
+            strengthText.textContent = strengthLabels[strength];
+            strengthText.style.color = getStrengthColor(strength);
+        }
+        
+        function getStrengthColor(strength) {
+            switch(strength) {
+                case 0:
+                    return '#e74c3c'; // Red
+                case 1:
+                    return '#e74c3c'; // Red
+                case 2:
+                    return '#f39c12'; // Orange
+                case 3:
+                    return '#f1c40f'; // Yellow
+                case 4:
+                    return '#2ecc71'; // Green
+                default:
+                    return '#e0e0e0';
+            }
+        }
+        
+        passwordInput.addEventListener('input', function(e) {
+            checkPasswordStrength(e.target.value);
+        });
+        
+        // Generate random password
+        document.getElementById('generate-password').addEventListener('click', function() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let password = '';
+            
+            // Ensure at least one of each required type
+            password += 'A'; // Uppercase
+            password += 'b'; // Lowercase
+            password += '1'; // Number
+            
+            // Add random characters to reach 12 characters
+            for (let i = 3; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            // Shuffle the password
+            password = password.split('').sort(() => 0.5 - Math.random()).join('');
+            
+            passwordInput.value = password;
+            checkPasswordStrength(password);
+            passwordToggle.click(); // Show the password
+        });
+        
+        // Clear password
+        document.getElementById('clear-password').addEventListener('click', function() {
+            passwordInput.value = '';
+            checkPasswordStrength('');
+        });
+        
+        // Avertissements pour les permissions
+        const activeToggle = document.getElementById('is_active');
+        const staffToggle = document.getElementById('is_staff');
+        const activeWarning = document.getElementById('active-warning');
+        const staffWarning = document.getElementById('staff-warning');
+        
+        activeToggle.addEventListener('change', function() {
+            if (!this.checked) {
+                activeWarning.style.display = 'block';
+            } else {
+                activeWarning.style.display = 'none';
+            }
+            updatePermissionsSummary();
+        });
+        
+        staffToggle.addEventListener('change', function() {
+            if (!this.checked) {
+                staffWarning.style.display = 'block';
+            } else {
+                staffWarning.style.display = 'none';
+            }
+            updatePermissionsSummary();
+        });
+        
+        // Mise à jour du résumé
+        function updatePermissionsSummary() {
+            const originalActive = {{ employee.is_active|yesno:"true,false" }};
+            const originalStaff = {{ employee.is_staff|yesno:"true,false" }};
+            const currentActive = activeToggle.checked;
+            const currentStaff = staffToggle.checked;
+            
+            let changedCount = 0;
+            if (originalActive !== currentActive) changedCount++;
+            if (originalStaff !== currentStaff) changedCount++;
+            
+            document.getElementById('summary-permissions').textContent = changedCount;
+        }
+        
+        // Mise à jour du résumé en temps réel
+        document.getElementById('poste').addEventListener('input', function() {
+            document.getElementById('summary-poste').textContent = this.value || 'Non défini';
+        });
+        
+        document.querySelectorAll('input[name="statut_employe"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const labels = {
+                    'actif': 'Actif',
+                    'conge': 'En congé',
+                    'renvoye': 'Renvoyé'
+                };
+                document.getElementById('summary-statut').textContent = labels[this.value] || 'Non défini';
+            });
+        });
+        
+        // Prévisualisation
+        previewButton.addEventListener('click', function() {
+            const formData = new FormData(form);
+            const changes = [];
+            
+            // Vérifier les changements
+            if (formData.get('username') !== '{{ employee.username }}') {
+                changes.push(`Nom d'utilisateur: {{ employee.username }} → ${formData.get('username')}`);
+            }
+            
+            if (formData.get('poste') !== '{{ employee.profile.poste|default:"" }}') {
+                changes.push(`Poste: {{ employee.profile.poste|default:"Non défini" }} → ${formData.get('poste') || 'Non défini'}`);
+            }
+            
+            const originalActive = {{ employee.is_active|yesno:"true,false" }};
+            if (formData.get('is_active') !== (originalActive ? 'on' : undefined)) {
+                changes.push(`Compte: ${originalActive ? 'Actif' : 'Inactif'} → ${formData.get('is_active') ? 'Actif' : 'Inactif'}`);
+            }
+            
+            if (formData.get('password')) {
+                changes.push('Mot de passe: ●●●●●●●● (changé)');
+            }
+            
+            if (changes.length === 0) {
+                alert('Aucun changement détecté.');
+            } else {
+                const message = 'Changements détectés:\n\n' + changes.join('\n') + '\n\nContinuer avec l\'enregistrement?';
+                if (confirm(message)) {
+                    form.submit();
+                }
+            }
+        });
+        
+        // Soumission du formulaire
+        form.addEventListener('submit', function(e) {
+            // Validation de base
+            if (!usernameInput.value.trim()) {
+                e.preventDefault();
+                alert('Le nom d\'utilisateur est obligatoire.');
+                usernameInput.focus();
+                return;
+            }
+            
+            // Validation du mot de passe si fourni
+            if (passwordInput.value && passwordInput.value.length < 8) {
+                e.preventDefault();
+                alert('Le mot de passe doit contenir au moins 8 caractères.');
+                passwordInput.focus();
+                return;
+            }
+            
+            // Avertissement pour la désactivation
+            if (!activeToggle.checked && {{ employee.is_active|yesno:"true,false" }}) {
+                const confirmed = confirm(
+                    '⚠️ Désactivation du compte\n\n' +
+                    'Vous êtes sur le point de désactiver le compte de {{ employee.username }}.\n\n' +
+                    'Cela empêchera toute connexion au système.\n\n' +
+                    'Êtes-vous sûr de vouloir continuer ?'
+                );
+                
+                if (!confirmed) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+            
+            // Afficher le loader
+            submitButton.disabled = true;
+            buttonLoader.style.display = 'inline-block';
+        });
+        
+        // Initialiser le résumé des permissions
+        updatePermissionsSummary();
+    });
+</script>
+{% endblock %}

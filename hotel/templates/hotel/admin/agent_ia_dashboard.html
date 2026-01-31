@@ -1,0 +1,91 @@
+{% extends 'hotel/base.html' %}
+
+{% block page_title %}
+<i class="fas fa-robot"></i>
+<span>Agent IA</span>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Agent IA</h2>
+        <div>
+            <button id="toggle-agent" class="btn btn-sm btn-primary">{% if config.actif %}Désactiver{% else %}Activer{% endif %}</button>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <strong>Configuration :</strong>
+        <ul>
+            <li>Nom : {{ config.nom_agent }}</li>
+            <li>Description : {{ config.description }}</li>
+            <li>Actif : {{ config.actif }}</li>
+            <li>Requêtes aujourd'hui : {{ config.requetes_aujourd_hui }}</li>
+        </ul>
+    </div>
+
+    <h4>Statistiques récentes</h4>
+    <div class="mb-3">
+        <span class="badge bg-primary">Interactions total: {{ stats.interactions_total }}</span>
+        <span class="badge bg-secondary">Cette semaine: {{ stats.interactions_semaine }}</span>
+        <span class="badge bg-success">Aujourd'hui: {{ stats.interactions_aujourd_hui }}</span>
+    </div>
+
+    <h4>Interactions récentes</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Utilisateur</th>
+                <th>Message</th>
+                <th>Réponse</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for it in interactions_recentes %}
+            <tr>
+                <td>{{ it.id }}</td>
+                <td>{{ it.utilisateur.get_full_name|default:it.utilisateur.username }}</td>
+                <td>{{ it.message|truncatechars:80 }}</td>
+                <td>{{ it.reponse|truncatechars:80 }}</td>
+                <td>{{ it.date_interaction }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Aucune interaction trouvée.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% block extra_js %}
+<script>
+    // CSRF helper
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.getElementById('toggle-agent').addEventListener('click', async function() {
+        const res = await fetch('{% url "agent_ia_toggle_activation" %}', {method: 'POST', headers: {'X-CSRFToken': getCookie('csrftoken')}});
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+            location.reload();
+        } else {
+            alert('Erreur lors du changement d\'état : ' + (data.error || data.message || 'Erreur serveur'));
+        }
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

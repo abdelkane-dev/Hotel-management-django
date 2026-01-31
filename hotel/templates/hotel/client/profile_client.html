@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - Hôtel de Luxe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #5dade2;
+            --light-blue: #ecf0f1;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --success-green: #27ae60;
+            --danger-red: #e74c3c;
+            --warning-orange: #f39c12;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f8f9fa;
+        }
+
+        /* Header et Navigation */
+        header {
+            background: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--secondary-blue);
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: relative;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--secondary-blue);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--white);
+        }
+
+        .profile-trigger:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar i {
+            color: var(--secondary-blue);
+            font-size: 1rem;
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .profile-trigger i.fa-chevron-down {
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .profile-trigger.active i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: var(--transition);
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .profile-dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-blue);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-avatar-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--light-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-large i {
+            color: var(--secondary-blue);
+            font-size: 1.5rem;
+        }
+
+        .profile-info h4 {
+            color: var(--primary-blue);
+            margin: 0 0 0.3rem 0;
+            font-size: 1.1rem;
+        }
+
+        .profile-info p {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .profile-menu-items {
+            padding: 0.5rem;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .profile-menu-item:hover {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .profile-menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .profile-menu-item.logout {
+            color: var(--danger-red);
+        }
+
+        .profile-menu-item.logout:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger-red);
+        }
+
+        .profile-divider {
+            height: 1px;
+            background: var(--light-blue);
+            margin: 0.5rem 0;
+        }
+
+        /* Menu burger pour mobile */
+        .burger {
+            display: none;
+            cursor: pointer;
+        }
+
+        .burger div {
+            width: 25px;
+            height: 3px;
+            background-color: var(--primary-blue);
+            margin: 5px;
+            transition: var(--transition);
+        }
+
+        .toggle .line1 {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .toggle .line2 {
+            opacity: 0;
+        }
+
+        .toggle .line3 {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Main Content */
+        main {
+            min-height: calc(100vh - 200px);
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: var(--white);
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Profile Section */
+        .profile-section {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .profile-header-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .profile-avatar-section {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--light-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 4px solid var(--secondary-blue);
+        }
+
+        .profile-avatar-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-section i {
+            color: var(--secondary-blue);
+            font-size: 3rem;
+        }
+
+        .profile-info-section h2 {
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .profile-info-section p {
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--secondary-blue);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Forms */
+        .form-section {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .form-section h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--light-blue);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: var(--secondary-blue);
+            color: var(--white);
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success-green);
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: var(--danger-red);
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-block {
+            width: 100%;
+            text-align: center;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Messages */
+        .messages {
+            margin-bottom: 2rem;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Preference Cards */
+        .preference-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--light-blue);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .preference-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .preference-card-header {
+            background: linear-gradient(135deg, var(--light-blue), #f8f9fa);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid var(--light-blue);
+        }
+
+        .preference-card-header i {
+            color: var(--secondary-blue);
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .preference-card-header h4 {
+            color: var(--primary-blue);
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .preference-card-content {
+            padding: 1.5rem;
+        }
+
+        .notification-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .notification-item:first-child {
+            padding-top: 0;
+        }
+
+        .notification-info {
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .notification-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.3rem;
+            cursor: pointer;
+        }
+
+        .notification-desc {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Modern Switch Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: var(--transition);
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: var(--transition);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked + .slider {
+            background-color: var(--success-green);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                right: -100%;
+                top: 80px;
+                height: calc(100vh - 80px);
+                width: 50%;
+                background-color: var(--white);
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 2rem;
+                transition: var(--transition);
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .burger {
+                display: block;
+            }
+
+            .profile-header-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Hôtel de Luxe</div>
+            <ul class="nav-links">
+                <li><a href="/client/dashboard">Accueil</a></li>
+                <li><a href="/client/chambres">Chambres</a></li>
+                <li><a href="/client/reservation">Réservation</a></li>
+                <li><a href="/client/contact">Contact</a></li>
+                <li class="profile-dropdown">
+                    <div class="profile-trigger" onclick="toggleProfileDropdown()">
+                        <div class="profile-avatar">
+                            {% if client.photo %}
+                                <img src="{{ client.photo.url }}" alt="Photo de profil">
+                            {% else %}
+                                <i class="fas fa-user"></i>
+                            {% endif %}
+                        </div>
+                        <span class="profile-name">
+                            {% if client %}{{ client.nom_complet|truncatewords:2 }}{% else %}{{ user.get_full_name|default:user.username|truncatewords:2 }}{% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="profile-header">
+                            <div class="profile-avatar-large">
+                                {% if client.photo %}
+                                    <img src="{{ client.photo.url }}" alt="Photo de profil">
+                                {% else %}
+                                    <i class="fas fa-user"></i>
+                                {% endif %}
+                            </div>
+                            <div class="profile-info">
+                                <h4>{% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}</h4>
+                                <p>{% if client %}{{ client.email|default:user.email }}{% else %}{{ user.email }}{% endif %}</p>
+                            </div>
+                        </div>
+                        <div class="profile-menu-items">
+                            <a href="/client/profile" class="profile-menu-item">
+                                <i class="fas fa-user-cog"></i>
+                                <span>Mon Profil</span>
+                            </a>
+                            <a href="/client/settings" class="profile-menu-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Paramètres</span>
+                            </a>
+                            <div class="profile-divider"></div>
+                            <a href="/logout" class="profile-menu-item logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Déconnexion</span>
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <div class="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>Mon Profil</h1>
+                <p>Gérez vos informations personnelles et vos préférences</p>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Profile Header -->
+            <div class="profile-section">
+                <div class="profile-header-section">
+                    <div class="profile-avatar-section">
+                        {% if client.photo %}
+                            <img src="{{ client.photo.url }}" alt="Photo de profil">
+                        {% else %}
+                            <i class="fas fa-user"></i>
+                        {% endif %}
+                    </div>
+                    <div class="profile-info-section">
+                        <h2>{% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}</h2>
+                        <p>{% if client %}{{ client.email|default:user.email }}{% else %}{{ user.email }}{% endif %}</p>
+                        {% if client.telephone %}
+                        <p><i class="fas fa-phone"></i> {{ client.telephone }}</p>
+                        {% endif %}
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">{{ user.reservation_set.count }}</div>
+                                <div class="stat-label">Réservations</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">{% if client.date_inscription %}{{ client.date_inscription|timesince }}{% else %}Récent{% endif %}</div>
+                                <div class="stat-label">Membre depuis</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information Form -->
+            <div class="form-section">
+                <h3><i class="fas fa-user"></i> Informations personnelles</h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nom_complet">Nom complet</label>
+                            <input type="text" id="nom_complet" name="nom_complet" 
+                                   value="{% if client %}{{ client.nom_complet }}{% endif %}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" 
+                                   value="{% if client %}{{ client.email|default:user.email }}{% else %}{{ user.email }}{% endif %}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telephone">Téléphone</label>
+                            <input type="tel" id="telephone" name="telephone" 
+                                   value="{% if client.telephone %}{{ client.telephone }}{% endif %}">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Security Section -->
+            <div class="form-section">
+                <h3><i class="fas fa-shield-alt"></i> Sécurité</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Mot de passe</label>
+                        <p style="color: var(--text-light); margin-bottom: 1rem;">
+                            Pour des raisons de sécurité, le changement de mot de passe doit être effectué via une page dédiée.
+                        </p>
+                        <a href="#" class="btn" onclick="alert('Fonctionnalité de changement de mot de passe à implémenter')">
+                            <i class="fas fa-key"></i> Changer le mot de passe
+                        </a>
+                    </div>
+                    <div class="form-group">
+                        <label>Authentification à deux facteurs</label>
+                        <p style="color: var(--text-light); margin-bottom: 1rem;">
+                            Renforcez la sécurité de votre compte avec l'authentification à deux facteurs.
+                        </p>
+                        <a href="#" class="btn" onclick="alert('Fonctionnalité 2FA à implémenter')">
+                            <i class="fas fa-mobile-alt"></i> Configurer 2FA
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences Section -->
+            <div class="form-section">
+                <h3><i class="fas fa-cog"></i> Préférences</h3>
+                
+                <!-- Notifications Card -->
+                <div class="preference-card">
+                    <div class="preference-card-header">
+                        <i class="fas fa-bell"></i>
+                        <h4>Notifications par email</h4>
+                    </div>
+                    <div class="preference-card-content">
+                        <div class="notification-item">
+                            <div class="notification-info">
+                                <label class="notification-label">Offres spéciales et promotions</label>
+                                <p class="notification-desc">Recevez les meilleures offres et réductions exclusives</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="newsletter" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="notification-item">
+                            <div class="notification-info">
+                                <label class="notification-label">Notifications de réservation</label>
+                                <p class="notification-desc">Confirmations et rappels de vos réservations</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="reservations" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="notification-item">
+                            <div class="notification-info">
+                                <label class="notification-label">Marketing et actualités</label>
+                                <p class="notification-desc">Nouveautés et événements de l'hôtel</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="marketing">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Language & Display Card -->
+                <div class="preference-card">
+                    <div class="preference-card-header">
+                        <i class="fas fa-globe"></i>
+                        <h4>Langue et affichage</h4>
+                    </div>
+                    <div class="preference-card-content">
+                        <div class="form-group">
+                            <label for="language">Langue préférée</label>
+                            <select id="language" name="language">
+                                <option value="fr" selected>Français</option>
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                                <option value="de">Deutsch</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="theme">Thème d'affichage</label>
+                            <select id="theme" name="theme">
+                                <option value="light" selected>Clair</option>
+                                <option value="dark">Sombre</option>
+                                <option value="auto">Automatique</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Card -->
+                <div class="preference-card">
+                    <div class="preference-card-header">
+                        <i class="fas fa-user-shield"></i>
+                        <h4>Confidentialité</h4>
+                    </div>
+                    <div class="preference-card-content">
+                        <div class="notification-item">
+                            <div class="notification-info">
+                                <label class="notification-label">Profil visible publiquement</label>
+                                <p class="notification-desc">Autorisez les autres clients à voir votre profil</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="public_profile">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="notification-item">
+                            <div class="notification-info">
+                                <label class="notification-label">Partager les statistiques</label>
+                                <p class="notification-desc">Partagez vos préférences pour améliorer les recommandations</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" name="share_stats" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Actions -->
+            <div class="form-section">
+                <h3><i class="fas fa-exclamation-triangle"></i> Actions du compte</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn" onclick="alert('Fonctionnalité d\'exportation à implémenter')">
+                        <i class="fas fa-download"></i> Exporter mes données
+                    </button>
+                    <button class="btn" onclick="confirmDeleteAccount()">
+                        <i class="fas fa-trash"></i> Supprimer mon compte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Chatbot (uniquement si connecté) -->
+    {% if user.is_authenticated %}
+    <div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button id="chatbot-toggle" class="pulse" title="Assistant IA" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #3498db, #2c3e50); color: white; border: none; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); cursor: pointer; font-size: 1.5rem;">
+            <i class="fas fa-robot"></i>
+        </button>
+        <div id="chatbot-box" style="position: fixed; bottom: 90px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 1001; overflow: hidden;">
+            <div id="chatbot-header" style="background: linear-gradient(135deg, #2c3e50, #1a2530); color: white; padding: 1.2rem 1.5rem; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-robot me-2"></i> Assistant IA</span>
+                <button id="chatbot-close" style="background: none; border: none; color: white; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chatbot-messages" style="flex: 1; padding: 1.5rem; overflow-y: auto; background-color: #fafafa;">
+                <div class="message bot" style="margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    Bonjour {% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %} ! 👋<br>
+                    Je suis votre assistant IA. Comment puis-je vous aider aujourd'hui ?
+                </div>
+            </div>
+            <div id="chatbot-input-container" style="padding: 1rem 1.5rem; border-top: 1px solid #ecf0f1; display: flex; gap: 0.8rem; background: white;">
+                <input type="text" id="chatbot-input" placeholder="Posez votre question..." style="flex: 1; border: 1px solid #ecf0f1; border-radius: 20px; padding: 0.8rem 1.2rem; font-size: 0.9rem; outline: none;">
+                <button id="chatbot-send" style="background: #3498db; color: white; border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+                // Chatbot functionality
+                {% if user.is_authenticated %}
+                const chatbotToggle = document.getElementById('chatbot-toggle');
+                const chatbotBox = document.getElementById('chatbot-box');
+                const chatbotClose = document.getElementById('chatbot-close');
+                const chatbotInput = document.getElementById('chatbot-input');
+                const chatbotSend = document.getElementById('chatbot-send');
+                const chatbotMessages = document.getElementById('chatbot-messages');
+
+                // Ouvrir/Fermer le chatbot
+                chatbotToggle.addEventListener('click', () => {
+                    chatbotBox.classList.toggle('show');
+                    chatbotToggle.classList.remove('pulse');
+                    chatbotBox.style.display = chatbotBox.classList.contains('show') ? 'flex' : 'none';
+                    if (chatbotBox.classList.contains('show')) {
+                        chatbotInput.focus();
+                    }
+                });
+                chatbotClose.addEventListener('click', () => {
+                    chatbotBox.classList.remove('show');
+                    chatbotBox.style.display = 'none';
+                });
+                document.addEventListener('click', (e) => {
+                    if (chatbotBox && !chatbotBox.contains(e.target) && !chatbotToggle.contains(e.target)) {
+                        chatbotBox.classList.remove('show');
+                        chatbotBox.style.display = 'none';
+                    }
+                });
+                async function sendMessage() {
+                    const message = chatbotInput.value.trim();
+                    if (!message) return;
+                    const userMessageDiv = document.createElement('div');
+                    userMessageDiv.className = 'message user';
+                    userMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; margin-left: auto; border-radius: 12px 12px 0 12px;';
+                    userMessageDiv.textContent = message;
+                    chatbotMessages.appendChild(userMessageDiv);
+                    chatbotInput.value = '';
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.className = 'message bot';
+                    typingIndicator.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
+                    typingIndicator.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                    chatbotMessages.appendChild(typingIndicator);
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    try {
+                        const currentPath = window.location.pathname;
+                        let pageContext = 'client_profile';
+                        const response = await fetch('{% url "chatbot_api" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({ 
+                                message: message,
+                                page_context: pageContext,
+                                user_type: 'client'
+                            })
+                        });
+                        const data = await response.json();
+                        typingIndicator.remove();
+                        const botMessageDiv = document.createElement('div');
+                        botMessageDiv.className = 'message bot';
+                        botMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        botMessageDiv.textContent = data.message;
+                        chatbotMessages.appendChild(botMessageDiv);
+                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'message bot';
+                        errorDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        errorDiv.textContent = 'Désolé, une erreur s\'est produite. Veuillez réessayer.';
+                        chatbotMessages.appendChild(errorDiv);
+                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    }
+                }
+                chatbotSend.addEventListener('click', sendMessage);
+                chatbotInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                {% endif %}
+        // Menu burger
+        const burger = document.querySelector('.burger');
+        const nav = document.querySelector('.nav-links');
+        
+        burger.addEventListener('click', () => {
+            nav.classList.toggle('active');
+            burger.classList.toggle('toggle');
+        });
+
+        // Fermer le menu au clic sur un lien
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                nav.classList.remove('active');
+                burger.classList.remove('toggle');
+            });
+        });
+
+        // Profile Dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            const trigger = document.querySelector('.profile-trigger');
+            
+            dropdown.classList.toggle('active');
+            trigger.classList.toggle('active');
+        }
+
+        // Fermer le dropdown en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const profileTrigger = document.querySelector('.profile-trigger');
+            
+            if (!profileDropdown.contains(event.target)) {
+                const dropdown = document.getElementById('profileDropdown');
+                const trigger = document.querySelector('.profile-trigger');
+                
+                dropdown.classList.remove('active');
+                trigger.classList.remove('active');
+            }
+        });
+
+        // Confirmation de suppression de compte
+        function confirmDeleteAccount() {
+            if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+                if (confirm('Toutes vos données seront perdues. Confirmer la suppression ?')) {
+                    alert('Fonctionnalité de suppression à implémenter');
+                }
+            }
+        }
+
+        // Masquer automatiquement les messages après 5 secondes
+        setTimeout(() => {
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(message => {
+                message.style.transition = 'opacity 0.5s';
+                message.style.opacity = '0';
+                setTimeout(() => {
+                    message.remove();
+                }, 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

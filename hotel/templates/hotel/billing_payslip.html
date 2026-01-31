@@ -1,0 +1,304 @@
+{% extends 'hotel/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Fiche de Paie - {{ block.super }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-file-invoice me-2"></i>
+<span>Fiche de Paie</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                        Fiche de Paie - {{ fiche.mois|date:"F Y" }}
+                    </h5>
+                    <div>
+                        {% if fiche.statut == 'a_payer' %}
+                        <button type="button" class="btn btn-success" onclick="markSalaryAsPaid('{{ fiche.id }}')">
+                            <i class="fas fa-money-bill-wave me-1"></i>
+                            Marquer comme payée
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'billing_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Informations Employé -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Informations Employé</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Nom complet:</strong></td>
+                                    <td>{{ employe.get_full_name|default:employe.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Poste:</strong></td>
+                                    <td>{{ employe.profile.poste|default:"Non défini" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Statut:</strong></td>
+                                    <td>{{ employe.profile.statut_employe|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ employe.email }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Période & Statut</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Mois:</strong></td>
+                                    <td>{{ fiche.mois|date:"F Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Date de génération:</strong></td>
+                                    <td>{{ fiche.date_generation|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Statut:</strong></td>
+                                    <td>
+                                        {% if fiche.statut == 'paye' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i> Payée
+                                            </span>
+                                        {% elif fiche.statut == 'a_payer' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i> À payer
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-info-circle me-1"></i> {{ fiche.statut }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Détails Salariaux -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Calcul Salaire</h6>
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Élément</th>
+                                        <th class="text-end">Montant</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Salaire de base</td>
+                                        <td class="text-end">{{ fiche.salaire_base|floatformat:2|intcomma }} €</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Primes</td>
+                                        <td class="text-end">{{ fiche.prime_anciennete|floatformat:2|intcomma }} €</td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <td><strong>Salaire Brut</strong></td>
+                                        <td class="text-end"><strong>{{ fiche.salaire_brut|floatformat:2|intcomma }} €</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Retenues</h6>
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Retenue</th>
+                                        <th class="text-end">Montant</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>CNSS</td>
+                                        <td class="text-end">{{ fiche.cnss|floatformat:2|intcomma }} €</td>
+                                    </tr>
+                                    <tr>
+                                        <td>IR</td>
+                                        <td class="text-end">{{ fiche.ir|floatformat:2|intcomma }} €</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Autres retenues</td>
+                                        <td class="text-end">{{ fiche.autres_retenu|floatformat:2|intcomma }} €</td>
+                                    </tr>
+                                    <tr class="table-danger">
+                                        <td><strong>Total Retenues</strong></td>
+                                        <td class="text-end"><strong>{{ fiche.total_retenu|floatformat:2|intcomma }} €</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Résumé -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="text-center">
+                                                <h6 class="text-muted">Salaire Brut</h6>
+                                                <h4 class="text-primary">{{ fiche.salaire_brut|floatformat:2|intcomma }} €</h4>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-center">
+                                                <h6 class="text-muted">Total Retenues</h6>
+                                                <h4 class="text-danger">{{ fiche.total_retenu|floatformat:2|intcomma }} €</h4>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-center">
+                                                <h6 class="text-muted">Salaire Net</h6>
+                                                <h4 class="text-success">{{ fiche.salaire_net|floatformat:2|intcomma }} €</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <button type="button" class="btn btn-primary" onclick="window.print()">
+                                <i class="fas fa-print me-1"></i>
+                                Imprimer
+                            </button>
+                            <a href="{% url 'billing_list' %}#salaires" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Retour à la liste
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Paiement -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Enregistrer le paiement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="paymentId" name="id">
+                    <input type="hidden" id="paymentType" name="type">
+                    <div class="mb-3">
+                        <label class="form-label">Montant</label>
+                        <input type="number" step="0.01" class="form-control" id="paymentAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Moyen de paiement</label>
+                        <select class="form-select" id="paymentMethod" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="virement">Virement bancaire</option>
+                            <option value="especes">Espèces</option>
+                            <option value="cheque">Chèque</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Référence</label>
+                        <input type="text" class="form-control" id="paymentReference" placeholder="Numéro de transaction">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="submitPayment()">Valider</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Fonctions de gestion
+function markSalaryAsPaid(id) {
+    document.getElementById('paymentId').value = id;
+    document.getElementById('paymentType').value = 'salary';
+    document.getElementById('paymentAmount').value = '{{ fiche.salaire_net|floatformat:2 }}';
+    document.getElementById('paymentMethod').value = 'virement';
+    document.getElementById('paymentReference').value = '';
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+// Helper to retrieve CSRF token
+function getCsrfToken() {
+    const el = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (el && el.value) return el.value;
+    const match = document.cookie.match(/(^|; )csrftoken=([^;]+)/);
+    return match ? match[2] : '';
+}
+
+function submitPayment() {
+    const form = document.getElementById('paymentForm');
+    const id = document.getElementById('paymentId').value;
+    const type = document.getElementById('paymentType').value;
+    const amount = document.getElementById('paymentAmount').value;
+    const method = document.getElementById('paymentMethod').value;
+    const reference = document.getElementById('paymentReference').value;
+    const csrfToken = getCsrfToken();
+
+    const payload = { id: id, type: type, amount: amount, method: method, reference: reference };
+
+    const submitBtn = document.querySelector('#paymentModal .btn-primary');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = 'En traitement...'; }
+
+    fetch('/billing/mark-paid/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        const text = await response.text();
+        try {
+            const data = text ? JSON.parse(text) : null;
+            if (response.ok && data && data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                location.reload();
+                return;
+            }
+            const msg = (data && data.error) ? data.error : (text || response.statusText || 'Erreur serveur');
+            alert('Erreur: ' + msg + ' (code ' + response.status + ')');
+        } catch (e) {
+            alert('Erreur serveur inattendue (code ' + response.status + '). Voir console pour plus de détails.');
+            console.error('Non-JSON response:', response.status, text);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur réseau lors du paiement');
+    })
+    .finally(() => {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'Valider'; }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,1130 @@
+{% extends 'hotel/base.html' %}
+{% load static %}
+
+{% block title %}Maintenance - Hôtel de Luxe Admin{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-tools"></i>
+<span>Gestion de la maintenance</span>
+{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <!-- En-tête avec actions -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>Maintenance</h1>
+                <p>Gérez les interventions de maintenance de l'hôtel</p>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'maintenance_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Nouvelle intervention
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartes de statistiques -->
+    <div class="stats-grid">
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-clock"></i> En attente</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number">{{ stats.pending_count }}</div>
+                <div class="stat-label">interventions</div>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-tools"></i> En cours</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number text-warning">{{ stats.in_progress_count }}</div>
+                <div class="stat-label">interventions</div>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-check-circle"></i> Terminées</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number text-success">{{ stats.completed_count }}</div>
+                <div class="stat-label">interventions</div>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-euro-sign"></i> Coût du mois</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number text-primary">{{ stats.monthly_cost|default:"0" }} €</div>
+                <div class="stat-label">total</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card filter-card">
+        <div class="card-header">
+            <div class="card-header-content">
+                <h3><i class="fas fa-filter"></i> Filtres de recherche</h3>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label>Statut</label>
+                        <select class="form-select" name="status">
+                            <option value="">Tous les statuts</option>
+                            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>En attente</option>
+                            <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>En cours</option>
+                            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Terminée</option>
+                            <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Annulée</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Type</label>
+                        <select class="form-select" name="type">
+                            <option value="">Tous les types</option>
+                            <option value="preventive" {% if request.GET.type == 'preventive' %}selected{% endif %}>Préventive</option>
+                            <option value="corrective" {% if request.GET.type == 'corrective' %}selected{% endif %}>Corrective</option>
+                            <option value="emergency" {% if request.GET.type == 'emergency' %}selected{% endif %}>Urgence</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Chambre</label>
+                        <select class="form-select" name="room">
+                            <option value="">Toutes les chambres</option>
+                            {% for room in rooms %}
+                                <option value="{{ room.id }}" {% if request.GET.room == room.id|stringformat:'s' %}selected{% endif %}>
+                                    Chambre {{ room.number }} - {{ room.type }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Appliquer
+                            </button>
+                            <a href="{% url 'maintenance_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> Réinitialiser
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau principal -->
+    <div class="card main-table-card">
+        <div class="card-header">
+            <div class="card-header-content">
+                <h3>
+                    <i class="fas fa-list"></i>
+                    Liste des interventions ({{ maintenances|length }})
+                </h3>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            {% if maintenances %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Localisation</th>
+                                <th>Type & Priorité</th>
+                                <th>Description</th>
+                                <th>Technicien</th>
+                                <th>Dates</th>
+                                <th>Coût</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for maintenance in maintenances %}
+                            <tr class="data-row">
+                                <td>
+                                    <span class="badge">#{{ maintenance.id }}</span>
+                                </td>
+                                <td>
+                                    {% if maintenance.room %}
+                                    <div class="location-info">
+                                        <i class="fas fa-door-open"></i>
+                                        <div>
+                                            <div class="location-name">Chambre {{ maintenance.room.number }}</div>
+                                            <div class="location-type">{{ maintenance.room.type }}</div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="location-info">
+                                        <i class="fas fa-tools"></i>
+                                        <div class="location-name">{{ maintenance.equipment|default:"Général" }}</div>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="type-badge 
+                                        {% if maintenance.maintenance_type == 'emergency' %}badge-emergency
+                                        {% elif maintenance.maintenance_type == 'corrective' %}badge-corrective
+                                        {% else %}badge-preventive{% endif %}">
+                                        {% if maintenance.maintenance_type == 'emergency' %}
+                                            <i class="fas fa-exclamation-triangle"></i> Urgence
+                                        {% elif maintenance.maintenance_type == 'corrective' %}
+                                            <i class="fas fa-wrench"></i> Corrective
+                                        {% else %}
+                                            <i class="fas fa-calendar-check"></i> Préventive
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="priority-indicator 
+                                        {% if maintenance.priority == 'high' %}priority-high
+                                        {% elif maintenance.priority == 'medium' %}priority-medium
+                                        {% else %}priority-low{% endif %}">
+                                        {% if maintenance.priority == 'high' %}
+                                            <i class="fas fa-arrow-up"></i> Haute
+                                        {% elif maintenance.priority == 'medium' %}
+                                            <i class="fas fa-equals"></i> Moyenne
+                                        {% else %}
+                                            <i class="fas fa-arrow-down"></i> Basse
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="description">
+                                        {{ maintenance.description|truncatewords:8 }}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if maintenance.assigned_to %}
+                                    <div class="assigned-user">
+                                        <div class="user-avatar">
+                                            {{ maintenance.assigned_to.get_short_name|first|upper }}
+                                        </div>
+                                        <div class="user-info">
+                                            <div class="user-name">{{ maintenance.assigned_to.get_short_name }}</div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <span class="unassigned">
+                                        <i class="fas fa-user-slash"></i>
+                                        Non assigné
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="date-info">
+                                        <div class="date-item">
+                                            <div class="date-label">Signalement</div>
+                                            <div class="date-value">{{ maintenance.created_at|date:"d/m/Y H:i" }}</div>
+                                        </div>
+                                        <div class="date-item">
+                                            <div class="date-label">Prévue</div>
+                                            <div class="date-value">{{ maintenance.scheduled_date|date:"d/m/Y"|default:"-" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if maintenance.estimated_cost %}
+                                    <div class="cost-info">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <span class="cost-value">{{ maintenance.estimated_cost }}</span>
+                                        <span class="currency">€</span>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if maintenance.status == 'pending' %}
+                                        <span class="status-badge status-pending">
+                                            <i class="fas fa-clock"></i> En attente
+                                        </span>
+                                    {% elif maintenance.status == 'in_progress' %}
+                                        <span class="status-badge status-in-progress">
+                                            <i class="fas fa-spinner"></i> En cours
+                                        </span>
+                                    {% elif maintenance.status == 'completed' %}
+                                        <span class="status-badge status-completed">
+                                            <i class="fas fa-check-circle"></i> Terminée
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge status-cancelled">
+                                            <i class="fas fa-times-circle"></i> Annulée
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{% url 'maintenance_detail' maintenance.id %}" class="btn-icon" title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if user.is_staff %}
+                                            <a href="{% url 'maintenance_edit' maintenance.id %}" class="btn-icon" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if maintenance.status != 'completed' and maintenance.status != 'cancelled' %}
+                                                <form method="post" action="{% url 'maintenance_complete' maintenance.id %}" class="inline-form">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn-icon btn-success" title="Clôturer">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1" class="pagination-btn">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="pagination-current">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-btn">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-tools fa-3x"></i>
+                    </div>
+                    <h3>Aucune intervention trouvée</h3>
+                    <p>Aucune intervention ne correspond à vos critères de recherche.</p>
+                    <a href="{% url 'maintenance_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Créer une intervention
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bouton d'action flottant -->
+    <div class="fab-container">
+        <a href="{% url 'maintenance_create' %}" class="fab" title="Nouvelle intervention">
+            <i class="fas fa-plus"></i>
+        </a>
+    </div>
+</div>
+
+<style>
+/* Styles spécifiques à la page de maintenance */
+.content-area {
+    padding: 1.5rem;
+}
+
+/* En-tête de page */
+.page-header {
+    background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+    border-radius: 12px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.header-title h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.8rem;
+    color: white;
+}
+
+.header-title p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Cartes de statistiques */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.stat-card .card-header {
+    padding: 1.2rem 1.5rem;
+    background: var(--white);
+    border-bottom: none;
+}
+
+.stat-card .card-header h3 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-number.text-warning {
+    color: var(--warning-orange);
+}
+
+.stat-number.text-success {
+    color: var(--success-green);
+}
+
+.stat-number.text-primary {
+    color: var(--secondary-blue);
+}
+
+.stat-label {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Filtres */
+.filter-card {
+    margin-bottom: 2rem;
+}
+
+.card-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-header-content h3 {
+    color: var(--primary-blue);
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-form {
+    background: var(--light-blue);
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--light-blue);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    background: var(--white);
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--secondary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Tableau */
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--light-blue);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.data-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--secondary-blue);
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid var(--light-blue);
+    transition: var(--transition);
+}
+
+.data-table tbody tr:hover {
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.data-table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Badge ID */
+.badge {
+    background: var(--secondary-blue);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Localisation */
+.location-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.location-info i {
+    color: var(--secondary-blue);
+    font-size: 1.1rem;
+}
+
+.location-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.location-type {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+/* Badges de type */
+.type-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge-emergency {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--danger-red);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.badge-corrective {
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--warning-orange);
+    border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.badge-preventive {
+    background: rgba(52, 152, 219, 0.15);
+    color: var(--secondary-blue);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+/* Indicateurs de priorité */
+.priority-indicator {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.priority-high {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--danger-red);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.priority-medium {
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--warning-orange);
+    border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.priority-low {
+    background: rgba(39, 174, 96, 0.15);
+    color: var(--success-green);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+/* Description */
+.description {
+    max-width: 200px;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    line-height: 1.4;
+}
+
+/* Utilisateur assigné */
+.assigned-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--secondary-blue), var(--purple));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+.unassigned {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Dates */
+.date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.date-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.date-label {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 0.25rem;
+}
+
+.date-value {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* Coût */
+.cost-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cost-info i {
+    color: var(--secondary-blue);
+}
+
+.cost-value {
+    font-weight: 700;
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+.currency {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Badges de statut */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: rgba(52, 152, 219, 0.15);
+    color: var(--secondary-blue);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.status-in-progress {
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--warning-orange);
+    border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.status-completed {
+    background: rgba(39, 174, 96, 0.15);
+    color: var(--success-green);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.status-cancelled {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--danger-red);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* Boutons d'action */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    background: var(--light-blue);
+    border: none;
+    color: var(--text-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.btn-icon:hover {
+    background: var(--secondary-blue);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-icon.btn-success:hover {
+    background: var(--success-green);
+}
+
+.inline-form {
+    margin: 0;
+    padding: 0;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--light-blue);
+}
+
+.pagination-btn, .pagination-current {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.pagination-btn {
+    background: var(--light-blue);
+    color: var(--text-dark);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.pagination-btn:hover {
+    background: var(--secondary-blue);
+    color: white;
+}
+
+.pagination-current {
+    background: var(--secondary-blue);
+    color: white;
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    width: 100px;
+    height: 100px;
+    background: var(--light-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--text-light);
+    font-size: 2.5rem;
+}
+
+.empty-state h3 {
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Bouton d'action flottant */
+.fab-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 100;
+}
+
+.fab {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+    transition: var(--transition);
+    position: relative;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+    color: white;
+}
+
+.fab::after {
+    content: attr(title);
+    position: absolute;
+    right: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--text-dark);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: var(--transition);
+    pointer-events: none;
+}
+
+.fab:hover::after {
+    opacity: 1;
+    right: 75px;
+}
+
+/* Boutons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.95rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--accent-blue), var(--primary-blue));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background: var(--light-blue);
+    color: var(--text-dark);
+}
+
+.btn-secondary:hover {
+    background: #d5dbdd;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Mode sombre */
+.theme-dark .page-header {
+    background: linear-gradient(135deg, #1a2530, #0f1720);
+}
+
+.theme-dark .stat-card,
+.theme-dark .filter-card,
+.theme-dark .main-table-card {
+    background: #1e2a38;
+}
+
+.theme-dark .filter-form {
+    background: #2d3e50;
+}
+
+.theme-dark .form-select {
+    background: #2d3e50;
+    border-color: #3d4e60;
+    color: #e6eef6;
+}
+
+.theme-dark .data-table thead {
+    background: #1a2530;
+}
+
+.theme-dark .data-table tbody tr {
+    border-color: #2d3e50;
+}
+
+.theme-dark .location-name,
+.theme-dark .description,
+.theme-dark .user-name,
+.theme-dark .date-value,
+.theme-dark .cost-value {
+    color: #e6eef6;
+}
+
+.theme-dark .btn-icon {
+    background: #2d3e50;
+    color: #e6eef6;
+}
+
+/* Responsive */
+@media screen and (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .content-area {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .fab-container {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.data-row {
+    animation: fadeIn 0.3s ease;
+}
+
+.data-row:nth-child(odd) {
+    animation-delay: 0.1s;
+}
+
+.data-row:nth-child(even) {
+    animation-delay: 0.2s;
+}
+
+/* Animation pour les urgences */
+.badge-emergency {
+    animation: pulseEmergency 2s infinite;
+}
+
+@keyframes pulseEmergency {
+    0% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(231, 76, 60, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
+}
+
+/* Animation pour les priorités élevées */
+.priority-high {
+    animation: pulsePriority 2s infinite;
+}
+
+@keyframes pulsePriority {
+    0% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.2);
+    }
+    70% {
+        box-shadow: 0 0 0 4px rgba(231, 76, 60, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
+}
+</style>
+
+{% block extra_js %}{% endblock %}
+{% endblock %}

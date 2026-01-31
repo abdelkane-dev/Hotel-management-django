@@ -1,0 +1,1448 @@
+{% extends 'hotel/base.html' %}
+{% load static %}
+
+{% block title %}Catégories d'inventaire - Hôtel de Luxe Admin{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-tags"></i>
+<span>Catégories d'inventaire</span>
+{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <!-- Navigation -->
+    <div class="breadcrumb-nav">
+        <a href="{% url 'inventory_list' %}" class="breadcrumb-link">
+            <i class="fas fa-boxes"></i> Inventaire
+        </a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Catégories</span>
+    </div>
+
+    <!-- En-tête avec actions -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>Gestion des catégories</h1>
+                <p>Organisez vos articles par catégories pour une meilleure gestion</p>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'inventory_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour à l'inventaire
+                </a>
+                <button class="btn btn-primary" onclick="showCategoryModal()">
+                    <i class="fas fa-plus"></i> Nouvelle catégorie
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats-grid">
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-tags"></i> Total Catégories</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number">{{ categories|length }}</div>
+                <div class="stat-label">catégories actives</div>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-box"></i> Articles totaux</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number text-success">{{ total_articles }}</div>
+                <div class="stat-label">articles en stock</div>
+            </div>
+        </div>
+
+        <div class="card stat-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-bar"></i> Moy. articles/cat.</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number text-primary">
+                    {% if categories|length > 0 %}
+                        {{ total_articles|div:categories|length|floatformat:1 }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+                <div class="stat-label">par catégorie</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panneau de statistiques détaillées -->
+    <div class="card detailed-stats-card" id="detailedStats" style="display: none;">
+        <div class="card-header">
+            <div class="card-header-content">
+                <div class="header-title">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Statistiques détaillées par catégorie</h3>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="toggleStats()">
+                    <i class="fas fa-times"></i> Masquer
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="stats-grid-detailed">
+                {% for category in categories %}
+                    <div class="stat-card-detailed">
+                        <div class="stat-icon" style="background: {{ category.color|default:'var(--secondary-blue)' }}">
+                            <i class="{{ category.icon|default:'fas fa-tag' }}"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-name">{{ category.nom }}</div>
+                            <div class="stat-count">{{ category.articles.count }} articles</div>
+                            <div class="stat-percentage">
+                                {% if total_articles > 0 %}
+                                    {% widthratio category.articles.count total_articles 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                                du total
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-stats">
+                        <i class="fas fa-chart-pie fa-2x"></i>
+                        <p>Aucune donnée statistique disponible</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des catégories -->
+    <div class="card categories-card">
+        <div class="card-header">
+            <div class="card-header-content">
+                <div class="header-title">
+                    <i class="fas fa-list"></i>
+                    <h3>Liste des catégories ({{ categories|length }})</h3>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="toggleStats()">
+                        <i class="fas fa-chart-pie"></i> Voir statistiques
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            {% if categories %}
+                <div class="categories-grid">
+                    {% for category in categories %}
+                        <div class="category-card" id="category-{{ category.id }}">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4 class="category-name">{{ category.nom }}</h4>
+                                    <span class="category-id">ID: {{ category.id }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="category-body">
+                                {% if category.description %}
+                                    <div class="category-description">
+                                        {{ category.description|truncatechars:100 }}
+                                    </div>
+                                {% else %}
+                                    <div class="no-description">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>Aucune description</span>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="category-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Articles</span>
+                                        <span class="stat-value">{{ category.articles.count }}</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Crée le</span>
+                                        <span class="stat-value">{{ category.date_creation|date:"d/m/Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="category-actions">
+                                <a href="{% url 'inventory_list' %}?categorie={{ category.id }}" 
+                                   class="btn-icon" title="Voir les articles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button class="btn-icon" onclick="editCategory({{ category.id }})" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% if category.articles.count == 0 %}
+                                    <button class="btn-icon btn-danger" onclick="deleteCategory({{ category.id }}, '{{ category.nom|escapejs }}')" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="btn-icon disabled" title="Catégorie non vide" disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-tags fa-3x"></i>
+                    </div>
+                    <h3>Aucune catégorie trouvée</h3>
+                    <p>Créez des catégories pour organiser efficacement votre inventaire</p>
+                    <button class="btn btn-primary" onclick="showCategoryModal()">
+                        <i class="fas fa-plus"></i> Créer la première catégorie
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Catégorie -->
+<div id="categoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">
+                <i class="fas fa-tag"></i>
+                <h3 id="modalTitle">Nouvelle catégorie</h3>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <form id="categoryForm" method="post" action="{% url 'inventory_category_create' %}">
+            {% csrf_token %}
+            <input type="hidden" id="categoryId" name="category_id" value="">
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="categoryName">
+                        <i class="fas fa-font"></i>
+                        <span>Nom de la catégorie *</span>
+                    </label>
+                    <input type="text" name="nom" id="categoryName" class="form-input" required>
+                    <div class="form-hint">Doit être unique et descriptif</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryDescription">
+                        <i class="fas fa-align-left"></i>
+                        <span>Description</span>
+                    </label>
+                    <textarea name="description" id="categoryDescription" class="form-textarea" rows="4" placeholder="Description optionnelle..."></textarea>
+                    <div class="form-hint">Décrivez l'utilisation ou le contenu de cette catégorie</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryIcon">
+                        <i class="fas fa-icons"></i>
+                        <span>Icône (optionnel)</span>
+                    </label>
+                    <div class="icon-selector">
+                        {% with icons="tag,folder,box,archive,briefcase,flask,utensils,couch,tv,shower,bed,toilet-paper,wine-glass,coffee,spray-can,soap" %}
+                            {% for icon in icons.split %}
+                                <div class="icon-option" data-icon="{{ icon }}" onclick="selectIcon('{{ icon }}')">
+                                    <i class="fas fa-{{ icon }}"></i>
+                                </div>
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                    <input type="hidden" name="icon" id="categoryIcon" value="tag">
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryColor">
+                        <i class="fas fa-palette"></i>
+                        <span>Couleur (optionnel)</span>
+                    </label>
+                    <div class="color-selector">
+                        {% with colors="#2c3e50,#3498db,#2980b9,#27ae60,#f39c12,#e74c3c,#9b59b6,#1abc9c,#34495e" %}
+                            {% for color in colors.split %}
+                                <div class="color-option" style="background: {{ color }}" 
+                                     onclick="selectColor('{{ color }}')" 
+                                     title="{{ color }}">
+                                </div>
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                    <input type="hidden" name="color" id="categoryColor" value="#3498db">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary" id="saveCategoryBtn">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Styles spécifiques aux catégories */
+.content-area {
+    padding: 1.5rem;
+}
+
+/* Navigation */
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    padding: 1rem 1.5rem;
+    background: var(--light-blue);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.breadcrumb-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--secondary-blue);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.breadcrumb-link:hover {
+    color: var(--accent-blue);
+}
+
+.breadcrumb-separator {
+    color: var(--text-light);
+    font-weight: 300;
+}
+
+.breadcrumb-current {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* En-tête de page */
+.page-header {
+    background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+    border-radius: 12px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.header-title h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.8rem;
+    color: white;
+}
+
+.header-title p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Statistiques */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.stat-card .card-header {
+    padding: 1.2rem 1.5rem;
+    background: var(--white);
+    border-bottom: none;
+}
+
+.stat-card .card-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.stat-card .card-header h3 i {
+    color: var(--secondary-blue);
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-number.text-success {
+    color: var(--success-green);
+}
+
+.stat-number.text-primary {
+    color: var(--secondary-blue);
+}
+
+.stat-label {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Statistiques détaillées */
+.detailed-stats-card {
+    margin-bottom: 2rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stats-grid-detailed {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card-detailed {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    border: 1px solid var(--light-blue);
+    transition: var(--transition);
+}
+
+.stat-card-detailed:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-count {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: 0.25rem;
+}
+
+.stat-percentage {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.empty-stats {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-light);
+}
+
+.empty-stats i {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Liste des catégories */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.category-card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+    border: 1px solid var(--light-blue);
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-color: var(--secondary-blue);
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--light-blue);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.category-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.category-info {
+    flex: 1;
+}
+
+.category-name {
+    margin: 0 0 0.25rem 0;
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+.category-id {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.category-body {
+    padding: 1.5rem;
+}
+
+.category-description {
+    color: var(--text-dark);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    background: rgba(52, 152, 219, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid var(--secondary-blue);
+}
+
+.no-description {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    background: var(--light-blue);
+    border-radius: 8px;
+}
+
+.no-description i {
+    color: var(--secondary-blue);
+}
+
+.category-stats {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+    background: var(--light-blue);
+    border-radius: 8px;
+}
+
+.stat-item {
+    flex: 1;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+}
+
+.category-actions {
+    padding: 1.5rem;
+    border-top: 1px solid var(--light-blue);
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    background: rgba(0,0,0,0.02);
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--light-blue);
+    border: none;
+    color: var(--text-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.btn-icon:hover:not(:disabled) {
+    background: var(--secondary-blue);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-icon.btn-danger:hover:not(:disabled) {
+    background: var(--danger-red);
+}
+
+.btn-icon.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--light-blue);
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    width: 100px;
+    height: 100px;
+    background: var(--light-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--text-light);
+    font-size: 2.5rem;
+}
+
+.empty-state h3 {
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Boutons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.95rem;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: var(--light-blue);
+    color: var(--text-dark);
+}
+
+.btn-secondary:hover {
+    background: #d5dbdd;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--accent-blue), var(--primary-blue));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-dark);
+    border: 1px solid var(--light-blue);
+}
+
+.btn-outline:hover {
+    background: var(--light-blue);
+    transform: translateY(-2px);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 15px;
+    width: 600px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--light-blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--primary-blue);
+}
+
+.modal-title h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--danger-red);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--light-blue);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* Formulaires */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.form-group label i {
+    color: var(--secondary-blue);
+    width: 16px;
+}
+
+.form-input, .form-textarea {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: 2px solid var(--light-blue);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    background: var(--white);
+}
+
+.form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--secondary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-hint {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 0.5rem;
+}
+
+/* Sélecteur d'icônes */
+.icon-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: var(--light-blue);
+    border-radius: 8px;
+}
+
+.icon-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--white);
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+
+.icon-option:hover {
+    background: var(--secondary-blue);
+    color: white;
+    transform: scale(1.1);
+}
+
+.icon-option.selected {
+    background: var(--secondary-blue);
+    color: white;
+    border-color: var(--accent-blue);
+    transform: scale(1.1);
+}
+
+/* Sélecteur de couleurs */
+.color-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: var(--light-blue);
+    border-radius: 8px;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 3px solid transparent;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px var(--text-dark);
+}
+
+/* Mode sombre */
+.theme-dark .page-header {
+    background: linear-gradient(135deg, #1a2530, #0f1720);
+}
+
+.theme-dark .stat-card,
+.theme-dark .category-card,
+.theme-dark .stat-card-detailed {
+    background: #1e2a38;
+    border-color: #2d3e50;
+}
+
+.theme-dark .category-header {
+    background: #2d3e50;
+}
+
+.theme-dark .category-stats {
+    background: #2d3e50;
+}
+
+.theme-dark .no-description {
+    background: #2d3e50;
+}
+
+.theme-dark .category-actions {
+    background: rgba(0,0,0,0.1);
+}
+
+.theme-dark .btn-icon {
+    background: #2d3e50;
+    color: #e6eef6;
+}
+
+.theme-dark .form-input,
+.theme-dark .form-textarea {
+    background: #2d3e50;
+    border-color: #3d4e60;
+    color: #e6eef6;
+}
+
+.theme-dark .icon-selector,
+.theme-dark .color-selector {
+    background: #2d3e50;
+}
+
+.theme-dark .icon-option {
+    background: #1e2a38;
+    color: #e6eef6;
+}
+
+/* Responsive */
+@media screen and (max-width: 1024px) {
+    .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    
+    .stats-grid-detailed {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .content-area {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+}
+
+/* Animation pour les nouvelles catégories */
+@keyframes highlightNew {
+    0% {
+        background-color: rgba(52, 152, 219, 0.3);
+        transform: scale(0.95);
+    }
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+}
+
+.new-category {
+    animation: highlightNew 1s ease;
+}
+</style>
+
+<script>
+let editingCategoryId = null;
+let selectedIcon = 'tag';
+let selectedColor = '#3498db';
+
+// Gestion de la modal
+function showCategoryModal(categoryId = null) {
+    editingCategoryId = categoryId;
+    const modal = document.getElementById('categoryModal');
+    const title = document.getElementById('modalTitle');
+    const form = document.getElementById('categoryForm');
+    const categoryIdInput = document.getElementById('categoryId');
+    
+    // Réinitialiser la sélection
+    selectedIcon = 'tag';
+    selectedColor = '#3498db';
+    updateIconSelection();
+    updateColorSelection();
+    
+    if (categoryId) {
+        title.textContent = 'Modifier la catégorie';
+        categoryIdInput.value = categoryId;
+        
+        // Charger les données de la catégorie
+        fetch(`/api/category/${categoryId}/`)
+            .then(response => {
+                if (!response.ok) throw new Error('Catégorie non trouvée');
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('categoryName').value = data.nom;
+                document.getElementById('categoryDescription').value = data.description || '';
+                selectedIcon = data.icon || 'tag';
+                selectedColor = data.color || '#3498db';
+                document.getElementById('categoryIcon').value = selectedIcon;
+                document.getElementById('categoryColor').value = selectedColor;
+                
+                updateIconSelection();
+                updateColorSelection();
+                form.action = `/inventory/category/${categoryId}/edit/`;
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Impossible de charger les données de la catégorie', 'error');
+            });
+    } else {
+        title.textContent = 'Nouvelle catégorie';
+        categoryIdInput.value = '';
+        form.reset();
+        form.action = '{% url "inventory_category_create" %}';
+    }
+    
+    modal.classList.add('show');
+    document.getElementById('categoryName').focus();
+}
+
+function closeModal() {
+    document.getElementById('categoryModal').classList.remove('show');
+    editingCategoryId = null;
+}
+
+// Sélection d'icône
+function selectIcon(icon) {
+    selectedIcon = icon;
+    document.getElementById('categoryIcon').value = icon;
+    updateIconSelection();
+}
+
+function updateIconSelection() {
+    document.querySelectorAll('.icon-option').forEach(option => {
+        const icon = option.getAttribute('data-icon');
+        if (icon === selectedIcon) {
+            option.classList.add('selected');
+        } else {
+            option.classList.remove('selected');
+        }
+    });
+}
+
+// Sélection de couleur
+function selectColor(color) {
+    selectedColor = color;
+    document.getElementById('categoryColor').value = color;
+    updateColorSelection();
+}
+
+function updateColorSelection() {
+    document.querySelectorAll('.color-option').forEach(option => {
+        const color = option.style.background;
+        if (color === selectedColor) {
+            option.classList.add('selected');
+        } else {
+            option.classList.remove('selected');
+        }
+    });
+}
+
+// Édition de catégorie
+function editCategory(categoryId) {
+    showCategoryModal(categoryId);
+}
+
+// Suppression de catégorie
+function deleteCategory(categoryId, name) {
+    const modalContent = `
+        <div class="delete-modal">
+            <div class="modal-header">
+                <h3 style="color: var(--danger-red);">
+                    <i class="fas fa-exclamation-triangle"></i> Supprimer la catégorie
+                </h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="warning-message">
+                    <i class="fas fa-trash-alt fa-2x"></i>
+                    <div>
+                        <h4>Êtes-vous sûr de vouloir supprimer cette catégorie ?</h4>
+                        <p><strong>"${name}"</strong></p>
+                        <p class="text-danger">Cette action est irréversible !</p>
+                        <p class="text-muted">La catégorie sera supprimée définitivement.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Annuler</button>
+                <button class="btn btn-danger" onclick="confirmDeleteCategory(${categoryId})">
+                    <i class="fas fa-trash"></i> Supprimer définitivement
+                </button>
+            </div>
+        </div>
+    `;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal show';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+}
+
+function confirmDeleteCategory(categoryId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/inventory/category/${categoryId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Catégorie supprimée avec succès', 'success');
+            document.querySelector('.modal').remove();
+            
+            // Supprimer la carte de la catégorie
+            const categoryCard = document.getElementById(`category-${categoryId}`);
+            if (categoryCard) {
+                categoryCard.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => categoryCard.remove(), 300);
+            }
+            
+            // Recharger après un délai
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showNotification('Erreur: ' + (data.error || 'Échec de la suppression'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Erreur lors de la suppression', 'error');
+    });
+}
+
+// Afficher/masquer les statistiques
+function toggleStats() {
+    const stats = document.getElementById('detailedStats');
+    const btn = document.querySelector('.btn-outline');
+    
+    if (stats.style.display === 'none') {
+        stats.style.display = 'block';
+        btn.innerHTML = '<i class="fas fa-times"></i> Masquer';
+        btn.setAttribute('title', 'Masquer les statistiques');
+    } else {
+        stats.style.display = 'none';
+        btn.innerHTML = '<i class="fas fa-chart-pie"></i> Voir statistiques';
+        btn.setAttribute('title', 'Afficher les statistiques');
+    }
+}
+
+// Gestion du formulaire
+document.getElementById('categoryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = document.getElementById('saveCategoryBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    // Désactiver le bouton pendant l'envoi
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(editingCategoryId ? 'Catégorie modifiée avec succès' : 'Catégorie créée avec succès', 'success');
+            closeModal();
+            
+            // Recharger la page après un délai
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showNotification('Erreur: ' + (data.error || 'Échec de l\'enregistrement'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Erreur lors de l\'enregistrement', 'error');
+    })
+    .finally(() => {
+        // Réactiver le bouton
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
+
+// Fermer la modal en cliquant à l'extérieur
+window.onclick = function(event) {
+    const modal = document.getElementById('categoryModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+
+// Fonction pour afficher des notifications
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        min-width: 300px;
+        max-width: 400px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        animation: slideInRight 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    `;
+    
+    const icons = {
+        success: 'check-circle',
+        error: 'times-circle',
+        warning: 'exclamation-triangle',
+        info: 'info-circle'
+    };
+    
+    const colors = {
+        success: 'var(--success-green)',
+        error: 'var(--danger-red)',
+        warning: 'var(--warning-orange)',
+        info: 'var(--secondary-blue)'
+    };
+    
+    notification.style.backgroundColor = type === 'success' ? 'rgba(39, 174, 96, 0.1)' :
+                                        type === 'error' ? 'rgba(231, 76, 60, 0.1)' :
+                                        type === 'warning' ? 'rgba(243, 156, 18, 0.1)' :
+                                        'rgba(52, 152, 219, 0.1)';
+    notification.style.borderLeft = `4px solid ${colors[type]}`;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${icons[type]}" style="color: ${colors[type]}; font-size: 1.2rem;"></i>
+        <div style="flex: 1;">
+            <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--text-dark);">
+                ${type === 'success' ? 'Succès' : 
+                  type === 'error' ? 'Erreur' : 
+                  type === 'warning' ? 'Attention' : 'Information'}
+            </div>
+            <div style="color: var(--text-dark);">${message}</div>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0.25rem;">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-suppression
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+// Ajouter les animations CSS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+    
+    .delete-modal {
+        background: var(--white);
+        border-radius: 15px;
+        width: 500px;
+        max-width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        border: 2px solid var(--danger-red);
+    }
+    
+    .warning-message {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: rgba(231, 76, 60, 0.05);
+        border-radius: 10px;
+        border: 2px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .warning-message i {
+        color: var(--danger-red);
+    }
+    
+    .warning-message h4 {
+        color: var(--danger-red);
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .warning-message p {
+        color: var(--text-dark);
+        margin: 0.25rem 0;
+    }
+`;
+document.head.appendChild(style);
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier s'il y a un message de succès
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('success')) {
+        showNotification('Opération effectuée avec succès', 'success');
+    }
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+{% endblock %}

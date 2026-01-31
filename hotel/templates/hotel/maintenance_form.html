@@ -1,0 +1,401 @@
+{% extends 'hotel/base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{% if form.instance.id %}Modifier{% else %}Nouvelle{% endif %} demande de maintenance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        border: none;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .form-section {
+        background: #fff;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .form-section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+    }
+    .form-section-title i {
+        margin-right: 0.75rem;
+        color: var(--secondary-blue);
+    }
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.4rem;
+    }
+    .form-control, .form-select {
+        border-radius: 0.4rem;
+        padding: 0.6rem 0.9rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+    .btn-submit {
+        padding: 0.65rem 1.5rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+    }
+    .priority-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .priority-high { background-color: #dc3545; }
+    .priority-medium { background-color: #fd7e14; }
+    .priority-low { background-color: #198754; }
+    .file-upload {
+        border: 2px dashed #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .file-upload:hover {
+        border-color: var(--secondary-blue);
+        background-color: rgba(52, 152, 219, 0.05);
+    }
+    .file-upload i {
+        font-size: 2rem;
+        color: #adb5bd;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+    .preview-image {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 0.25rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-tools me-2"></i>
+        {% if form.instance.id %}Modifier l'intervention #{{ form.instance.id }}{% else %}Nouvelle intervention de maintenance{% endif %}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'maintenance_list' %}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left me-1"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+
+<div class="card form-card">
+    <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            {% for field in form.visible_fields %}
+                {% if field.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ field.label }} :</strong> {{ field.errors|join:", " }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Section 1: Informations générales -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Informations générales
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.titre.id_for_label }}" class="form-label">
+                            {{ form.titre.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {% render_field form.titre class="form-control" placeholder="Ex: Fuite d&#39;eau dans la salle de bain" required="required" %}
+                        <div class="invalid-feedback">
+                            Veuillez saisir un titre pour cette intervention.
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.type_maintenance.id_for_label }}" class="form-label">
+                            Type de maintenance
+                            <span class="text-danger">*</span>
+                        </label>
+                        {% render_field form.type_maintenance class="form-select" required="required" %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.priorite.id_for_label }}" class="form-label">
+                            Priorité
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div>
+                            {% render_field form.priorite class="form-select" %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.statut.id_for_label }}" class="form-label">
+                            Statut
+                            <span class="text-danger">*</span>
+                        </label>
+                        {% render_field form.statut class="form-select" %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Détails de l'intervention -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-clipboard-list"></i>
+                    Détails de l'intervention
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.chambre.id_for_label }}" class="form-label">
+                            Chambre concernée
+                        </label>
+                        {% render_field form.chambre class="form-select" %}
+                        <small class="form-text text-muted">Laissez vide si c'est une intervention générale</small>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.equipement.id_for_label }}" class="form-label">
+                            Équipement concerné
+                        </label>
+                        {% render_field form.equipement class="form-control" placeholder="Ex: Climatiseur, Télévision, etc." %}
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            Description détaillée
+                            <span class="text-danger">*</span>
+                        </label>
+                        {% render_field form.description class="form-control" rows="4" placeholder="Décrivez en détail le problème ou l&#39;intervention nécessaire..." required="required" %}
+                        <div class="invalid-feedback">
+                            Veuillez fournir une description détaillée.
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label class="form-label">
+                            Pièces jointes (photos, documents, etc.)
+                        </label>
+                        <div class="file-upload mb-2" id="fileUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div>Glissez-déposez des fichiers ici ou cliquez pour sélectionner</div>
+                            <input type="file" name="attachments" id="attachments" multiple style="display: none;">
+                        </div>
+                        <div id="filePreview" class="d-flex flex-wrap">
+                            <!-- Preview des fichiers sélectionnés -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: Planification et coût -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="far fa-calendar-alt"></i>
+                    Planification et coût
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="{{ form.scheduled_date.id_for_label }}" class="form-label">
+                            Date prévue
+                        </label>
+                        {% render_field form.scheduled_date type="date" class="form-control" %}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="{{ form.assigned_to.id_for_label }}" class="form-label">
+                            Assigné à
+                        </label>
+                        {% render_field form.assigned_to class="form-select" %}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="{{ form.estimated_cost.id_for_label }}" class="form-label">
+                            Coût estimé (€)
+                        </label>
+                        <div class="input-group">
+                            {% render_field form.estimated_cost type="number" min="0" step="0.01" class="form-control" %}
+                            <span class="input-group-text">€</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">
+                            Notes internes
+                        </label>
+                        {% render_field form.notes class="form-control" rows="3" placeholder="Informations complémentaires pour l&#39;équipe technique..." %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between pt-3">
+                <a href="{% url 'maintenance_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i> Annuler
+                </a>
+                <div>
+                    {% if form.instance.id %}
+                        <a href="{% url 'maintenance_detail' form.instance.id %}" class="btn btn-outline-info me-2">
+                            <i class="far fa-eye me-1"></i> Voir les détails
+                        </a>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Enregistrer
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Activation de la validation des formulaires Bootstrap
+(function () {
+    'use strict'
+    
+    // Récupérer tous les formulaires auxquels nous voulons appliquer les styles de validation Bootstrap personnalisés
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Boucle sur les champs pour empêcher la soumission
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+
+// Gestion du téléchargement de fichiers
+const fileUploadArea = document.getElementById('fileUploadArea');
+const fileInput = document.getElementById('attachments');
+const filePreview = document.getElementById('filePreview');
+
+// Gestion du glisser-déposer
+fileUploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    fileUploadArea.style.borderColor = 'var(--secondary-blue)';
+    fileUploadArea.style.backgroundColor = 'rgba(52, 152, 219, 0.05)';
+});
+
+fileUploadArea.addEventListener('dragleave', () => {
+    fileUploadArea.style.borderColor = '#dee2e6';
+    fileUploadArea.style.backgroundColor = '';
+});
+
+fileUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileUploadArea.style.borderColor = '#dee2e6';
+    fileUploadArea.style.backgroundColor = '';
+    
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        updateFilePreview();
+    }
+});
+
+// Clic pour sélectionner des fichiers
+fileUploadArea.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// Mise à jour de l'aperçu des fichiers
+fileInput.addEventListener('change', updateFilePreview);
+
+function updateFilePreview() {
+    filePreview.innerHTML = '';
+    
+    if (fileInput.files.length > 0) {
+        Array.from(fileInput.files).forEach((file, index) => {
+            const filePreviewItem = document.createElement('div');
+            filePreviewItem.className = 'position-relative d-inline-block me-2 mb-2';
+            
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    filePreviewItem.innerHTML = `
+                        <img src="${e.target.result}" class="preview-image" alt="${file.name}">
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" 
+                                onclick="removeFile(${index})" style="padding: 0.15rem 0.35rem; border-radius: 50%;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                filePreviewItem.innerHTML = `
+                    <div class="card" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                        <div class="text-center p-2">
+                            <i class="fas fa-file-alt fa-2x mb-1"></i>
+                            <div class="small text-truncate" style="max-width: 90px;">${file.name}</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" 
+                                onclick="removeFile(${index})" style="padding: 0.15rem 0.35rem; border-radius: 50%;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            filePreview.appendChild(filePreviewItem);
+        });
+    }
+}
+
+// Fonction pour supprimer un fichier de la sélection
+window.removeFile = function(index) {
+    const dt = new DataTransfer();
+    const files = fileInput.files;
+    
+    for (let i = 0; i < files.length; i++) {
+        if (index !== i) {
+            dt.items.add(files[i]);
+        }
+    }
+    
+    fileInput.files = dt.files;
+    updateFilePreview();
+};
+
+// Initialisation des tooltips
+if (typeof bootstrap !== 'undefined') {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+</script>
+{% endblock %}

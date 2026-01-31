@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supprimer une chambre - Hôtel de Luxe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Variables CSS - Palette bleue moderne */
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --purple: #9b59b6;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --sidebar-width: 250px;
+        }
+
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark-blue), var(--primary-blue));
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            color: var(--light-blue);
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            padding-left: 2rem;
+        }
+
+        .nav-link.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--white);
+            border-left: 3px solid var(--secondary-blue);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 0;
+            transition: var(--transition);
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Content area */
+        .content-area {
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Confirmation Card */
+        .confirmation-card {
+            max-width: 700px;
+            margin: 0 auto;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .confirmation-header {
+            background: linear-gradient(135deg, var(--danger-red), #c0392b);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+
+        .confirmation-header h2 {
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .confirmation-body {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Warning Message */
+        .warning-message {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .warning-icon {
+            font-size: 4rem;
+            color: var(--danger-red);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .warning-message h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .warning-message p {
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Room Info */
+        .room-info-card {
+            background: var(--light-blue);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--secondary-blue);
+        }
+
+        .room-info-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .room-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .room-type {
+            background: var(--secondary-blue);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .room-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .detail-item {
+            padding: 0.8rem;
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-label {
+            display: block;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+        }
+
+        /* Danger Alert */
+        .danger-alert {
+            background: rgba(231, 76, 60, 0.1);
+            border: 2px solid rgba(231, 76, 60, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+
+        .danger-alert-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .danger-alert-icon {
+            font-size: 1.5rem;
+            color: var(--danger-red);
+            flex-shrink: 0;
+        }
+
+        .danger-alert-text h4 {
+            color: var(--danger-red);
+            margin-bottom: 0.5rem;
+        }
+
+        .danger-alert-text ul {
+            padding-left: 1.2rem;
+            margin: 0.5rem 0;
+        }
+
+        .danger-alert-text li {
+            color: var(--text-dark);
+            margin-bottom: 0.3rem;
+            position: relative;
+        }
+
+        .danger-alert-text li:before {
+            content: "•";
+            color: var(--danger-red);
+            font-weight: bold;
+            position: absolute;
+            left: -1rem;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+            min-width: 180px;
+        }
+
+        .btn-secondary {
+            background: var(--text-light);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #6c757d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-red), #c0392b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .content-area {
+                padding: 1.5rem;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+            
+            .user-info {
+                text-align: center;
+            }
+            
+            .confirmation-body {
+                padding: 1.5rem;
+            }
+            
+            .room-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .room-info-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: var(--secondary-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+        }
+
+        @media screen and (max-width: 1024px) {
+            .mobile-menu-toggle {
+                display: flex;
+            }
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-hotel"></i>
+                <span>Hôtel Admin</span>
+            </div>
+            <div class="sidebar-subtitle">
+                {% if user.is_superuser %}
+                Mode Administrateur
+                {% elif user.is_staff %}
+                Mode Employé
+                {% else %}
+                Mode Client
+                {% endif %}
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            {% if user.is_authenticated %}
+                <!-- Section Tableau de bord -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Tableau de bord</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="{% url 'dashboard' %}" class="nav-link">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Accueil</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Analytique</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Section Gestion -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestion</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="{% url 'reservation_list' %}" class="nav-link">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Réservations</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'chambre_list' %}" class="nav-link active">
+                                <i class="fas fa-bed"></i>
+                                <span>Chambres</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'client_list' %}" class="nav-link">
+                                <i class="fas fa-users"></i>
+                                <span>Clients</span>
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-user-tie"></i>
+                                <span>Employés</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Section Opérations -->
+                {% if user.is_staff %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Opérations</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Calendrier</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <span>Facturation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-box"></i>
+                                <span>Inventaire</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-tasks"></i>
+                                <span>Maintenance</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Section Rapports -->
+                {% if user.is_staff %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Rapports</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Statistiques</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-euro-sign"></i>
+                                <span>Finances</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>Performances</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Section Système -->
+                {% if user.is_superuser %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Système</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="/admin/" target="_blank" class="nav-link">
+                                <i class="fas fa-cogs"></i>
+                                <span>Paramètres</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-robot"></i>
+                                <span>Agent IA</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-bell"></i>
+                                <span>Notifications</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/" target="_blank" class="nav-link">
+                                <i class="fas fa-database"></i>
+                                <span>Admin Django</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+            {% endif %}
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-trash-alt"></i>
+                <span>Supprimer une chambre</span>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name">
+                        {% if user.get_full_name %}
+                            {{ user.get_full_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </div>
+                    <div class="user-role">
+                        {% if user.is_superuser %}
+                            <i class="fas fa-crown"></i> Administrateur
+                        {% elif user.is_staff %}
+                            <i class="fas fa-user-tie"></i> Employé
+                        {% else %}
+                            <i class="fas fa-user"></i> Client
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="user-avatar">
+                    {% if user.get_full_name %}
+                        {{ user.get_full_name|first|upper }}
+                    {% else %}
+                        {{ user.username|first|upper }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="confirmation-card">
+                <div class="confirmation-header">
+                    <h2>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Confirmation de suppression
+                    </h2>
+                </div>
+                
+                <div class="confirmation-body">
+                    <!-- Warning Message -->
+                    <div class="warning-message">
+                        <i class="fas fa-exclamation-circle warning-icon"></i>
+                        <h3>Êtes-vous absolument sûr ?</h3>
+                        <p>Cette action ne peut pas être annulée. La chambre et toutes ses données associées seront définitivement supprimées.</p>
+                    </div>
+
+                    <!-- Room Information -->
+                    <div class="room-info-card">
+                        <div class="room-info-header">
+                            <div class="room-number">
+                                <i class="fas fa-door-open"></i> Chambre {{ chambre.numero }}
+                            </div>
+                            <div class="room-type">
+                                {{ chambre.get_type_chambre_display }}
+                            </div>
+                        </div>
+                        
+                        <div class="room-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Prix par nuit</span>
+                                <span class="detail-value">{{ chambre.prix_par_nuit|floatformat:2 }} €</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <span class="detail-label">Capacité</span>
+                                <span class="detail-value">{{ chambre.capacite }} personne(s)</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <span class="detail-label">Statut</span>
+                                <span class="detail-value">
+                                    {% if chambre.statut == 'libre' %}
+                                        <span style="color: var(--success-green); font-weight: 600;">
+                                            <i class="fas fa-check-circle"></i> Libre
+                                        </span>
+                                    {% elif chambre.statut == 'occupee' %}
+                                        <span style="color: var(--warning-orange); font-weight: 600;">
+                                            <i class="fas fa-door-closed"></i> Occupée
+                                        </span>
+                                    {% elif chambre.statut == 'maintenance' %}
+                                        <span style="color: var(--danger-red); font-weight: 600;">
+                                            <i class="fas fa-tools"></i> Maintenance
+                                        </span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            {% if chambre.description %}
+                            <div class="detail-item" style="grid-column: 1 / -1;">
+                                <span class="detail-label">Description</span>
+                                <span class="detail-value">{{ chambre.description }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Danger Alert -->
+                    <div class="danger-alert">
+                        <div class="danger-alert-content">
+                            <div class="danger-alert-icon">
+                                <i class="fas fa-radiation-alt"></i>
+                            </div>
+                            <div class="danger-alert-text">
+                                <h4>Conséquences de cette suppression :</h4>
+                                <ul>
+                                    <li>Toutes les réservations associées à cette chambre seront définitivement supprimées</li>
+                                    <li>Les historiques de séjour seront perdus</li>
+                                    <li>Cette action est irréversible</li>
+                                    <li>Un enregistrement sera ajouté aux logs système</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <form method="post" class="confirmation-form">
+                        {% csrf_token %}
+                        <div class="action-buttons">
+                            <a href="{% url 'chambre_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Retour à la liste
+                            </a>
+                            
+                            <button type="submit" class="btn btn-danger" id="deleteButton">
+                                <i class="fas fa-trash"></i>
+                                Supprimer définitivement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.getElementById('mainContent');
+        
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+        });
+        
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        });
+
+        // Delete confirmation with double check
+        const deleteButton = document.getElementById('deleteButton');
+        let deleteConfirmed = false;
+        
+        deleteButton.addEventListener('click', function(e) {
+            if (!deleteConfirmed) {
+                e.preventDefault();
+                
+                // Show custom confirmation dialog
+                if (confirm("⚠️ DERNIÈRE CONFIRMATION\n\nÊtes-vous vraiment sûr de vouloir supprimer cette chambre ?\n\nCette action est définitive et affectera toutes les réservations associées.\n\nCliquez sur OK pour confirmer une seconde fois.")) {
+                    deleteConfirmed = true;
+                    
+                    // Change button appearance
+                    deleteButton.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Veuillez patienter...';
+                    deleteButton.disabled = true;
+                    deleteButton.style.opacity = '0.8';
+                    
+                    // Add loading animation
+                    deleteButton.style.position = 'relative';
+                    deleteButton.style.overflow = 'hidden';
+                    
+                    const loadingBar = document.createElement('div');
+                    loadingBar.style.position = 'absolute';
+                    loadingBar.style.top = '0';
+                    loadingBar.style.left = '0';
+                    loadingBar.style.width = '0%';
+                    loadingBar.style.height = '100%';
+                    loadingBar.style.background = 'rgba(255, 255, 255, 0.3)';
+                    loadingBar.style.transition = 'width 2s linear';
+                    deleteButton.appendChild(loadingBar);
+                    
+                    // Animate loading bar
+                    setTimeout(() => {
+                        loadingBar.style.width = '100%';
+                    }, 10);
+                    
+                    // Submit form after animation
+                    setTimeout(() => {
+                        deleteButton.closest('form').submit();
+                    }, 2000);
+                }
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Escape key to go back
+            if (e.key === 'Escape') {
+                window.location.href = "{% url 'chambre_list' %}";
+            }
+            
+            // Ctrl+Shift+Delete to confirm delete
+            if (e.ctrlKey && e.shiftKey && e.key === 'Delete') {
+                deleteConfirmed = true;
+                deleteButton.click();
+            }
+        });
+
+        // Highlight current page in sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add active class to current page link
+            const currentLinks = document.querySelectorAll('.nav-link[href*="chambre"]');
+            currentLinks.forEach(link => {
+                if (link.href.includes(window.location.pathname) || link.classList.contains('active')) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Animate elements on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.warning-message, .room-info-card, .danger-alert, .action-buttons');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    
+                    setTimeout(() => {
+                        el.style.opacity = '1';
+                        el.style.transform = 'translateY(0)';
+                    }, 50);
+                }, index * 100);
+            });
+        });
+
+        // Add warning sound effect on hover over delete button
+        deleteButton.addEventListener('mouseenter', function() {
+            const warningSound = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQ=');
+            warningSound.volume = 0.3;
+            warningSound.play().catch(e => console.log("Audio play failed:", e));
+        });
+    </script>
+</body>
+</html>

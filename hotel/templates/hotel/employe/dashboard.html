@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Employer - Hôtel de Luxe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Variables CSS - Palette bleue admin */
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --sidebar-width: 250px;
+            --sidebar-collapsed: 70px;
+        }
+
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark-blue), var(--primary-blue));
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            color: var(--light-blue);
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            padding-left: 2rem;
+        }
+
+        .nav-link.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--white);
+            border-left: 3px solid var(--secondary-blue);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-badge {
+            background: var(--danger-red);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 0;
+            transition: var(--transition);
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--secondary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        /* Profile popup */
+        .profile-dropdown {
+            position: relative;
+        }
+
+        .profile-popup {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 10px);
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            min-width: 220px;
+            padding: 0.8rem;
+            display: none;
+            z-index: 1500;
+        }
+
+        .profile-dropdown.open .profile-popup { display: block; }
+
+        .profile-popup .pp-name { font-weight:700; color:var(--primary-blue); }
+        .profile-popup .pp-role { font-size:0.85rem; color:var(--text-light); margin-bottom:0.5rem; }
+        .profile-popup .pp-actions { display:flex; gap:0.5rem; justify-content:flex-end; margin-top:0.5rem; }
+        .profile-popup .btn-logout { background: #e74c3c; color: white; border: none; padding:0.45rem 0.6rem; border-radius:6px; cursor:pointer; }
+
+        /* Content area */
+        .content-area {
+            padding: 2rem;
+        }
+
+        /* Dashboard cards */
+        .dashboard-grid {
+            display: grid;
+            /* réduire la min-width pour permettre plus de cartes par ligne */
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border-left: 4px solid var(--secondary-blue);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.bg-info { border-left-color: var(--secondary-blue); }
+        .stat-card.bg-success { border-left-color: var(--success-green); }
+        .stat-card.bg-warning { border-left-color: var(--warning-orange); }
+        .stat-card.bg-primary { border-left-color: var(--primary-blue); }
+
+        .stat-icon {
+            font-size: 1.8rem;
+            color: var(--secondary-blue);
+            margin-bottom: 0.6rem;
+        }
+
+        .stat-card.bg-info .stat-icon { color: var(--secondary-blue); }
+        .stat-card.bg-success .stat-icon { color: var(--success-green); }
+        .stat-card.bg-warning .stat-icon { color: var(--warning-orange); }
+        .stat-card.bg-primary .stat-icon { color: var(--primary-blue); }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin: 0.4rem 0;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.82rem;
+        }
+
+        /* For very wide screens, force 4 cards in a row */
+        @media screen and (min-width: 1400px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Tables */
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            background: var(--white);
+            border-bottom: 1px solid var(--light-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            color: var(--primary-blue);
+            font-size: 1.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: var(--light-blue);
+        }
+
+        .table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-blue);
+            color: var(--text-dark);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning-orange);
+            color: white;
+        }
+
+        .badge-info {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        .badge-primary {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: var(--warning-orange);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        /* Quick actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-btn {
+            background: var(--white);
+            border: 2px solid var(--light-blue);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            border-color: var(--secondary-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .action-btn i {
+            font-size: 2rem;
+            color: var(--secondary-blue);
+            margin-bottom: 0.8rem;
+        }
+
+        .action-btn h4 {
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .action-btn p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-collapsed);
+            }
+            
+            .sidebar-header .sidebar-subtitle,
+            .nav-section-title,
+            .nav-link span {
+                display: none;
+            }
+            
+            .nav-link {
+                justify-content: center;
+                padding: 1rem;
+            }
+            
+            .sidebar:hover {
+                width: var(--sidebar-width);
+            }
+            
+            .sidebar:hover .sidebar-subtitle,
+            .sidebar:hover .nav-section-title,
+            .sidebar:hover .nav-link span {
+                display: block;
+            }
+            
+            .sidebar:hover .nav-link {
+                justify-content: flex-start;
+                padding: 0.9rem 1.5rem;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .user-info {
+                text-align: center;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+        }
+
+        /* Toggle sidebar button */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--secondary-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        @media screen and (max-width: 1024px) {
+            .sidebar-toggle {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-hotel"></i>
+                <span>Hôtel de Luxe</span>
+            </div>
+            <div class="sidebar-subtitle">Panel d'Employer</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <!-- Navigation principale -->
+            <div class="nav-section">
+                <div class="nav-section-title">Navigation</div>
+                <ul class="nav-links">
+                    <li>
+                        <a href="{% url 'dashboard_employe' %}" class="nav-link active">
+                            <i class="fas fa-home"></i>
+                            <span>Accueil</span>
+                        </a>
+                    </li>
+                    {% for module in accessible_modules %}
+                        {% if 'reservations' in module.name %}
+                            <li>
+                                <a href="{% url 'reservation_list' %}" class="nav-link">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                    {% if reservations_en_attente %}
+                                        <span class="nav-badge">{{ reservations_en_attente|length }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        {% elif 'clients' in module.name %}
+                            <li>
+                                <a href="{% url 'client_list' %}" class="nav-link">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% elif 'rooms' in module.name %}
+                            <li>
+                                <a href="{% url 'chambre_list' %}" class="nav-link">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% elif 'calendar' in module.name %}
+                            <li>
+                                <a href="#" class="nav-link" onclick="showCalendarModal()">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Modules de gestion -->
+            <div class="nav-section">
+                <div class="nav-section-title">Gestion</div>
+                <ul class="nav-links">
+                    {% for module in accessible_modules %}
+                        {% if 'billing' in module.name %}
+                            <li>
+                                <a href="#" class="nav-link" onclick="showBillingModal()">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% elif 'reports' in module.name %}
+                            <li>
+                                <a href="#" class="nav-link" onclick="showReportsModal()">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% elif 'employes' in module.name %}
+                            <li>
+                                <a href="{% url 'employee_list' %}" class="nav-link">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% elif 'inventory' in module.name %}
+                            <li>
+                                <a href="#" class="nav-link" onclick="showInventoryModal()">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Services spéciaux -->
+            <div class="nav-section">
+                <div class="nav-section-title">Services</div>
+                <ul class="nav-links">
+                    {% for module in accessible_modules %}
+                        {% if 'services' in module.name %}
+                            <li>
+                                <a href="#" class="nav-link" onclick="showServicesModal()">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% elif 'maintenance' in module.name %}
+                            <li>
+                                <a href="{% url 'maintenance_list_improved' %}" class="nav-link">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% elif 'orders' in module.name %}
+                            <li>
+                                <a href="#" class="nav-link" onclick="showOrdersModal()">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% elif 'marketing' in module.name %}
+                            <li>
+                                <a href="#" class="nav-link" onclick="showMarketingModal()">
+                                    <i class="{{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- Section configuration -->
+            <div class="nav-section">
+                <div class="nav-section-title">Configuration</div>
+                <ul class="nav-links">
+                    <li>
+                        <a href="#" class="nav-link" onclick="showChatbotModal()">
+                            <i class="fas fa-robot"></i>
+                            <span>Agent IA</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" onclick="showNotificationsModal()">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/logout" class="profile-menu-item logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Déconnexion</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-briefcase"></i>
+                <span>Tableau de bord Employé</span>
+            </div>
+            
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name">
+                        {% if user.get_full_name %}
+                            {{ user.get_full_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </div>
+                    <div class="user-role">{{ poste_display }}</div>
+                </div>
+                <div class="profile-dropdown">
+                    <div class="user-avatar" id="profile-toggle" style="cursor:pointer;">
+                        {% if user.get_full_name %}
+                            {{ user.get_full_name|first|upper }}
+                        {% else %}
+                            {{ user.username|first|upper }}
+                        {% endif %}
+                    </div>
+
+                    <div class="profile-popup" id="profile-popup">
+                        <div class="pp-main">
+                            <div class="pp-name">
+                                {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+                            </div>
+                            <div class="pp-role">{% if user.is_superuser %}Administrateur{% elif user.is_staff %}Employé{% else %}Client{% endif %}</div>
+                            <div class="pp-email small text-muted">{{ user.email }}</div>
+                        </div>
+                        <div class="pp-actions">
+                            <a href="{% url 'dashboard' %}" class="btn btn-sm" style="background:#f0f0f0;border-radius:6px;padding:6px 8px;color:var(--primary-blue);">Mon profil</a>
+                            <a href="{% url 'logout' %}" class="btn-logout" role="button">Se déconnecter</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Statistiques personnalisées selon le poste -->
+            <div class="dashboard-grid">
+                {% for stat in stats_config %}
+                    <div class="stat-card bg-info" onclick="handleStatClick('{{ stat.name }}')" style="cursor: pointer;">
+                        <div class="stat-icon">
+                            <i class="{{ stat.icon }}"></i>
+                        </div>
+                        <div class="stat-value">
+                            {% with stat_name=stat.name %}
+                                {% if stat_name == 'reservations_today' %}
+                                    {{ stats_data.reservations_today|default:0 }}
+                                {% elif stat_name == 'arrivals_today' %}
+                                    {{ stats_data.arrivals_today|default:0 }}
+                                {% elif stat_name == 'departures_today' %}
+                                    {{ stats_data.departures_today|default:0 }}
+                                {% elif stat_name == 'rooms_available' %}
+                                    {{ stats_data.rooms_available|default:0 }}
+                                {% elif stat_name == 'pending_checkins' %}
+                                    {{ stats_data.pending_checkins|default:0 }}
+                                {% elif stat_name == 'new_clients_today' %}
+                                    {{ stats_data.new_clients_today|default:0 }}
+                                {% elif stat_name == 'active_reservations' %}
+                                    {{ stats_data.active_reservations|default:0 }}
+                                {% elif stat_name == 'services_requested' %}
+                                    {{ stats_data.services_requested|default:0 }}
+                                {% elif stat_name == 'guest_messages' %}
+                                    {{ stats_data.guest_messages|default:0 }}
+                                {% elif stat_name == 'rooms_to_clean' %}
+                                    {{ stats_data.rooms_to_clean|default:0 }}
+                                {% elif stat_name == 'rooms_cleaned_today' %}
+                                    {{ stats_data.rooms_cleaned_today|default:0 }}
+                                {% elif stat_name == 'maintenance_requests' %}
+                                    {{ stats_data.maintenance_requests|default:0 }}
+                                {% elif stat_name == 'orders_today' %}
+                                    {{ stats_data.orders_today|default:0 }}
+                                {% elif stat_name == 'occupancy_rate' %}
+                                    {{ stats_data.occupancy_rate|default:0 }}%
+                                {% elif stat_name == 'revenue_month' %}
+                                    {{ stats_data.revenue_month|default:0 }}€
+                                {% elif stat_name == 'staff_count' %}
+                                    {{ stats_data.staff_count|default:0 }}
+                                {% elif stat_name == 'total_revenue' %}
+                                    {{ stats_data.total_revenue|default:0 }}€
+                                {% elif stat_name == 'total_reservations' %}
+                                    {{ stats_data.total_reservations|default:0 }}
+                                {% elif stat_name == 'profit_margin' %}
+                                    {{ stats_data.profit_margin|default:0 }}%
+                                {% elif stat_name == 'customer_retention' %}
+                                    {{ stats_data.customer_retention|default:0 }}%
+                                {% else %}
+                                    0
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="stat-label">{{ stat.label }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <script>
+            // Profile popup toggle and click-outside close
+            (function(){
+                var dropdown = document.querySelector('.profile-dropdown');
+                var toggle = document.getElementById('profile-toggle');
+                if(!dropdown || !toggle) return;
+                toggle.addEventListener('click', function(e){
+                    e.stopPropagation();
+                    dropdown.classList.toggle('open');
+                });
+                document.addEventListener('click', function(){
+                    dropdown.classList.remove('open');
+                });
+                // prevent clicks inside popup from closing
+                var popup = document.getElementById('profile-popup');
+                if(popup) popup.addEventListener('click', function(e){ e.stopPropagation(); });
+            })();
+            </script>
+
+            <!-- Réservations en attente -->
+            {% if reservations_en_attente %}
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        Réservations en attente de confirmation
+                    </h3>
+                    <span class="badge badge-warning">{{ reservations_en_attente|length }} en attente</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Client</th>
+                                    <th>Chambre</th>
+                                    <th>Date d'entrée</th>
+                                    <th>Téléphone</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in reservations_en_attente %}
+                                <tr>
+                                    <td><strong>#{{ reservation.id }}</strong></td>
+                                    <td>
+                                        <strong>{{ reservation.client.nom_complet }}</strong><br>
+                                        <small class="text-muted">{{ reservation.client.email }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">Chambre {{ reservation.chambre.numero }}</span>
+                                        <br>
+                                        <small>{{ reservation.chambre.get_type_chambre_display }}</small>
+                                    </td>
+                                    <td>{{ reservation.date_entree|date:"d/m/Y" }}</td>
+                                    <td>{{ reservation.client.telephone }}</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit"></i> Traiter
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Réservations actives -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-list-check text-primary"></i>
+                        Réservations Actives
+                    </h3>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="fas fa-list"></i> Voir tout
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if reservations_actives %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Client</th>
+                                    <th>Chambre</th>
+                                    <th>Dates</th>
+                                    <th>Personnes</th>
+                                    <th>Prix Total</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in reservations_actives %}
+                                <tr>
+                                    <td><strong>#{{ reservation.id }}</strong></td>
+                                    <td>{{ reservation.client.nom_complet }}</td>
+                                    <td>
+                                        <span class="badge badge-info">Chambre {{ reservation.chambre.numero }}</span>
+                                        <br>
+                                        <small>{{ reservation.chambre.get_type_chambre_display }}</small>
+                                    </td>
+                                    <td>
+                                        {{ reservation.date_entree|date:"d/m/Y" }}<br>
+                                        <small>au {{ reservation.date_sortie|date:"d/m/Y" }}</small>
+                                    </td>
+                                    <td>{{ reservation.nombre_personnes }}</td>
+                                    <td>
+                                        <strong class="text-success">{{ reservation.prix_total|floatformat:2 }} €</strong>
+                                    </td>
+                                    <td>
+                                        {% if reservation.statut == 'confirmee' %}
+                                        <span class="badge badge-success">Confirmée</span>
+                                        {% else %}
+                                        <span class="badge badge-primary">En cours</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                        <i class="fas fa-info-circle fa-2x mb-2"></i>
+                        <p>Aucune réservation active</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Revenus du mois -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-euro-sign text-success"></i>
+                        Revenus du mois
+                    </h3>
+                    <span class="badge badge-success">En cours</span>
+                </div>
+                <div class="card-body" style="text-align: center;">
+                    <h2 style="color: var(--success-green); font-size: 3rem; margin: 1rem 0;">
+                        {{ revenus_mois|floatformat:2 }} €
+                    </h2>
+                    <p style="color: var(--text-light);">Total des revenus ce mois</p>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <i class="fas fa-bolt text-warning"></i>
+                        Actions Rapides
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        {% for module in accessible_modules %}
+                            {% if 'reservations' in module.name %}
+                                <div class="action-btn" onclick="window.location.href='{% url 'reservation_create' %}'">
+                                    <i class="fas fa-plus"></i>
+                                    <h4>Nouvelle réservation</h4>
+                                    <p>Créer une nouvelle réservation client</p>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% for module in accessible_modules %}
+                            {% if 'clients' in module.name %}
+                                <div class="action-btn" onclick="window.location.href='{% url 'client_list' %}'">
+                                    <i class="fas fa-users"></i>
+                                    <h4>Voir les clients</h4>
+                                    <p>Consulter la base de données clients</p>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% for module in accessible_modules %}
+                            {% if 'rooms' in module.name %}
+                                <div class="action-btn" onclick="window.location.href='{% url 'chambre_list' %}'">
+                                    <i class="fas fa-bed"></i>
+                                    <h4>Voir les chambres</h4>
+                                    <p>Gérer les chambres et disponibilités</p>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% for module in accessible_modules %}
+                            {% if 'calendar' in module.name %}
+                                <div class="action-btn" onclick="showCalendarModal()">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <h4>Calendrier</h4>
+                                    <p>Voir l'occupation en calendrier</p>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toggle Sidebar Button (Mobile) -->
+    <div class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <script>
+        // Toggle sidebar on mobile
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+
+        // Active nav link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Si c'est un lien interne avec onclick, ne pas empêcher la navigation
+                if (!this.onclick) {
+                    e.preventDefault();
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Profile popup toggle and click-outside close
+        (function(){
+            var dropdown = document.querySelector('.profile-dropdown');
+            var toggle = document.getElementById('profile-toggle');
+            if(!dropdown || !toggle) return;
+            toggle.addEventListener('click', function(e){
+                e.stopPropagation();
+                dropdown.classList.toggle('open');
+            });
+            document.addEventListener('click', function(){
+                dropdown.classList.remove('open');
+            });
+            // prevent clicks inside popup from closing
+            var popup = document.getElementById('profile-popup');
+            if(popup) popup.addEventListener('click', function(e){ e.stopPropagation(); });
+        })();
+
+        // Fonctions pour les modals
+        function handleStatClick(statName) {
+            switch(statName) {
+                case 'reservations_today':
+                case 'active_reservations':
+                    window.location.href = '{% url "reservation_list" %}';
+                    break;
+                case 'rooms_available':
+                    window.location.href = '{% url "chambre_list" %}';
+                    break;
+                case 'new_clients_today':
+                    window.location.href = '{% url "client_list" %}';
+                    break;
+                case 'maintenance_requests':
+                    window.location.href = '{% url "maintenance_list_improved" %}';
+                    break;
+                default:
+                    showNotification('Statistique: ' + statName, 'info');
+            }
+        }
+
+        function showCalendarModal() {
+            showNotification('Calendrier - En développement', 'info');
+        }
+
+        function showBillingModal() {
+            showNotification('Facturation - En développement', 'info');
+        }
+
+        function showReportsModal() {
+            showNotification('Rapports - En développement', 'info');
+        }
+
+        function showInventoryModal() {
+            showNotification('Inventaire - En développement', 'info');
+        }
+
+        function showServicesModal() {
+            showNotification('Services - En développement', 'info');
+        }
+
+        function showOrdersModal() {
+            showNotification('Commandes - En développement', 'info');
+        }
+
+        function showMarketingModal() {
+            showNotification('Marketing - En développement', 'info');
+        }
+
+        function showSettingsModal() {
+            showNotification('Paramètres - En développement', 'info');
+        }
+
+        function showChatbotModal() {
+            // Créer et afficher le chatbot modal
+            const chatbotModal = document.createElement('div');
+            chatbotModal.className = 'chatbot-modal';
+            chatbotModal.innerHTML = `
+                <div class="chatbot-container">
+                    <div class="chatbot-header">
+                        <div class="chatbot-title">
+                            <i class="fas fa-robot"></i>
+                            <span>Agent IA Assistant</span>
+                        </div>
+                        <button class="chatbot-close" onclick="closeChatbotModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="chatbot-messages" id="chatbotMessages">
+                        <div class="message bot-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <p>Bonjour ! Je suis votre assistant IA pour la gestion de l'hôtel. Comment puis-je vous aider aujourd'hui ?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chatbot-input">
+                        <div class="input-container">
+                            <input type="text" id="chatbotInput" placeholder="Tapez votre message..." onkeypress="handleChatbotKeyPress(event)">
+                            <button onclick="sendChatbotMessage()" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="quick-actions">
+                            <button onclick="sendQuickMessage('Statut des réservations du jour')" class="quick-btn">
+                                <i class="fas fa-calendar-check"></i>
+                                Réservations du jour
+                            </button>
+                            <button onclick="sendQuickMessage('Chambres disponibles')" class="quick-btn">
+                                <i class="fas fa-bed"></i>
+                                Chambres libres
+                            </button>
+                            <button onclick="sendQuickMessage('Taux d\'occupation')" class="quick-btn">
+                                <i class="fas fa-chart-pie"></i>
+                                Occupation
+                            </button>
+                            <button onclick="sendQuickMessage('Revenus du mois')" class="quick-btn">
+                                <i class="fas fa-euro-sign"></i>
+                                Revenus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(chatbotModal);
+            
+            // Animation d'entrée
+            setTimeout(() => chatbotModal.classList.add('show'), 100);
+            
+            // Focus sur l'input
+            setTimeout(() => {
+                const input = document.getElementById('chatbotInput');
+                if (input) input.focus();
+            }, 300);
+        }
+
+        function closeChatbotModal() {
+            const modal = document.querySelector('.chatbot-modal');
+            if (modal) {
+                modal.classList.remove('show');
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+
+        function handleChatbotKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatbotMessage();
+            }
+        }
+
+        function sendQuickMessage(message) {
+            const input = document.getElementById('chatbotInput');
+            if (input) {
+                input.value = message;
+                sendChatbotMessage();
+            }
+        }
+
+        function sendChatbotMessage() {
+            const input = document.getElementById('chatbotInput');
+            const message = input?.value?.trim();
+            
+            if (!message) return;
+            
+            const messagesContainer = document.getElementById('chatbotMessages');
+            
+            // Ajouter le message de l'utilisateur
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.innerHTML = `
+                <div class="message-content">
+                    <p>${escapeHtml(message)}</p>
+                </div>
+                <div class="message-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+            `;
+            messagesContainer.appendChild(userMessage);
+            
+            // Vider l'input
+            input.value = '';
+            
+            // Faire défiler vers le bas
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Simuler une réponse de l'IA
+            setTimeout(() => {
+                const botResponse = generateBotResponse(message);
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot-message';
+                botMessage.innerHTML = `
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>${botResponse}</p>
+                    </div>
+                `;
+                messagesContainer.appendChild(botMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1000);
+        }
+
+        function generateBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Réponses intelligentes basées sur les statistiques disponibles
+            if (lowerMessage.includes('réservation') && lowerMessage.includes('jour')) {
+                const count = '{{ stats_data.reservations_today|default:0 }}';
+                return `Aujourd'hui, il y a ${count} réservation(s) prévue(s). ${count > 0 ? 'Voici les détails des arrivées prévues.' : 'Aucune arrivée aujourd\'hui.'}`;
+            }
+            
+            if (lowerMessage.includes('chambre') && (lowerMessage.includes('disponible') || lowerMessage.includes('libre'))) {
+                const count = '{{ stats_data.rooms_available|default:0 }}';
+                return `Il y a actuellement ${count} chambre(s) disponible(s). ${count > 5 ? 'Bonne disponibilité !' : 'Les chambres se remplissent rapidement.'}`;
+            }
+            
+            if (lowerMessage.includes('occupation') || lowerMessage.includes('taux')) {
+                const rate = '{{ stats_data.occupancy_rate|default:0 }}';
+                return `Le taux d'occupation actuel est de ${rate}%. ${rate > 80 ? 'Excellente performance !' : 'Il y a encore de la place pour accueillir plus de clients.'}`;
+            }
+            
+            if (lowerMessage.includes('revenu') || lowerMessage.includes('chiffre')) {
+                const revenue = '{{ stats_data.revenue_month|default:0 }}';
+                return `Les revenus ce mois-ci s'élèvent à ${revenue}€. ${revenue > 10000 ? 'Excellent mois !' : 'Continuons nos efforts pour atteindre nos objectifs.'}`;
+            }
+            
+            if (lowerMessage.includes('client') && lowerMessage.includes('nouveau')) {
+                const count = '{{ stats_data.new_clients_today|default:0 }}';
+                return `${count} nouveau(x) client(s) aujourd'hui. ${count > 0 ? 'Bienvenue à nos nouveaux clients !' : 'Aucun nouveau client enregistré aujourd\'hui.'}`;
+            }
+            
+            // Réponses génériques
+            if (lowerMessage.includes('bonjour') || lowerMessage.includes('salut')) {
+                return 'Bonjour ! Je suis là pour vous aider avec la gestion de l\'hôtel. Que souhaitez-vous savoir ?';
+            }
+            
+            if (lowerMessage.includes('merci')) {
+                return 'Je vous en prie ! N\'hésitez pas si vous avez d\'autres questions.';
+            }
+            
+            if (lowerMessage.includes('aide') || lowerMessage.includes('help')) {
+                return 'Je peux vous aider avec : les réservations du jour, les chambres disponibles, le taux d\'occupation, les revenus du mois, et bien plus encore. Essayez de demander !';
+            }
+            
+            return 'Je suis en train d\'apprendre. Pour l\'instant, je peux vous donner des informations sur les réservations, les chambres, l\'occupation et les revenus. Essayez de demander "Statut des réservations du jour" !';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showNotificationsModal() {
+            showNotification('Notifications - En développement', 'info');
+        }
+
+        function showNotification(message, type = 'info') {
+            // Créer une notification toast
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+                <button class="notification-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            // Ajouter au DOM
+            document.body.appendChild(notification);
+            
+            // Animation d'entrée
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Auto-suppression après 3 secondes
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Ajouter les styles CSS pour les notifications et le chatbot
+        const notificationStyles = document.createElement('style');
+        notificationStyles.textContent = `
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                padding: 16px;
+                min-width: 300px;
+                max-width: 400px;
+                z-index: 10000;
+                transform: translateX(100%);
+                opacity: 0;
+                transition: all 0.3s ease;
+                border-left: 4px solid var(--secondary-blue);
+            }
+            
+            .notification.show {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            
+            .notification-success {
+                border-left-color: var(--success-green);
+            }
+            
+            .notification-error {
+                border-left-color: var(--danger-red);
+            }
+            
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .notification-content i {
+                color: var(--secondary-blue);
+                font-size: 18px;
+            }
+            
+            .notification-success .notification-content i {
+                color: var(--success-green);
+            }
+            
+            .notification-error .notification-content i {
+                color: var(--danger-red);
+            }
+            
+            .notification-close {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: none;
+                border: none;
+                color: var(--text-light);
+                cursor: pointer;
+                padding: 4px;
+                border-radius: 4px;
+                transition: background 0.2s;
+            }
+            
+            .notification-close:hover {
+                background: rgba(0, 0, 0, 0.1);
+            }
+            
+            /* Chatbot Styles */
+            .chatbot-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10001;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+            }
+            
+            .chatbot-modal.show {
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            .chatbot-container {
+                background: white;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 500px;
+                height: 80vh;
+                max-height: 700px;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+                transform: scale(0.9);
+                transition: transform 0.3s ease;
+            }
+            
+            .chatbot-modal.show .chatbot-container {
+                transform: scale(1);
+            }
+            
+            .chatbot-header {
+                background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+                color: white;
+                padding: 20px;
+                border-radius: 16px 16px 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .chatbot-title {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 18px;
+                font-weight: 600;
+            }
+            
+            .chatbot-title i {
+                font-size: 24px;
+            }
+            
+            .chatbot-close {
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: white;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            
+            .chatbot-close:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+            
+            .chatbot-messages {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+                background: #f8f9fa;
+            }
+            
+            .message {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 16px;
+                animation: messageSlideIn 0.3s ease;
+            }
+            
+            @keyframes messageSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .bot-message {
+                flex-direction: row;
+            }
+            
+            .user-message {
+                flex-direction: row-reverse;
+            }
+            
+            .message-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                flex-shrink: 0;
+            }
+            
+            .bot-message .message-avatar {
+                background: var(--secondary-blue);
+                color: white;
+            }
+            
+            .user-message .message-avatar {
+                background: var(--primary-blue);
+                color: white;
+            }
+            
+            .message-content {
+                max-width: 70%;
+                background: white;
+                padding: 12px 16px;
+                border-radius: 16px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .user-message .message-content {
+                background: var(--secondary-blue);
+                color: white;
+            }
+            
+            .message-content p {
+                margin: 0;
+                line-height: 1.4;
+            }
+            
+            .chatbot-input {
+                padding: 20px;
+                background: white;
+                border-radius: 0 0 16px 16px;
+                border-top: 1px solid #e0e0e0;
+            }
+            
+            .input-container {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+            
+            .input-container input {
+                flex: 1;
+                padding: 12px 16px;
+                border: 2px solid #e0e0e0;
+                border-radius: 25px;
+                font-size: 14px;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+            
+            .input-container input:focus {
+                border-color: var(--secondary-blue);
+            }
+            
+            .send-button {
+                background: var(--secondary-blue);
+                color: white;
+                border: none;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            
+            .send-button:hover {
+                background: var(--accent-blue);
+            }
+            
+            .quick-actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            
+            .quick-btn {
+                background: #f0f0f0;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                cursor: pointer;
+                transition: all 0.2s;
+                color: var(--text-dark);
+            }
+            
+            .quick-btn:hover {
+                background: var(--secondary-blue);
+                color: white;
+                transform: translateY(-1px);
+            }
+            
+            .quick-btn i {
+                font-size: 11px;
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
+                .chatbot-container {
+                    width: 95%;
+                    height: 90vh;
+                }
+                
+                .message-content {
+                    max-width: 80%;
+                }
+                
+                .quick-actions {
+                    justify-content: center;
+                }
+            }
+        `;
+        document.head.appendChild(notificationStyles);
+    </script>
+</body>
+</html>

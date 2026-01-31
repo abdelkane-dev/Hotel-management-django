@@ -1,0 +1,1740 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Historique - {{ employee.username }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-history"></i>
+<span>Historique des modifications</span>
+{% endblock %}
+
+{% block content %}
+<div class="employee-history-container">
+    <div class="employee-history-card">
+        <!-- En-tête avec infos employé -->
+        <div class="employee-header">
+            <div class="employee-avatar">
+                <span>{{ employee.username|slice:":1"|upper }}</span>
+            </div>
+            <div class="employee-info">
+                <h2>{{ employee.username }}</h2>
+                <div class="employee-meta">
+                    {% if employee.get_full_name %}
+                    <span class="meta-item">
+                        <i class="fas fa-user"></i> {{ employee.get_full_name }}
+                    </span>
+                    {% endif %}
+                    {% if employee.email %}
+                    <span class="meta-item">
+                        <i class="fas fa-envelope"></i> {{ employee.email }}
+                    </span>
+                    {% endif %}
+                    <span class="meta-item">
+                        <i class="fas fa-user-tie"></i> {{ employee.profile.poste|default:"Poste non défini" }}
+                    </span>
+                    <span class="meta-item">
+                        <i class="fas fa-calendar-alt"></i> 
+                        Membre depuis {{ employee.date_joined|date:"d/m/Y" }}
+                    </span>
+                </div>
+            </div>
+            <div class="history-stats">
+                <div class="stat-badge">
+                    <i class="fas fa-clock"></i>
+                    <span class="stat-number">{{ history|length }}</span>
+                    <span class="stat-label">modification(s)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filtres et actions -->
+        <div class="history-controls">
+            <div class="controls-header">
+                <h3><i class="fas fa-filter"></i> Filtres de l'historique</h3>
+                <div class="controls-actions">
+                    <button class="btn btn-secondary btn-export" onclick="exportHistory()">
+                        <i class="fas fa-file-export"></i> Exporter
+                    </button>
+                    <button class="btn btn-secondary btn-clear" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Réinitialiser
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-tag"></i> Type d'action
+                    </label>
+                    <select class="filter-select" id="filter-action">
+                        <option value="all">Toutes les actions</option>
+                        <option value="create">Création</option>
+                        <option value="update">Modification</option>
+                        <option value="delete">Suppression</option>
+                        <option value="promotion">Promotion</option>
+                        <option value="salary_change">Changement de salaire</option>
+                        <option value="status_change">Changement de statut</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-calendar"></i> Période
+                    </label>
+                    <select class="filter-select" id="filter-period">
+                        <option value="all">Toute période</option>
+                        <option value="today">Aujourd'hui</option>
+                        <option value="week">Cette semaine</option>
+                        <option value="month">Ce mois</option>
+                        <option value="quarter">Ce trimestre</option>
+                        <option value="year">Cette année</option>
+                        <option value="custom">Personnalisée...</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-user-tie"></i> Effectué par
+                    </label>
+                    <select class="filter-select" id="filter-user">
+                        <option value="all">Tous les utilisateurs</option>
+                        <option value="system">Système</option>
+                        <option value="admin">Administrateurs</option>
+                        <option value="self">Auto-modification</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-sort-amount-down"></i> Trier par
+                    </label>
+                    <select class="filter-select" id="filter-sort">
+                        <option value="newest">Plus récent d'abord</option>
+                        <option value="oldest">Plus ancien d'abord</option>
+                        <option value="action">Type d'action</option>
+                        <option value="importance">Importance</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="custom-period" id="custom-period" style="display: none;">
+                <div class="period-inputs">
+                    <div class="input-group">
+                        <label class="input-label">Du</label>
+                        <input type="date" class="form-input" id="date-from">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Au</label>
+                        <input type="date" class="form-input" id="date-to">
+                    </div>
+                    <button class="btn btn-primary btn-apply" onclick="applyCustomPeriod()">
+                        <i class="fas fa-check"></i> Appliquer
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Résumé statistique -->
+        <div class="history-summary">
+            <div class="summary-card">
+                <div class="summary-icon">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-number" id="modifications-count">{{ modifications_count|default:"0" }}</div>
+                    <div class="summary-label">Modifications</div>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="summary-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-number" id="salary-changes">{{ salary_changes_count|default:"0" }}</div>
+                    <div class="summary-label">Changements de salaire</div>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="summary-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-number" id="role-changes">{{ role_changes_count|default:"0" }}</div>
+                    <div class="summary-label">Changements de rôle</div>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="summary-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-number" id="recent-changes">{{ recent_changes_count|default:"0" }}</div>
+                    <div class="summary-label">Modifications récentes (7j)</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Timeline d'historique -->
+        <div class="history-timeline">
+            <div class="timeline-header">
+                <h3><i class="fas fa-stream"></i> Chronologie des modifications</h3>
+                <div class="timeline-info">
+                    <span id="filtered-count">{{ history|length }}</span> sur <span>{{ history|length }}</span> entrées affichées
+                </div>
+            </div>
+            
+            {% if history %}
+            <div class="timeline-container" id="timelineContainer">
+                {% for entry in history %}
+                <div class="timeline-item" 
+                     data-action="{{ entry.action|lower }}"
+                     data-date="{{ entry.created_at|date:'Y-m-d H:i:s' }}"
+                     data-field="{{ entry.field_changed|lower }}"
+                     data-importance="{{ entry.importance|default:'medium' }}">
+                    <div class="timeline-marker">
+                        <div class="marker-icon {{ entry.action|lower }}-icon">
+                            {% if entry.action == 'create' %}
+                                <i class="fas fa-plus"></i>
+                            {% elif entry.action == 'update' %}
+                                <i class="fas fa-edit"></i>
+                            {% elif entry.action == 'delete' %}
+                                <i class="fas fa-trash"></i>
+                            {% elif entry.action == 'promotion' %}
+                                <i class="fas fa-star"></i>
+                            {% elif entry.action == 'salary_change' %}
+                                <i class="fas fa-money-bill-wave"></i>
+                            {% else %}
+                                <i class="fas fa-history"></i>
+                            {% endif %}
+                        </div>
+                        <div class="marker-line"></div>
+                    </div>
+                    
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-title">
+                                <h4>{{ entry.get_action_display|default:entry.action }}</h4>
+                                <span class="timeline-field">{{ entry.get_field_changed_display|default:entry.field_changed }}</span>
+                            </div>
+                            <div class="timeline-meta">
+                                <span class="timeline-date">
+                                    <i class="fas fa-clock"></i>
+                                    {{ entry.created_at|date:"d/m/Y H:i" }}
+                                </span>
+                                {% if entry.user %}
+                                <span class="timeline-user">
+                                    <i class="fas fa-user"></i>
+                                    {{ entry.user.username }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-body">
+                            {% if entry.old_value or entry.new_value %}
+                            <div class="change-details">
+                                <div class="change-row">
+                                    <div class="change-label">
+                                        <i class="fas fa-arrow-left"></i> Ancienne valeur
+                                    </div>
+                                    <div class="change-value old-value">
+                                        {{ entry.old_value|default:"-" }}
+                                    </div>
+                                </div>
+                                <div class="change-row">
+                                    <div class="change-label">
+                                        <i class="fas fa-arrow-right"></i> Nouvelle valeur
+                                    </div>
+                                    <div class="change-value new-value">
+                                        {{ entry.new_value|default:"-" }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if entry.note %}
+                            <div class="timeline-note">
+                                <div class="note-header">
+                                    <i class="fas fa-sticky-note"></i> Notes
+                                </div>
+                                <div class="note-content">
+                                    {{ entry.note }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="timeline-footer">
+                                <div class="footer-tags">
+                                    {% if entry.importance == 'high' %}
+                                    <span class="tag tag-important">
+                                        <i class="fas fa-exclamation-triangle"></i> Important
+                                    </span>
+                                    {% elif entry.importance == 'critical' %}
+                                    <span class="tag tag-critical">
+                                        <i class="fas fa-radiation"></i> Critique
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if entry.action == 'salary_change' %}
+                                    <span class="tag tag-financial">
+                                        <i class="fas fa-euro-sign"></i> Financier
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if entry.action == 'promotion' %}
+                                    <span class="tag tag-promotion">
+                                        <i class="fas fa-star"></i> Promotion
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="footer-actions">
+                                    <button class="btn-action btn-details" onclick="showDetails('{{ entry.id }}')">
+                                        <i class="fas fa-info-circle"></i> Détails
+                                    </button>
+                                    {% if entry.user %}
+                                    <button class="btn-action btn-context" onclick="showContext('{{ entry.id }}')">
+                                        <i class="fas fa-link"></i> Contexte
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="timeline-empty" id="timelineEmpty" style="display: none;">
+                <div class="empty-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>Aucun résultat</h3>
+                <p>Aucune modification ne correspond à vos critères de filtrage.</p>
+                <button class="btn btn-primary" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Réinitialiser les filtres
+                </button>
+            </div>
+            
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3>Aucun historique</h3>
+                <p>Aucune modification n'a encore été enregistrée pour cet employé.</p>
+                <div class="empty-actions">
+                    <a href="{% url 'employee_update' employee.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Effectuer une modification
+                    </a>
+                    <a href="{% url 'employee_change_salary' employee.pk %}" class="btn btn-warning">
+                        <i class="fas fa-money-bill-wave"></i> Modifier le salaire
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Export et analyse -->
+        {% if history %}
+        <div class="history-analysis">
+            <div class="analysis-header">
+                <h3><i class="fas fa-chart-bar"></i> Analyse de l'historique</h3>
+            </div>
+            
+            <div class="analysis-content">
+                <div class="analysis-charts">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h4>Activité par type</h4>
+                        </div>
+                        <div class="chart-placeholder">
+                            <div class="chart-bars">
+                                <div class="chart-bar" style="width: 40%; background: var(--success-green);" title="Modifications: 40%">
+                                    <span>Modifications</span>
+                                </div>
+                                <div class="chart-bar" style="width: 25%; background: var(--warning-orange);" title="Salaire: 25%">
+                                    <span>Salaire</span>
+                                </div>
+                                <div class="chart-bar" style="width: 20%; background: var(--secondary-blue);" title="Rôle: 20%">
+                                    <span>Rôle</span>
+                                </div>
+                                <div class="chart-bar" style="width: 15%; background: var(--purple);" title="Autre: 15%">
+                                    <span>Autre</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h4>Fréquence mensuelle</h4>
+                        </div>
+                        <div class="chart-placeholder">
+                            <div class="activity-months">
+                                {% for month in last_months %}
+                                <div class="activity-month">
+                                    <div class="month-label">{{ month.name }}</div>
+                                    <div class="month-bar" style="height: {{ month.activity }}%;"></div>
+                                    <div class="month-count">{{ month.count }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-insights">
+                    <div class="insight-card">
+                        <div class="insight-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h4>Tendance d'activité</h4>
+                            <p>L'activité a {% if activity_trend == 'up' %}augmenté{% elif activity_trend == 'down' %}diminué{% else %}stagné{% endif %} de {{ activity_change|default:"0" }}% ce mois-ci.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="insight-icon">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h4>Dernière modification</h4>
+                            <p>{{ last_update_date|default:"Jamais" }}</p>
+                            <small>Il y a {{ days_since_last_update|default:"0" }} jour(s)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="insight-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h4>Modifications importantes</h4>
+                            <p>{{ important_changes|default:"0" }} modification(s) marquée(s) comme importante(s)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal pour les détails -->
+<div class="modal-overlay" id="detailsModal" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><i class="fas fa-info-circle"></i> Détails de la modification</h3>
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="modalContent">
+            <!-- Contenu dynamique -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">
+                <i class="fas fa-times"></i> Fermer
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour l'historique des employés */
+    .employee-history-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .employee-history-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+    
+    /* En-tête employé */
+    .employee-header {
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        color: white;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .employee-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 600;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .employee-info {
+        flex: 1;
+    }
+    
+    .employee-info h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.8rem;
+        color: white;
+    }
+    
+    .employee-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+    }
+    
+    .history-stats {
+        flex-shrink: 0;
+    }
+    
+    .stat-badge {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        padding: 0.8rem 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+    
+    /* Contrôles de l'historique */
+    .history-controls {
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1.5rem 2rem;
+    }
+    
+    .controls-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .controls-header h3 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .controls-actions {
+        display: flex;
+        gap: 0.8rem;
+    }
+    
+    .btn-export,
+    .btn-clear {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: white;
+        color: var(--text-dark);
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+    
+    .btn-export:hover,
+    .btn-clear:hover {
+        background: #e9ecef;
+        color: var(--primary-blue);
+    }
+    
+    .filter-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .filter-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .filter-select {
+        padding: 0.8rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    
+    .filter-select:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    
+    .custom-period {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        margin-top: 1rem;
+    }
+    
+    .period-inputs {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+    
+    .input-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .input-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+    
+    .form-input {
+        padding: 0.8rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+    
+    .form-input:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    
+    .btn-apply {
+        padding: 0.8rem 1.5rem;
+        font-weight: 600;
+    }
+    
+    /* Résumé statistique */
+    .history-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        padding: 1.5rem 2rem;
+        background: white;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .summary-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+        transition: var(--transition);
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .summary-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .summary-card:nth-child(1) .summary-icon { background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue)); }
+    .summary-card:nth-child(2) .summary-icon { background: linear-gradient(135deg, var(--warning-orange), #f39c12); }
+    .summary-card:nth-child(3) .summary-icon { background: linear-gradient(135deg, var(--purple), #8e44ad); }
+    .summary-card:nth-child(4) .summary-icon { background: linear-gradient(135deg, var(--success-green), #27ae60); }
+    
+    .summary-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .summary-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        line-height: 1;
+    }
+    
+    .summary-label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-top: 0.3rem;
+    }
+    
+    /* Timeline d'historique */
+    .history-timeline {
+        padding: 2rem;
+    }
+    
+    .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .timeline-header h3 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .timeline-info {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .timeline-info span:first-child {
+        font-weight: 600;
+        color: var(--primary-blue);
+    }
+    
+    .timeline-container {
+        position: relative;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .timeline-container:before {
+        content: '';
+        position: absolute;
+        left: 30px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+    
+    .timeline-item {
+        display: flex;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 2;
+        transition: var(--transition);
+    }
+    
+    .timeline-item:hover {
+        transform: translateX(5px);
+    }
+    
+    .timeline-marker {
+        width: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .marker-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        background: var(--secondary-blue);
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 2;
+    }
+    
+    .create-icon { background: var(--success-green); }
+    .update-icon { background: var(--secondary-blue); }
+    .delete-icon { background: var(--danger-red); }
+    .promotion-icon { background: var(--warning-orange); }
+    .salary_change-icon { background: var(--purple); }
+    
+    .marker-line {
+        width: 2px;
+        flex: 1;
+        background: #e9ecef;
+        margin-top: -1px;
+    }
+    
+    .timeline-item:last-child .marker-line {
+        display: none;
+    }
+    
+    .timeline-content {
+        flex: 1;
+        margin-left: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .timeline-item:last-child .timeline-content {
+        border-bottom: none;
+    }
+    
+    .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    
+    .timeline-title h4 {
+        margin: 0 0 0.3rem 0;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .timeline-field {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        background: #f8f9fa;
+        padding: 0.3rem 0.6rem;
+        border-radius: 12px;
+        display: inline-block;
+    }
+    
+    .timeline-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.3rem;
+    }
+    
+    .timeline-date,
+    .timeline-user {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .timeline-body {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .change-details {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .change-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .change-label {
+        width: 120px;
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .change-value {
+        flex: 1;
+        padding: 0.8rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+    
+    .old-value {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger-red);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .new-value {
+        background: rgba(39, 174, 96, 0.1);
+        color: var(--success-green);
+        border: 1px solid rgba(39, 174, 96, 0.2);
+    }
+    
+    .timeline-note {
+        background: white;
+        border-radius: 6px;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-left: 3px solid var(--warning-orange);
+    }
+    
+    .note-header {
+        font-weight: 600;
+        color: var(--warning-orange);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .note-content {
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        line-height: 1.5;
+    }
+    
+    .timeline-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .footer-tags {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .tag {
+        padding: 0.3rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .tag-important {
+        background: rgba(243, 156, 18, 0.1);
+        color: var(--warning-orange);
+    }
+    
+    .tag-critical {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger-red);
+    }
+    
+    .tag-financial {
+        background: rgba(155, 89, 182, 0.1);
+        color: var(--purple);
+    }
+    
+    .tag-promotion {
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--secondary-blue);
+    }
+    
+    .footer-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-action {
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-details {
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--secondary-blue);
+    }
+    
+    .btn-details:hover {
+        background: var(--secondary-blue);
+        color: white;
+    }
+    
+    .btn-context {
+        background: rgba(149, 165, 166, 0.1);
+        color: #95a5a6;
+    }
+    
+    .btn-context:hover {
+        background: #95a5a6;
+        color: white;
+    }
+    
+    /* États vides */
+    .timeline-empty,
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        color: #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+    
+    .timeline-empty h3,
+    .empty-state h3 {
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline-empty p,
+    .empty-state p {
+        color: var(--text-light);
+        opacity: 0.8;
+        margin-bottom: 2rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .empty-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    /* Analyse de l'historique */
+    .history-analysis {
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        padding: 2rem;
+    }
+    
+    .analysis-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .analysis-header h3 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .analysis-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .analysis-charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .chart-header {
+        margin-bottom: 1rem;
+    }
+    
+    .chart-header h4 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .chart-placeholder {
+        height: 200px;
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+    
+    .chart-bars {
+        width: 100%;
+        height: 150px;
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .chart-bar {
+        height: 100%;
+        border-radius: 4px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0.5rem;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: height 0.3s ease;
+    }
+    
+    .activity-months {
+        display: flex;
+        align-items: flex-end;
+        gap: 1rem;
+        height: 100%;
+        width: 100%;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .activity-month {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .month-label {
+        font-size: 0.8rem;
+        color: var(--text-light);
+    }
+    
+    .month-bar {
+        width: 20px;
+        background: var(--secondary-blue);
+        border-radius: 4px 4px 0 0;
+        transition: height 0.3s ease;
+    }
+    
+    .month-count {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary-blue);
+    }
+    
+    .analysis-insights {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .insight-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        transition: var(--transition);
+    }
+    
+    .insight-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .insight-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .insight-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .insight-content p {
+        margin: 0 0 0.3rem 0;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+    
+    .insight-content small {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 1rem;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .modal-container {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-header h3 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        color: var(--text-light);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: var(--transition);
+    }
+    
+    .modal-close:hover {
+        color: var(--danger-red);
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        flex: 1;
+    }
+    
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e9ecef;
+        text-align: right;
+    }
+    
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .employee-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .employee-meta {
+            justify-content: center;
+        }
+        
+        .controls-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .filter-options {
+            grid-template-columns: 1fr;
+        }
+        
+        .period-inputs {
+            flex-direction: column;
+        }
+        
+        .history-summary {
+            grid-template-columns: 1fr;
+        }
+        
+        .timeline-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .timeline-container:before {
+            left: 25px;
+        }
+        
+        .timeline-marker {
+            width: 50px;
+        }
+        
+        .marker-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1rem;
+        }
+        
+        .timeline-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .timeline-meta {
+            align-items: flex-start;
+        }
+        
+        .change-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .change-label {
+            width: 100%;
+        }
+        
+        .timeline-footer {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .footer-tags {
+            justify-content: center;
+        }
+        
+        .analysis-charts {
+            grid-template-columns: 1fr;
+        }
+        
+        .analysis-insights {
+            grid-template-columns: 1fr;
+        }
+        
+        .empty-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtres d'historique
+        const filterAction = document.getElementById('filter-action');
+        const filterPeriod = document.getElementById('filter-period');
+        const filterUser = document.getElementById('filter-user');
+        const filterSort = document.getElementById('filter-sort');
+        const customPeriod = document.getElementById('custom-period');
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        const timelineEmpty = document.getElementById('timelineEmpty');
+        const filteredCount = document.getElementById('filtered-count');
+        
+        // Gestion du filtre période personnalisée
+        filterPeriod.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customPeriod.style.display = 'block';
+                // Définir les dates par défaut
+                const today = new Date();
+                const weekAgo = new Date();
+                weekAgo.setDate(today.getDate() - 7);
+                
+                document.getElementById('date-from').value = weekAgo.toISOString().split('T')[0];
+                document.getElementById('date-to').value = today.toISOString().split('T')[0];
+            } else {
+                customPeriod.style.display = 'none';
+                filterTimeline();
+            }
+        });
+        
+        // Appliquer la période personnalisée
+        window.applyCustomPeriod = function() {
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+            
+            if (!dateFrom || !dateTo) {
+                alert('Veuillez sélectionner les deux dates.');
+                return;
+            }
+            
+            if (new Date(dateFrom) > new Date(dateTo)) {
+                alert('La date "Du" doit être antérieure à la date "Au".');
+                return;
+            }
+            
+            filterTimeline();
+        };
+        
+        // Filtrer la timeline
+        function filterTimeline() {
+            const actionFilter = filterAction.value;
+            const periodFilter = filterPeriod.value;
+            const userFilter = filterUser.value;
+            const sortFilter = filterSort.value;
+            
+            let visibleCount = 0;
+            
+            timelineItems.forEach(item => {
+                let visible = true;
+                
+                // Filtre par action
+                if (actionFilter !== 'all') {
+                    const itemAction = item.getAttribute('data-action');
+                    visible = visible && itemAction.includes(actionFilter);
+                }
+                
+                // Filtre par période
+                if (periodFilter !== 'all' && periodFilter !== 'custom') {
+                    const itemDate = new Date(item.getAttribute('data-date'));
+                    const now = new Date();
+                    
+                    switch(periodFilter) {
+                        case 'today':
+                            visible = visible && itemDate.toDateString() === now.toDateString();
+                            break;
+                        case 'week':
+                            const weekAgo = new Date();
+                            weekAgo.setDate(now.getDate() - 7);
+                            visible = visible && itemDate >= weekAgo;
+                            break;
+                        case 'month':
+                            const monthAgo = new Date();
+                            monthAgo.setMonth(now.getMonth() - 1);
+                            visible = visible && itemDate >= monthAgo;
+                            break;
+                        case 'quarter':
+                            const quarterAgo = new Date();
+                            quarterAgo.setMonth(now.getMonth() - 3);
+                            visible = visible && itemDate >= quarterAgo;
+                            break;
+                        case 'year':
+                            const yearAgo = new Date();
+                            yearAgo.setFullYear(now.getFullYear() - 1);
+                            visible = visible && itemDate >= yearAgo;
+                            break;
+                    }
+                }
+                
+                // Filtre par période personnalisée
+                if (periodFilter === 'custom') {
+                    const itemDate = new Date(item.getAttribute('data-date'));
+                    const dateFrom = new Date(document.getElementById('date-from').value);
+                    const dateTo = new Date(document.getElementById('date-to').value);
+                    dateTo.setHours(23, 59, 59); // Fin de la journée
+                    
+                    visible = visible && itemDate >= dateFrom && itemDate <= dateTo;
+                }
+                
+                // Filtre par utilisateur
+                if (userFilter !== 'all') {
+                    // Cette logique dépendrait de la structure de vos données
+                    // Pour l'exemple, on simule
+                    const itemUser = item.querySelector('.timeline-user');
+                    if (userFilter === 'system') {
+                        visible = visible && !itemUser;
+                    } else if (userFilter === 'admin') {
+                        visible = visible && itemUser && itemUser.textContent.includes('admin');
+                    } else if (userFilter === 'self') {
+                        visible = visible && itemUser && itemUser.textContent === '{{ employee.username }}';
+                    }
+                }
+                
+                // Afficher/masquer l'élément
+                item.style.display = visible ? 'flex' : 'none';
+                if (visible) visibleCount++;
+            });
+            
+            // Mettre à jour le compteur
+            filteredCount.textContent = visibleCount;
+            
+            // Afficher/masquer l'état vide
+            if (visibleCount === 0) {
+                timelineEmpty.style.display = 'block';
+                document.querySelector('.timeline-container').style.display = 'none';
+            } else {
+                timelineEmpty.style.display = 'none';
+                document.querySelector('.timeline-container').style.display = 'block';
+            }
+            
+            // Trier les éléments
+            sortTimelineItems(sortFilter);
+        }
+        
+        // Trier la timeline
+        function sortTimelineItems(sortBy) {
+            const container = document.querySelector('.timeline-container');
+            const items = Array.from(timelineItems).filter(item => item.style.display !== 'none');
+            
+            items.sort((a, b) => {
+                switch(sortBy) {
+                    case 'oldest':
+                        return new Date(a.getAttribute('data-date')) - new Date(b.getAttribute('data-date'));
+                    case 'action':
+                        return a.getAttribute('data-action').localeCompare(b.getAttribute('data-action'));
+                    case 'importance':
+                        const importanceOrder = { critical: 3, high: 2, medium: 1, low: 0 };
+                        const aImportance = importanceOrder[a.getAttribute('data-importance')] || 0;
+                        const bImportance = importanceOrder[b.getAttribute('data-importance')] || 0;
+                        return bImportance - aImportance;
+                    case 'newest':
+                    default:
+                        return new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date'));
+                }
+            });
+            
+            // Réorganiser les éléments dans le DOM
+            items.forEach(item => container.appendChild(item));
+        }
+        
+        // Écouter les changements de filtres
+        filterAction.addEventListener('change', filterTimeline);
+        filterPeriod.addEventListener('change', filterTimeline);
+        filterUser.addEventListener('change', filterTimeline);
+        filterSort.addEventListener('change', filterTimeline);
+        
+        // Réinitialiser les filtres
+        window.clearFilters = function() {
+            filterAction.value = 'all';
+            filterPeriod.value = 'all';
+            filterUser.value = 'all';
+            filterSort.value = 'newest';
+            customPeriod.style.display = 'none';
+            filterTimeline();
+        };
+        
+        // Export de l'historique
+        window.exportHistory = function() {
+            const format = prompt('Choisissez le format d\'export:\n1. PDF (Rapport détaillé)\n2. CSV (Données brutes)\n3. Excel (Tableau complet)\n\nEntrez le numéro:', '1');
+            
+            if (format) {
+                let fileType;
+                switch(format) {
+                    case '1':
+                        fileType = 'PDF';
+                        break;
+                    case '2':
+                        fileType = 'CSV';
+                        break;
+                    case '3':
+                        fileType = 'Excel';
+                        break;
+                    default:
+                        alert('Format invalide');
+                        return;
+                }
+                
+                // Récupérer les filtres actifs
+                const filters = {
+                    action: filterAction.value,
+                    period: filterPeriod.value,
+                    user: filterUser.value,
+                    sort: filterSort.value
+                };
+                
+                alert(`Export ${fileType} démarré...\n\nFiltres appliqués:\n• Action: ${filterAction.options[filterAction.selectedIndex].text}\n• Période: ${filterPeriod.options[filterPeriod.selectedIndex].text}\n• Utilisateur: ${filterUser.options[filterUser.selectedIndex].text}\n\nLe téléchargement commencera automatiquement.`);
+            }
+        };
+        
+        // Afficher les détails d'une entrée
+        window.showDetails = function(entryId) {
+            // Dans une application réelle, cela ferait une requête AJAX
+            // Pour l'exemple, on simule avec des données statiques
+            
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <div class="modal-entry">
+                    <div class="entry-header">
+                        <h4>Modification du salaire</h4>
+                        <div class="entry-meta">
+                            <span><i class="fas fa-clock"></i> 15/12/2023 14:30</span>
+                            <span><i class="fas fa-user"></i> admin</span>
+                        </div>
+                    </div>
+                    
+                    <div class="entry-details">
+                        <div class="detail-section">
+                            <h5><i class="fas fa-exchange-alt"></i> Changements</h5>
+                            <div class="change-comparison">
+                                <div class="change-old">
+                                    <strong>Ancien:</strong> 2500.00 €
+                                </div>
+                                <div class="change-arrow">
+                                    <i class="fas fa-long-arrow-alt-right"></i>
+                                </div>
+                                <div class="change-new">
+                                    <strong>Nouveau:</strong> 2800.00 €
+                                </div>
+                            </div>
+                            <div class="change-summary">
+                                <span class="change-diff positive">+300.00 €</span>
+                                <span class="change-percent positive">+12%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h5><i class="fas fa-sticky-note"></i> Notes</h5>
+                            <div class="entry-notes">
+                                Augmentation annuelle suite à l'évaluation de performance. L'employé a atteint tous ses objectifs trimestriels.
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h5><i class="fas fa-info-circle"></i> Métadonnées</h5>
+                            <div class="entry-metadata">
+                                <div class="metadata-item">
+                                    <span class="meta-label">ID:</span>
+                                    <span class="meta-value">${entryId}</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="meta-label">IP:</span>
+                                    <span class="meta-value">192.168.1.100</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="meta-label">Navigateur:</span>
+                                    <span class="meta-value">Chrome 120.0.0.0</span>
+                                </div>
+                                <div class="metadata-item">
+                                    <span class="meta-label">Session ID:</span>
+                                    <span class="meta-value">session_abc123</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h5><i class="fas fa-link"></i> Liens associés</h5>
+                            <div class="entry-links">
+                                <a href="#" class="btn-link">
+                                    <i class="fas fa-file-invoice-dollar"></i> Voir la fiche de paie
+                                </a>
+                                <a href="#" class="btn-link">
+                                    <i class="fas fa-chart-line"></i> Voir l'historique complet
+                                </a>
+                                <a href="#" class="btn-link">
+                                    <i class="fas fa-user-tie"></i> Voir le profil employé
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('detailsModal').style.display = 'flex';
+        };
+        
+        // Afficher le contexte
+        window.showContext = function(entryId) {
+            alert(`Contexte de l'entrée ${entryId}\n\nCette fonctionnalité afficherait les modifications connexes effectuées autour de la même période.`);
+        };
+        
+        // Fermer le modal
+        window.closeModal = function() {
+            document.getElementById('detailsModal').style.display = 'none';
+        };
+        
+        // Fermer le modal en cliquant à l'extérieur
+        document.getElementById('detailsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Initialiser les filtres
+        filterTimeline();
+    });
+</script>
+{% endblock %}

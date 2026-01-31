@@ -1,0 +1,1476 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Réservation #{{ reservation.id }} - Détails{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-calendar-check"></i>
+<span>Détails de la réservation #{{ reservation.id }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="reservation-detail-container">
+    <!-- Header avec navigation -->
+    <div class="detail-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1><i class="fas fa-receipt"></i> Réservation #{{ reservation.id }}</h1>
+                <div class="header-meta">
+                    <span class="meta-item">
+                        <i class="far fa-calendar"></i>
+                        Créée le {{ reservation.created_at|date:"d/m/Y à H:i" }}
+                    </span>
+                    <span class="meta-item">
+                        <i class="fas fa-user"></i>
+                        Par {{ reservation.created_by|default:"Système" }}
+                    </span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="status-badge large {{ reservation.statut }}">
+                    {% if reservation.statut == 'confirmee' %}
+                        <i class="fas fa-check-circle"></i>
+                        <span>Confirmée</span>
+                    {% elif reservation.statut == 'en_cours' %}
+                        <i class="fas fa-bed"></i>
+                        <span>En cours</span>
+                    {% elif reservation.statut == 'terminee' %}
+                        <i class="fas fa-flag-checkered"></i>
+                        <span>Terminée</span>
+                    {% elif reservation.statut == 'annulee' %}
+                        <i class="fas fa-times-circle"></i>
+                        <span>Annulée</span>
+                    {% else %}
+                        <i class="fas fa-clock"></i>
+                        <span>En attente</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation rapide -->
+    <div class="quick-nav">
+        <a href="{% url 'reservation_list' %}" class="nav-link">
+            <i class="fas fa-arrow-left"></i>
+            <span>Retour à la liste</span>
+        </a>
+        <div class="nav-actions">
+            <a href="{% url 'reservation_update' reservation.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                <span>Modifier</span>
+            </a>
+            <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash"></i>
+                <span>Supprimer</span>
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                    <span>Actions</span>
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        Générer facture
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-envelope"></i>
+                        Envoyer confirmation
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-print"></i>
+                        Imprimer détails
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    {% if reservation.statut == 'en_attente' %}
+                    <a class="dropdown-item text-success" href="#">
+                        <i class="fas fa-check"></i>
+                        Confirmer
+                    </a>
+                    {% endif %}
+                    {% if reservation.statut != 'annulee' %}
+                    <a class="dropdown-item text-danger" href="#">
+                        <i class="fas fa-times"></i>
+                        Annuler
+                    </a>
+                    {% endif %}
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-clipboard"></i>
+                        Dupliquer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille principale -->
+    <div class="detail-grid">
+        <!-- Section Client -->
+        <div class="detail-section client-section">
+            <div class="section-header">
+                <h3><i class="fas fa-user-tie"></i> Informations client</h3>
+                <a href="{% url 'client_update' reservation.client.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i>
+                </a>
+            </div>
+            <div class="section-content">
+                <div class="client-profile">
+                    <div class="client-avatar large">
+                        {{ reservation.client.nom_complet|first|upper }}
+                    </div>
+                    <div class="client-info">
+                        <h4>{{ reservation.client.nom_complet }}</h4>
+                        <div class="client-contact">
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <a href="mailto:{{ reservation.client.email }}">{{ reservation.client.email }}</a>
+                            </div>
+                            {% if reservation.client.telephone %}
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <a href="tel:{{ reservation.client.telephone }}">{{ reservation.client.telephone }}</a>
+                            </div>
+                            {% endif %}
+                            {% if reservation.client.adresse %}
+                            <div class="contact-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{ reservation.client.adresse }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="client-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Total réservations</div>
+                        <div class="stat-value">{{ client_total_reservations|default:"1" }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Nuits totales</div>
+                        <div class="stat-value">{{ client_total_nights|default:reservation.nombre_nuits }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Dépenses totales</div>
+                        <div class="stat-value">{{ client_total_spent|default:reservation.prix_total|floatformat:2 }}€</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Chambre -->
+        <div class="detail-section room-section">
+            <div class="section-header">
+                <h3><i class="fas fa-bed"></i> Chambre réservée</h3>
+                <a href="{% url 'chambre_update' reservation.chambre.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i>
+                </a>
+            </div>
+            <div class="section-content">
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-number">
+                            <i class="fas fa-door-closed"></i>
+                            <h4>Chambre {{ reservation.chambre.numero }}</h4>
+                        </div>
+                        <div class="room-status">
+                            {% if reservation.chambre.est_disponible %}
+                            <span class="badge available">Disponible</span>
+                            {% else %}
+                            <span class="badge occupied">Occupée</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="room-body">
+                        <div class="room-type">
+                            <strong>Type:</strong> {{ reservation.chambre.get_type_chambre_display }}
+                        </div>
+                        <div class="room-capacity">
+                            <strong>Capacité:</strong> {{ reservation.chambre.capacite }} personnes
+                        </div>
+                        <div class="room-description">
+                            <strong>Description:</strong>
+                            <p>{{ reservation.chambre.description|default:"Chambre confortable avec toutes les commodités." }}</p>
+                        </div>
+                        <div class="room-features">
+                            <strong>Équipements:</strong>
+                            <div class="features-list">
+                                {% if reservation.chambre.etage %}<span class="feature"><i class="fas fa-building"></i> Étage {{ reservation.chambre.etage }}</span>{% endif %}
+                                <span class="feature"><i class="fas fa-wifi"></i> Wi-Fi</span>
+                                <span class="feature"><i class="fas fa-tv"></i> TV</span>
+                                <span class="feature"><i class="fas fa-snowflake"></i> Climatisation</span>
+                                {% if reservation.chambre.vue_mer %}<span class="feature"><i class="fas fa-water"></i> Vue mer</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Dates et Prix -->
+        <div class="detail-section dates-section">
+            <div class="section-header">
+                <h3><i class="fas fa-calendar-alt"></i> Dates et tarification</h3>
+            </div>
+            <div class="section-content">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Arrivée</div>
+                            <div class="timeline-value">{{ reservation.date_entree|date:"l d F Y" }}</div>
+                            <div class="timeline-hint">À partir de 14h00</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-label">Départ</div>
+                            <div class="timeline-value">{{ reservation.date_sortie|date:"l d F Y" }}</div>
+                            <div class="timeline-hint">Avant 11h00</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="duration-card">
+                    <div class="duration-header">
+                        <i class="fas fa-clock"></i>
+                        <span>Durée du séjour</span>
+                    </div>
+                    <div class="duration-content">
+                        <div class="duration-badge">
+                            <span class="count">{{ reservation.nombre_nuits }}</span>
+                            <span class="label">nuit{% if reservation.nombre_nuits > 1 %}s{% endif %}</span>
+                        </div>
+                        <div class="duration-dates">
+                            {{ reservation.date_entree|date:"d/m/Y" }} → {{ reservation.date_sortie|date:"d/m/Y" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="price-card">
+                    <div class="price-header">
+                        <h4><i class="fas fa-calculator"></i> Détail du prix</h4>
+                    </div>
+                    <div class="price-breakdown">
+                        <div class="price-row">
+                            <span>Prix par nuit</span>
+                            <span>{{ reservation.chambre.prix_par_nuit|floatformat:2 }} €</span>
+                        </div>
+                        <div class="price-row">
+                            <span>{{ reservation.nombre_nuits }} nuit{% if reservation.nombre_nuits > 1 %}s{% endif %}</span>
+                            <span>× {{ reservation.chambre.prix_par_nuit|floatformat:2 }} €</span>
+                        </div>
+                        <div class="price-divider"></div>
+                        <div class="price-total">
+                            <strong>Total</strong>
+                            <strong class="total-amount">{{ reservation.prix_total|floatformat:2 }} €</strong>
+                        </div>
+                        <div class="price-note">
+                            <small><i class="fas fa-info-circle"></i> Taxes et frais de service inclus</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Détails supplémentaires -->
+        <div class="detail-section details-section">
+            <div class="section-header">
+                <h3><i class="fas fa-info-circle"></i> Informations supplémentaires</h3>
+            </div>
+            <div class="section-content">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-users"></i>
+                            <span>Nombre de personnes</span>
+                        </div>
+                        <div class="info-value">
+                            {{ reservation.nombre_personnes }}
+                            <small>sur {{ reservation.chambre.capacite }} max</small>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-baby"></i>
+                            <span>Enfants inclus</span>
+                        </div>
+                        <div class="info-value">
+                            {{ reservation.nombre_enfants|default:"0" }}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-paw"></i>
+                            <span>Animaux acceptés</span>
+                        </div>
+                        <div class="info-value">
+                            {% if reservation.animaux %}
+                            <span class="badge bg-success">Oui</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Non</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-smoking-ban"></i>
+                            <span>Non-fumeur</span>
+                        </div>
+                        <div class="info-value">
+                            {% if reservation.chambre.non_fumeur %}
+                            <span class="badge bg-success">Oui</span>
+                            {% else %}
+                            <span class="badge bg-warning">Autorisé</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="remarks-card">
+                    <div class="remarks-header">
+                        <h5><i class="fas fa-sticky-note"></i> Remarques et préférences</h5>
+                    </div>
+                    <div class="remarks-content">
+                        {% if reservation.remarques %}
+                            {{ reservation.remarques|linebreaks }}
+                        {% else %}
+                            <p class="text-muted">Aucune remarque spécifiée.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="additional-services">
+                    <h5><i class="fas fa-concierge-bell"></i> Services additionnels</h5>
+                    {% if reservation.services.all %}
+                    <div class="services-list">
+                        {% for service in reservation.services.all %}
+                        <span class="service-badge">
+                            <i class="fas fa-check"></i>
+                            {{ service.nom }} (+{{ service.prix }}€)
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Aucun service additionnel réservé.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Historique -->
+        <div class="detail-section history-section">
+            <div class="section-header">
+                <h3><i class="fas fa-history"></i> Historique</h3>
+            </div>
+            <div class="section-content">
+                <div class="timeline-history">
+                    <div class="history-item">
+                        <div class="history-icon created">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="history-content">
+                            <div class="history-title">Réservation créée</div>
+                            <div class="history-date">{{ reservation.created_at|date:"d/m/Y H:i" }}</div>
+                            <div class="history-details">Par {{ reservation.created_by|default:"Système" }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="history-item">
+                        <div class="history-icon updated">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="history-content">
+                            <div class="history-title">Dernière modification</div>
+                            <div class="history-date">{{ reservation.updated_at|date:"d/m/Y H:i" }}</div>
+                            <div class="history-details">Statut: {{ reservation.get_statut_display }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if reservation.statut_changes %}
+                    <div class="history-item">
+                        <div class="history-icon status-change">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="history-content">
+                            <div class="history-title">Changements de statut</div>
+                            <div class="history-details">
+                                <ul class="status-changes">
+                                    {% for change in reservation.statut_changes|slice:":3" %}
+                                    <li>{{ change.date|date:"d/m H:i" }} → {{ change.statut }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Actions rapides -->
+        <div class="detail-section actions-section">
+            <div class="section-header">
+                <h3><i class="fas fa-bolt"></i> Actions rapides</h3>
+            </div>
+            <div class="section-content">
+                <div class="quick-actions">
+                    <button class="action-btn email-action" data-action="email">
+                        <i class="fas fa-envelope"></i>
+                        <span>Envoyer email</span>
+                    </button>
+                    <button class="action-btn invoice-action" data-action="invoice">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Générer facture</span>
+                    </button>
+                    <button class="action-btn checkin-action" data-action="checkin">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Check-in</span>
+                    </button>
+                    <button class="action-btn checkout-action" data-action="checkout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Check-out</span>
+                    </button>
+                </div>
+                
+                <div class="action-notes">
+                    <textarea class="form-control" placeholder="Ajouter une note interne..." rows="3"></textarea>
+                    <button class="btn btn-sm btn-primary mt-2">
+                        <i class="fas fa-save"></i>
+                        Enregistrer la note
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                    Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer la réservation #{{ reservation.id }} ?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    Cette action est irréversible. Toutes les données associées seront perdues.
+                </div>
+                <div class="reservation-preview">
+                    <p><strong>Client:</strong> {{ reservation.client.nom_complet }}</p>
+                    <p><strong>Chambre:</strong> {{ reservation.chambre.numero }}</p>
+                    <p><strong>Dates:</strong> {{ reservation.date_entree|date:"d/m/Y" }} → {{ reservation.date_sortie|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <a href="{% url 'reservation_delete' reservation.pk %}" class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                    Supprimer définitivement
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Container principal */
+    .reservation-detail-container {
+        padding: 0;
+    }
+    
+    /* Header */
+    .detail-header {
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    
+    .header-left h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .header-meta {
+        display: flex;
+        gap: 1.5rem;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .status-badge.large {
+        padding: 0.75rem 1.5rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .status-badge.large.confirmee {
+        background: rgba(39, 174, 96, 0.2);
+        color: var(--success-green);
+        border: 2px solid rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-badge.large.en_cours {
+        background: rgba(52, 152, 219, 0.2);
+        color: var(--secondary-blue);
+        border: 2px solid rgba(52, 152, 219, 0.3);
+    }
+    
+    .status-badge.large.terminee {
+        background: rgba(149, 165, 166, 0.2);
+        color: #95a5a6;
+        border: 2px solid rgba(149, 165, 166, 0.3);
+    }
+    
+    .status-badge.large.annulee {
+        background: rgba(231, 76, 60, 0.2);
+        color: var(--danger-red);
+        border: 2px solid rgba(231, 76, 60, 0.3);
+    }
+    
+    .status-badge.large.en_attente {
+        background: rgba(243, 156, 18, 0.2);
+        color: var(--warning-orange);
+        border: 2px solid rgba(243, 156, 18, 0.3);
+    }
+    
+    /* Navigation rapide */
+    .quick-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--light-blue);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--secondary-blue);
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-link:hover {
+        background: rgba(52, 152, 219, 0.1);
+        transform: translateX(-5px);
+    }
+    
+    .nav-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    
+    .nav-actions .btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Grille principale */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Sections */
+    .detail-section {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--light-blue);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .detail-section:hover {
+        transform: translateY(-5px);
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--light-blue), #e9ecef);
+        border-bottom: 1px solid var(--light-blue);
+    }
+    
+    .section-header h3 {
+        color: var(--primary-blue);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1.25rem;
+    }
+    
+    .section-content {
+        padding: 1.5rem;
+    }
+    
+    /* Section Client */
+    .client-profile {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--light-blue);
+    }
+    
+    .client-avatar.large {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--purple));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    
+    .client-info h4 {
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+    
+    .client-contact {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    
+    .contact-item a {
+        color: var(--secondary-blue);
+        text-decoration: none;
+    }
+    
+    .contact-item a:hover {
+        text-decoration: underline;
+    }
+    
+    .client-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .stat-item {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid var(--light-blue);
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+    
+    /* Section Chambre */
+    .room-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid var(--light-blue);
+        overflow: hidden;
+    }
+    
+    .room-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--light-blue), #e9ecef);
+    }
+    
+    .room-number {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .room-number h4 {
+        color: var(--primary-blue);
+        margin: 0;
+    }
+    
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .badge.available {
+        background: rgba(39, 174, 96, 0.1);
+        color: var(--success-green);
+        border: 1px solid rgba(39, 174, 96, 0.2);
+    }
+    
+    .badge.occupied {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger-red);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .room-body {
+        padding: 1rem;
+    }
+    
+    .room-body > div {
+        margin-bottom: 0.75rem;
+    }
+    
+    .room-body strong {
+        color: var(--primary-blue);
+        margin-right: 0.5rem;
+    }
+    
+    .features-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .feature {
+        background: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: var(--text-light);
+        border: 1px solid var(--light-blue);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    /* Section Dates */
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--secondary-blue);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .timeline-icon {
+        position: absolute;
+        left: -1.1rem;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        background: white;
+        border: 2px solid var(--secondary-blue);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary-blue);
+    }
+    
+    .timeline-content {
+        margin-left: 1.5rem;
+    }
+    
+    .timeline-label {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .timeline-value {
+        font-weight: 600;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .timeline-hint {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    .duration-card {
+        background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.05));
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+        margin-bottom: 1.5rem;
+    }
+    
+    .duration-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--secondary-blue);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .duration-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .duration-badge {
+        text-align: center;
+    }
+    
+    .duration-badge .count {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--secondary-blue);
+        display: block;
+        line-height: 1;
+    }
+    
+    .duration-badge .label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .duration-dates {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .price-card {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid var(--light-blue);
+        padding: 1.5rem;
+    }
+    
+    .price-header h4 {
+        color: var(--primary-blue);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .price-breakdown {
+        margin-top: 1rem;
+    }
+    
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed var(--light-blue);
+        color: var(--text-light);
+    }
+    
+    .price-row:last-child {
+        border-bottom: none;
+    }
+    
+    .price-divider {
+        height: 2px;
+        background: var(--light-blue);
+        margin: 0.75rem 0;
+    }
+    
+    .price-total {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        font-size: 1.2rem;
+        color: var(--primary-blue);
+    }
+    
+    .total-amount {
+        color: var(--success-green);
+    }
+    
+    .price-note {
+        text-align: center;
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+    
+    /* Section Détails supplémentaires */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--light-blue);
+    }
+    
+    .info-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .info-value small {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-left: 0.5rem;
+    }
+    
+    .remarks-card {
+        background: #fff9e6;
+        border-left: 4px solid var(--warning-orange);
+        padding: 1rem;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 1.5rem;
+    }
+    
+    .remarks-header h5 {
+        color: var(--warning-orange);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .additional-services {
+        margin-top: 1.5rem;
+    }
+    
+    .additional-services h5 {
+        color: var(--primary-blue);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .services-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .service-badge {
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--secondary-blue);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    /* Section Historique */
+    .timeline-history {
+        position: relative;
+        padding-left: 2.5rem;
+    }
+    
+    .timeline-history::before {
+        content: '';
+        position: absolute;
+        left: 1rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--light-blue);
+    }
+    
+    .history-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .history-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .history-icon {
+        position: absolute;
+        left: -1.5rem;
+        top: 0;
+        width: 2.5rem;
+        height: 2.5rem;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        border: 2px solid;
+    }
+    
+    .history-icon.created {
+        color: var(--success-green);
+        border-color: var(--success-green);
+    }
+    
+    .history-icon.updated {
+        color: var(--warning-orange);
+        border-color: var(--warning-orange);
+    }
+    
+    .history-icon.status-change {
+        color: var(--secondary-blue);
+        border-color: var(--secondary-blue);
+    }
+    
+    .history-content {
+        margin-left: 1rem;
+    }
+    
+    .history-title {
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-bottom: 0.25rem;
+    }
+    
+    .history-date {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-bottom: 0.25rem;
+    }
+    
+    .history-details {
+        font-size: 0.9rem;
+        color: var(--text-dark);
+    }
+    
+    .status-changes {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .status-changes li {
+        padding: 0.25rem 0;
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+    
+    /* Section Actions rapides */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: white;
+        border: 2px solid var(--light-blue);
+        border-radius: 12px;
+        color: var(--primary-blue);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .action-btn i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .action-btn span {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .email-action:hover {
+        border-color: var(--secondary-blue);
+        color: var(--secondary-blue);
+    }
+    
+    .invoice-action:hover {
+        border-color: var(--purple);
+        color: var(--purple);
+    }
+    
+    .checkin-action:hover {
+        border-color: var(--success-green);
+        color: var(--success-green);
+    }
+    
+    .checkout-action:hover {
+        border-color: var(--danger-red);
+        color: var(--danger-red);
+    }
+    
+    .action-notes textarea {
+        width: 100%;
+        border: 1px solid var(--light-blue);
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .action-notes textarea:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    /* Modal */
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, var(--light-blue), #e9ecef);
+        border-bottom: 1px solid var(--light-blue);
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .reservation-preview {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        border: 1px solid var(--light-blue);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .client-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .info-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .quick-nav {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        
+        .nav-actions {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .client-profile {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .client-contact {
+            align-items: center;
+        }
+        
+        .duration-content {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+        
+        .client-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .header-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .detail-header {
+            padding: 1.5rem;
+        }
+        
+        .header-left h1 {
+            font-size: 1.5rem;
+        }
+        
+        .status-badge.large {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .timeline, .timeline-history {
+            padding-left: 1.5rem;
+        }
+        
+        .timeline-icon, .history-icon {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Actions rapides
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.dataset.action;
+                switch(action) {
+                    case 'email':
+                        alert('Fonctionnalité d\'envoi d\'email à implémenter');
+                        break;
+                    case 'invoice':
+                        alert('Génération de facture à implémenter');
+                        break;
+                    case 'checkin':
+                        alert('Processus de check-in à implémenter');
+                        break;
+                    case 'checkout':
+                        alert('Processus de check-out à implémenter');
+                        break;
+                }
+            });
+        });
+        
+        // Calculer le temps restant pour les réservations en cours
+        function updateRemainingTime() {
+            const today = new Date();
+            const checkOut = new Date('{{ reservation.date_sortie|date:"Y-m-d" }}');
+            
+            if (checkOut > today && '{{ reservation.statut }}' === 'en_cours') {
+                const diffTime = checkOut - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                // Ajouter un indicateur de temps restant
+                const durationCard = document.querySelector('.duration-card');
+                if (durationCard) {
+                    const remainingElement = document.createElement('div');
+                    remainingElement.className = 'duration-remaining';
+                    remainingElement.innerHTML = `
+                        <div style="background: rgba(39, 174, 96, 0.1); padding: 0.5rem; border-radius: 8px; text-align: center; margin-top: 1rem;">
+                            <i class="fas fa-hourglass-half"></i>
+                            <strong>${diffDays} jour${diffDays > 1 ? 's' : ''} restant${diffDays > 1 ? 's' : ''}</strong>
+                        </div>
+                    `;
+                    durationCard.appendChild(remainingElement);
+                }
+            }
+        }
+        
+        updateRemainingTime();
+        
+        // Animation d'entrée pour les sections
+        const sections = document.querySelectorAll('.detail-section');
+        sections.forEach((section, index) => {
+            section.style.animationDelay = `${index * 0.1}s`;
+            section.style.animation = 'fadeInUp 0.6s ease forwards';
+        });
+        
+        // Ajouter du CSS pour l'animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .detail-section {
+                opacity: 0;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Gestion du dropdown Bootstrap
+        if (typeof bootstrap !== 'undefined') {
+            const dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(dropdown => {
+                new bootstrap.Dropdown(dropdown);
+            });
+            
+            const deleteModal = document.getElementById('deleteModal');
+            if (deleteModal) {
+                new bootstrap.Modal(deleteModal);
+            }
+        }
+        
+        // Copier les informations de contact
+        document.querySelectorAll('.contact-item a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    const text = this.textContent;
+                    navigator.clipboard.writeText(text).then(() => {
+                        // Feedback visuel
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check"></i> Copié !';
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                        }, 2000);
+                    });
+                }
+            });
+        });
+        
+        // Mettre à jour l'heure actuelle dans l'en-tête
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const timeElement = document.querySelector('.current-time');
+            if (!timeElement) {
+                const headerMeta = document.querySelector('.header-meta');
+                if (headerMeta) {
+                    const timeElement = document.createElement('span');
+                    timeElement.className = 'meta-item current-time';
+                    timeElement.innerHTML = `<i class="fas fa-clock"></i> ${timeString}`;
+                    headerMeta.appendChild(timeElement);
+                }
+            } else {
+                timeElement.innerHTML = `<i class="fas fa-clock"></i> ${timeString}`;
+            }
+        }
+        
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 60000); // Mettre à jour toutes les minutes
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hôtel de Luxe - Admin{% endblock %}</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Variables CSS - Palette bleue moderne */
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --purple: #9b59b6;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --sidebar-width: 250px;
+        }
+
+        /* Theme dark */
+        .theme-dark {
+            background-color: #0f1720;
+            color: #e6eef6;
+        }
+        .theme-dark .sidebar {
+            background: linear-gradient(180deg, #0b1220, #162231);
+        }
+
+        /* Font sizes */
+        .font-small { font-size: 14px; }
+        .font-medium { font-size: 16px; }
+        .font-large { font-size: 18px; }
+
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* Sidebar Modern */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark-blue), var(--primary-blue));
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            color: var(--light-blue);
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            padding-left: 2rem;
+        }
+
+        .nav-link.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--white);
+            border-left: 3px solid var(--secondary-blue);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-badge {
+            background: var(--danger-red);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 0;
+            transition: var(--transition);
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Content area */
+        .content-area {
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Messages d'alerte */
+        .alert-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background-color: rgba(39, 174, 96, 0.1);
+            border-color: rgba(39, 174, 96, 0.2);
+            color: var(--success-green);
+        }
+
+        .alert-error {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-red);
+        }
+
+        .alert-warning {
+            background-color: rgba(243, 156, 18, 0.1);
+            border-color: rgba(243, 156, 18, 0.2);
+            color: var(--warning-orange);
+        }
+
+        .alert-info {
+            background-color: rgba(52, 152, 219, 0.1);
+            border-color: rgba(52, 152, 219, 0.2);
+            color: var(--secondary-blue);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            background: var(--white);
+            border-bottom: 1px solid var(--light-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h2 {
+            color: var(--primary-blue);
+            font-size: 1.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        /* Chatbot styles */
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--primary-blue));
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        #chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+
+        #chatbot-toggle.pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+            }
+        }
+
+        #chatbot-box {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+            overflow: hidden;
+        }
+
+        #chatbot-box.show {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #chatbot-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            padding: 1.2rem 1.5rem;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #chatbot-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            background-color: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.4;
+            animation: messageAppear 0.3s ease;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+            color: white;
+            margin-left: auto;
+            border-radius: 12px 12px 0 12px;
+        }
+
+        .message.bot {
+            background: white;
+            color: var(--text-dark);
+            border: 1px solid var(--light-blue);
+            border-radius: 12px 12px 12px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        #chatbot-input-container {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--light-blue);
+            display: flex;
+            gap: 0.8rem;
+            background: white;
+        }
+
+        #chatbot-input {
+            flex: 1;
+            border: 1px solid var(--light-blue);
+            border-radius: 20px;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.9rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        #chatbot-input:focus {
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        #chatbot-send {
+            background: var(--secondary-blue);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        #chatbot-send:hover {
+            background: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+            
+            #chatbot-box {
+                width: 300px;
+                height: 450px;
+                right: 10px;
+                bottom: 80px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+            
+            .user-info {
+                text-align: center;
+            }
+            
+            #chatbot-box {
+                width: calc(100% - 40px);
+                height: 400px;
+                right: 20px;
+                left: 20px;
+            }
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: var(--secondary-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+        }
+
+        @media screen and (max-width: 1024px) {
+            .mobile-menu-toggle {
+                display: flex;
+            }
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% if user_settings and user_settings.theme == 'dark' %}theme-dark{% endif %} font-{{ user_settings.font_size|default:'medium' }}">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-hotel"></i>
+                <span>Hôtel Admin</span>
+            </div>
+            <div class="sidebar-subtitle">
+                {% if user.is_superuser %}
+                Mode Administrateur
+                {% elif user.is_staff %}
+                Mode Employé
+                {% else %}
+                Mode Client
+                {% endif %}
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            {% if user.is_authenticated %}
+                <!-- Section Tableau de bord -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Tableau de bord</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="{% url 'dashboard_admin' %}" class="nav-link {% if 'dashboard' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Accueil</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Section Gestion -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestion</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="{% url 'reservation_list' %}" class="nav-link {% if 'reservation' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Réservations</span>
+                                {% if reservations_en_attente %}
+                                <span class="nav-badge">{{ reservations_en_attente }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'chambre_list' %}" class="nav-link {% if 'chambre' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-bed"></i>
+                                <span>Chambres</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'client_list' %}" class="nav-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-users"></i>
+                                <span>Clients</span>
+                            </a>
+                        </li>
+                        {% if user.is_staff or user.is_superuser %}
+                        <li>
+                            <a href="{% url 'employee_list' %}" class="nav-link {% if 'employee' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-user-tie"></i>
+                                <span>Employés</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Section Opérations -->
+                {% if user.is_staff %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Opérations</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="{% url 'calendar' %}" class="nav-link {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Calendrier</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'billing_list' %}" class="nav-link {% if 'billing' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <span>Facturation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'inventory_list' %}" class="nav-link {% if 'inventory' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-box"></i>
+                                <span>Inventaire</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'maintenance_list' %}" class="nav-link {% if 'maintenance' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-tasks"></i>
+                                <span>Maintenance</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Section Rapports -->
+                {% if user.is_staff %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Rapports</div>
+                    <ul class="nav-links">
+                                             <li>
+                        <a href="{% url 'admin_notifications' %}" class="nav-link {% if 'notifications' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'reports' %}" class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Performances</span>
+                        </a>
+                    </li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Section système -->
+                {% if user.is_staff %}
+            <div class="nav-section">
+                <div class="nav-section-title">Système</div>
+                <ul class="nav-links">
+                    <li>
+                        <a href="{% url 'agent_ia_dashboard' %}" class="nav-link {% if 'agent_ia' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-robot"></i>
+                            <span>Agent IA</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/" target="_blank" class="nav-link">
+                            <i class="fas fa-database"></i>
+                            <span>Admin Django</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+
+            {% endif %}
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-title">
+                {% block page_title %}
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Tableau de bord</span>
+                {% endblock %}
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name">
+                        {% if user.get_full_name %}
+                            {{ user.get_full_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </div>
+                    <div class="user-role">
+                        {% if user.is_superuser %}
+                            <i class="fas fa-crown"></i> Administrateur
+                        {% elif user.is_staff %}
+                            <i class="fas fa-user-tie"></i> Employé
+                        {% else %}
+                            <i class="fas fa-user"></i> Client
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="user-avatar">
+                    {% if user.get_full_name %}
+                        {{ user.get_full_name|first|upper }}
+                    {% else %}
+                        {{ user.username|first|upper }}
+                    {% endif %}
+                </div>
+                {% if user.is_superuser %}
+                <div class="profile-popup" id="profilePopup" aria-hidden="true" style="position: absolute; right: 2rem; top: 62px; width: 260px; background: var(--white); border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); overflow: hidden; transform-origin: top right; transition: transform 0.18s ease, opacity 0.18s ease; opacity: 0; pointer-events: none; z-index: 120;">
+                    <div class="profile-popup-header" style="display: flex; gap: 0.8rem; padding: 0.9rem; align-items: center; border-bottom: 1px solid var(--light-blue);">
+                        <div class="profile-popup-avatar" style="width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--purple), var(--secondary-blue)); color: white; font-weight: 700;">
+                            {% if user.get_full_name %}
+                                {{ user.get_full_name|first|upper }}
+                            {% else %}
+                                {{ user.username|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="profile-popup-info">
+                            <div class="profile-popup-name" style="font-weight: 700; color: var(--primary-blue);">
+                                {% if user.get_full_name %}
+                                    {{ user.get_full_name }}
+                                {% else %}
+                                    {{ user.username }}
+                                {% endif %}
+                            </div>
+                            <div class="profile-popup-email" style="font-size: 0.85rem; color: var(--text-light);">{{ user.email }}</div>
+                        </div>
+                    </div>
+                    <div class="profile-popup-body" style="padding: 0.9rem; display: flex; gap: 0.5rem; justify-content: space-between; align-items: center;">
+                        <a href="#" class="btn btn-sm btn-primary" onclick="event.preventDefault(); window.location.href='/admin/hotel/userprofile/';">Mon profil</a>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-dark">Déconnecter</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Messages d'alerte -->
+            {% if messages %}
+            <div class="alert-container">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ message }}
+                    <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; cursor: pointer; color: inherit;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Chatbot (uniquement si connecté) -->
+    {% if user.is_authenticated %}
+    <div id="chatbot-container">
+        <button id="chatbot-toggle" class="pulse" title="Assistant IA">
+            <i class="fas fa-robot"></i>
+        </button>
+        
+        <div id="chatbot-box">
+            <div id="chatbot-header">
+                <span><i class="fas fa-robot me-2"></i> Assistant IA</span>
+                <button id="chatbot-close" style="background: none; border: none; color: white; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="chatbot-messages">
+                <div class="message bot">
+                    Bonjour {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %} ! 👋<br>
+                    Je suis votre assistant IA. Comment puis-je vous aider aujourd'hui ?
+                </div>
+            </div>
+            
+            <div id="chatbot-input-container">
+                <input type="text" id="chatbot-input" placeholder="Posez votre question...">
+                <button id="chatbot-send">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scripts -->
+    <script>
+                // Profile popup toggle (admin only)
+                {% if user.is_superuser %}
+                (function() {
+                    const toggle = document.querySelector('.user-avatar');
+                    const popup = document.getElementById('profilePopup');
+                    if (!toggle || !popup) return;
+                    function openPopup() {
+                        popup.classList.add('open');
+                        popup.style.opacity = '1';
+                        popup.style.pointerEvents = 'auto';
+                        popup.setAttribute('aria-hidden', 'false');
+                        toggle.setAttribute('aria-expanded', 'true');
+                    }
+                    function closePopup() {
+                        popup.classList.remove('open');
+                        popup.style.opacity = '0';
+                        popup.style.pointerEvents = 'none';
+                        popup.setAttribute('aria-hidden', 'true');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    }
+                    toggle.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (popup.classList.contains('open')) closePopup(); else openPopup();
+                    });
+                    document.addEventListener('click', function(e) {
+                        if (!popup.contains(e.target) && !toggle.contains(e.target)) {
+                            closePopup();
+                        }
+                    });
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape') closePopup();
+                    });
+                })();
+                {% endif %}
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.getElementById('mainContent');
+        
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+        });
+        
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        });
+        
+        // Chatbot functionality
+        {% if user.is_authenticated %}
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotBox = document.getElementById('chatbot-box');
+        const chatbotClose = document.getElementById('chatbot-close');
+        const chatbotInput = document.getElementById('chatbot-input');
+        const chatbotSend = document.getElementById('chatbot-send');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+        
+        // Ouvrir/Fermer le chatbot
+        chatbotToggle.addEventListener('click', () => {
+            chatbotBox.classList.toggle('show');
+            chatbotToggle.classList.remove('pulse');
+            if (chatbotBox.classList.contains('show')) {
+                chatbotInput.focus();
+            }
+        });
+        
+        chatbotClose.addEventListener('click', () => {
+            chatbotBox.classList.remove('show');
+        });
+        
+        // Fermer le chatbot en cliquant à l'extérieur
+        document.addEventListener('click', (e) => {
+            if (!chatbotBox.contains(e.target) && !chatbotToggle.contains(e.target)) {
+                chatbotBox.classList.remove('show');
+            }
+        });
+        
+        // Envoyer un message
+        async function sendMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+            
+            // Afficher le message de l'utilisateur
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user';
+            userMessageDiv.textContent = message;
+            chatbotMessages.appendChild(userMessageDiv);
+            
+            // Réinitialiser l'input
+            chatbotInput.value = '';
+            
+            // Scroll vers le bas
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            
+            // Afficher l'indicateur de saisie du bot
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'message bot';
+            typingIndicator.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
+            chatbotMessages.appendChild(typingIndicator);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            
+            // Envoyer la requête à l'API
+            try {
+                // Détecter le contexte de la page actuelle
+                const currentPath = window.location.pathname;
+                let pageContext = 'general';
+                
+                if (currentPath.includes('dashboard')) {
+                    pageContext = 'dashboard';
+                } else if (currentPath.includes('chambres') || currentPath.includes('chambre')) {
+                    pageContext = 'chambres';
+                } else if (currentPath.includes('reservations') || currentPath.includes('reservation')) {
+                    pageContext = 'reservations';
+                } else if (currentPath.includes('clients') || currentPath.includes('client')) {
+                    pageContext = 'clients';
+                } else if (currentPath.includes('stats') || currentPath.includes('statistiques')) {
+                    pageContext = 'statistiques';
+                }
+                
+                const response = await fetch('{% url "chatbot_api" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ 
+                        message: message,
+                        page_context: pageContext,
+                        user_type: '{% if user.is_superuser %}admin{% elif user.is_staff %}staff{% else %}client{% endif %}'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Retirer l'indicateur de saisie
+                typingIndicator.remove();
+                
+                // Afficher la réponse du bot
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'message bot';
+                botMessageDiv.textContent = data.message;
+                chatbotMessages.appendChild(botMessageDiv);
+                
+                // Scroll vers le bas
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message bot';
+                errorDiv.textContent = 'Désolé, une erreur s\'est produite. Veuillez réessayer.';
+                chatbotMessages.appendChild(errorDiv);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+        }
+        
+        chatbotSend.addEventListener('click', sendMessage);
+        chatbotInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Fonction pour obtenir le cookie CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        {% endif %}
+        
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                });
+            }, 5000);
+            
+            // Highlight active nav link based on current URL
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.href.includes(currentPath) && currentPath !== '/') {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

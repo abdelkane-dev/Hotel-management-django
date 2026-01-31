@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nos Chambres - Hôtel de Luxe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Variables CSS - Palette bleue */
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f9f9f9;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header et navigation */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: var(--white);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-weight: 500;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .btn-login {
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .btn-login:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--white);
+            margin-top: 80px;
+            padding: 2rem;
+        }
+
+        .page-header-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-header-content p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Section Chambres */
+        .rooms-section {
+            padding: 4rem 0;
+            background: var(--white);
+        }
+
+        /* Filtres */
+        .filters {
+            background: var(--light-blue);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 0.9rem;
+        }
+
+        select, input[type="range"] {
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            background: var(--white);
+        }
+
+        input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        #price-range {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        #price-value {
+            font-weight: 600;
+            color: var(--secondary-blue);
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            height: fit-content;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        /* Grille des chambres */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .room-card {
+            background: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            transform: scale(0.95);
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px) scale(1);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .room-image {
+            height: 180px;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .room-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .room-image:hover img {
+            transform: scale(1.05);
+        }
+
+        .room-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .room-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--success-green);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .room-badge.disponible {
+            background: var(--success-green);
+        }
+
+        .room-badge.reservee {
+            background: var(--danger-red);
+        }
+
+        .room-badge.occupee {
+            background: var(--danger-red);
+        }
+
+        .room-badge.maintenance {
+            background: var(--warning-orange);
+        }
+
+        /* Couleur info pour les messages */
+        .info-blue {
+            background: #3498db !important;
+        }
+
+        .room-content {
+            padding: 1.5rem;
+        }
+
+        .room-title {
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .room-price {
+            color: var(--success-green);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .room-per-night {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .room-type {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .room-description {
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .room-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .room-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: var(--light-blue);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .room-capacity {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .room-capacity i {
+            color: var(--secondary-blue);
+        }
+
+        .btn-reserve {
+            background: var(--secondary-blue);
+            color: var(--white);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-reserve:hover {
+            background: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-reserve:disabled {
+            background: var(--text-light);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 3rem;
+            padding: 1rem;
+        }
+
+        .page-btn {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .page-btn:hover {
+            background: var(--secondary-blue);
+            color: var(--white);
+        }
+
+        .page-btn.active {
+            background: var(--secondary-blue);
+            color: var(--white);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-blue);
+            color: var(--white);
+            padding: 4rem 0 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 0 5% 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--secondary-blue);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .footer-section p, .footer-section a {
+            color: var(--light-blue);
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .footer-section i {
+            margin-right: 10px;
+            color: var(--secondary-blue);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            color: var(--secondary-blue);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* Menu burger pour mobile */
+        .burger {
+            display: none;
+            cursor: pointer;
+        }
+
+        .burger div {
+            width: 25px;
+            height: 3px;
+            background-color: var(--primary-blue);
+            margin: 5px;
+            transition: var(--transition);
+        }
+
+        /* Animation du menu burger */
+        .toggle .line1 {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .toggle .line2 {
+            opacity: 0;
+        }
+
+        .toggle .line3 {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                right: -100%;
+                top: 80px;
+                height: calc(100vh - 80px);
+                width: 50%;
+                background-color: var(--white);
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 2rem;
+                transition: var(--transition);
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .burger {
+                display: block;
+            }
+
+            .page-header-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .page-header-content p {
+                font-size: 1rem;
+            }
+
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .rooms-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .room-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .room-footer {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        /* Modal de réservation */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .modal-header h2 {
+            color: var(--primary-blue);
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .close-modal:hover {
+            color: var(--danger-red);
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: relative;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--secondary-blue);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--white);
+        }
+
+        .profile-trigger:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar i {
+            color: var(--secondary-blue);
+            font-size: 1rem;
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .profile-trigger i.fa-chevron-down {
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .profile-trigger.active i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: var(--transition);
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .profile-dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-blue);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-avatar-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--light-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-large i {
+            color: var(--secondary-blue);
+            font-size: 1.5rem;
+        }
+
+        .profile-info h4 {
+            color: var(--primary-blue);
+            margin: 0 0 0.3rem 0;
+            font-size: 1.1rem;
+        }
+
+        .profile-info p {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .profile-menu-items {
+            padding: 0.5rem;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .profile-menu-item:hover {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .profile-menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .profile-menu-item.logout {
+            color: var(--danger-red);
+        }
+
+        .profile-menu-item.logout:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger-red);
+        }
+
+        .profile-divider {
+            height: 1px;
+            background: var(--light-blue);
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Hôtel de Luxe</div>
+            <ul class="nav-links">
+                <li><a href="/client/dashboard">Accueil</a></li>
+                <li><a href="/client/chambres" class="active">Chambres</a></li>
+                <li><a href="/client/reservation">Réservation</a></li>
+                <li><a href="/client/contact">Contact</a></li>
+                <li class="profile-dropdown">
+                    <div class="profile-trigger" onclick="toggleProfileDropdown()">
+                        <div class="profile-avatar">
+                            {% if client.photo %}
+                                <img src="{{ client.photo.url }}" alt="Photo de profil">
+                            {% else %}
+                                <i class="fas fa-user"></i>
+                            {% endif %}
+                        </div>
+                        <span class="profile-name">
+                            {% if client %}{{ client.nom_complet|truncatewords:2 }}{% else %}{{ user.get_full_name|default:user.username|truncatewords:2 }}{% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="profile-header">
+                            <div class="profile-avatar-large">
+                                {% if client.photo %}
+                                    <img src="{{ client.photo.url }}" alt="Photo de profil">
+                                {% else %}
+                                    <i class="fas fa-user"></i>
+                                {% endif %}
+                            </div>
+                            <div class="profile-info">
+                                <h4>{% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}</h4>
+                                <p>{% if client %}{{ client.email|default:user.email }}{% else %}{{ user.email }}{% endif %}</p>
+                            </div>
+                        </div>
+                        <div class="profile-menu-items">
+                            <a href="/client/profile" class="profile-menu-item">
+                                <i class="fas fa-user-cog"></i>
+                                <span>Mon Profil</span>
+                            </a>
+                            <a href="/client/settings" class="profile-menu-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Paramètres</span>
+                            </a>
+                            <div class="profile-divider"></div>
+                            <a href="/logout" class="profile-menu-item logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Déconnexion</span>
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <div class="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="page-header-content">
+                <h1>Nos Chambres</h1>
+                <p>Découvrez nos chambres élégantes et confortables</p>
+            </div>
+        </section>
+
+        <section class="rooms-section">
+            <div class="container">
+                <!-- Filtres de recherche -->
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="room-type">Type de chambre:</label>
+                        <select id="room-type" name="room-type">
+                            <option value="">Tous les types</option>
+                            {% for type_code, type_name in types_chambre %}
+                            <option value="{{ type_code }}" {% if type_filtre == type_code %}selected{% endif %}>{{ type_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="price-range">Prix maximum:</label>
+                        <input type="range" id="price-range" name="price-range" min="50" max="500" step="50" value="{{ prix_max|default:300 }}">
+                        <span id="price-value">{{ prix_max|default:300 }}€</span>
+                    </div>
+                    <div class="filter-group">
+                        <label for="room-status">Statut:</label>
+                        <select id="room-status" name="room-status">
+                            <option value="">Tous les statuts</option>
+                            {% for statut_code, statut_name in statuts_chambre %}
+                            <option value="{{ statut_code }}" {% if statut_filtre == statut_code %}selected{% endif %}>{{ statut_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>
+                            <input type="checkbox" name="disponible-only" id="disponible-only" {% if disponible_filtre == 'oui' %}checked{% endif %}>
+                            Uniquement disponibles
+                        </label>
+                    </div>
+                    <button class="btn" id="apply-filters">Appliquer les filtres</button>
+                    <button class="btn" id="reset-filters" style="background: var(--text-light);">Réinitialiser</button>
+                </div>
+
+                <!-- Grille des chambres -->
+                <div class="rooms-grid" id="rooms-container">
+                    {% for chambre_data in chambres %}
+                    {% with chambre=chambre_data.chambre disponible=chambre_data.disponible reservable_autres_dates=chambre_data.reservable_autres_dates statut_reel=chambre_data.statut_reel image_url=chambre_data.image_url %}
+                    <div class="room-card" data-type="{{ chambre.type_chambre }}" data-price="{{ chambre.prix_par_nuit }}" data-disponible="{{ disponible|yesno:'true,false' }}" data-statut="{{ statut_reel }}">
+                        <div class="room-image">
+                            <img src="{{ image_url }}" 
+                                 alt="Chambre {{ chambre.numero }}" 
+                                 loading="lazy"
+                                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&h=400&fit=crop&auto=format';">
+                            <span class="room-badge {% if statut_reel == 'libre' %}disponible{% elif statut_reel == 'occupee' %}occupee{% else %}maintenance{% endif %}">
+                                {% if statut_reel == 'libre' %}DISPONIBLE{% elif statut_reel == 'occupee' %}OCCUPÉE{% else %}MAINTENANCE{% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="room-content">
+                            <div class="room-title">
+                                <h3>Chambre {{ chambre.numero }}</h3>
+                                <div class="room-price">{{ chambre.prix_par_nuit|floatformat:2 }}€</div>
+                            </div>
+                            <p class="room-per-night">par nuit</p>
+                            <p class="room-type">{{ chambre.get_type_chambre_display }}</p>
+                            <p class="room-description">
+                                {% if chambre.description %}
+                                    {{ chambre.description|truncatewords:20 }}
+                                {% else %}
+                                    Chambre {{ chambre.get_type_chambre_display|lower }} confortable avec tout le nécessaire pour un séjour agréable.
+                                {% endif %}
+                            </p>
+                            
+                            <div class="room-features">
+                                {% if chambre.climatisation %}
+                                <span class="feature">
+                                    <i class="fas fa-wind"></i> Clim
+                                </span>
+                                {% endif %}
+                                {% if chambre.wifi %}
+                                <span class="feature">
+                                    <i class="fas fa-wifi"></i> WiFi
+                                </span>
+                                {% endif %}
+                                {% if chambre.television %}
+                                <span class="feature">
+                                    <i class="fas fa-tv"></i> TV
+                                </span>
+                                {% endif %}
+                                {% if chambre.minibar %}
+                                <span class="feature">
+                                    <i class="fas fa-glass-cheers"></i> Minibar
+                                </span>
+                                {% endif %}
+                                {% if chambre.salle_de_bain_privee %}
+                                <span class="feature">
+                                    <i class="fas fa-bath"></i> Salle de bain
+                                </span>
+                                {% endif %}
+                                {% if chambre.balcon %}
+                                <span class="feature">
+                                    <i class="fas fa-door-open"></i> Balcon
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if statut_reel == 'maintenance' %}
+                            <div style="margin: 1rem 0; padding: 0.8rem; background: var(--warning-orange); color: white; border-radius: 5px; font-size: 0.9rem; text-align: center;">
+                                <i class="fas fa-tools"></i> En maintenance - Temporairement indisponible
+                            </div>
+                            {% elif statut_reel == 'occupee' %}
+                            <div style="margin: 1rem 0; padding: 0.8rem; background: var(--info-blue); color: white; border-radius: 5px; font-size: 0.9rem; text-align: center;">
+                                <i class="fas fa-calendar-check"></i> Occupée actuellement - Réservable pour d'autres dates
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="room-footer">
+                            <div class="room-capacity">
+                                <i class="fas fa-user-friends"></i>
+                                <span>{{ chambre.capacite }} personne(s)</span>
+                            </div>
+                            <button class="btn-reserve" 
+                                    onclick="handleReservation('{{ chambre.id }}', '{{ chambre.numero }}', '{{ chambre.prix_par_nuit }}', {{ disponible|yesno:'true,false' }}, '{{ statut_reel }}', {{ reservable_autres_dates|yesno:'true,false' }})"
+                                    {% if not reservable_autres_dates %}disabled{% endif %}>
+                                {% if statut_reel == 'libre' and disponible %}
+                                <i class="fas fa-calendar-check"></i> Réserver
+                                {% elif statut_reel == 'occupee' and reservable_autres_dates %}
+                                <i class="fas fa-calendar-alt"></i> Autres dates
+                                {% elif statut_reel == 'maintenance' %}
+                                <i class="fas fa-tools"></i> Maintenance
+                                {% else %}
+                                <i class="fas fa-calendar-times"></i> Indisponible
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% empty %}
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: var(--light-blue); border-radius: 10px;">
+                        <i class="fas fa-bed fa-3x" style="color: var(--text-light); margin-bottom: 1rem;"></i>
+                        <h3 style="color: var(--primary-blue); margin-bottom: 0.5rem;">Aucune chambre disponible</h3>
+                        <p style="color: var(--text-light);">Veuillez réessayer ultérieurement ou modifier vos filtres</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination (désactivée car nous n'utilisons pas de Paginator) -->
+                <!-- {% if chambres.has_other_pages %} -->
+                <!-- <div class="pagination"> -->
+                <!--     {% if chambres.has_previous %} -->
+                <!--     <button class="page-btn" onclick="window.location.href='?page={{ chambres.previous_page_number }}'"> -->
+                <!--         <i class="fas fa-chevron-left"></i> -->
+                <!--     </button> -->
+                <!--     {% endif %} -->
+                    
+                <!--     {% for num in chambres.paginator.page_range %} -->
+                <!--         {% if chambres.number == num %} -->
+                <!--         <button class="page-btn active">{{ num }}</button> -->
+                <!--         {% else %} -->
+                <!--         <button class="page-btn" onclick="window.location.href='?page={{ num }}'">{{ num }}</button> -->
+                <!--         {% endif %} -->
+                <!--     {% endfor %} -->
+                    
+                <!--     {% if chambres.has_next %} -->
+                <!--     <button class="page-btn" onclick="window.location.href='?page={{ chambres.next_page_number }}'"> -->
+                <!--         <i class="fas fa-chevron-right"></i> -->
+                <!--     </button> -->
+                <!--     {% endif %} -->
+                <!-- </div> -->
+                <!-- {% endif %} -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de réservation -->
+    <div id="reservationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Réserver la chambre <span id="modal-room-number"></span></h2>
+                <button class="close-modal" onclick="closeReservationModal()">&times;</button>
+            </div>
+            <form id="reservationForm" method="POST" action="{% url 'reservation_create' %}">
+                {% csrf_token %}
+                <input type="hidden" name="chambre_id" id="chambre_id">
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--primary-blue);">
+                        Prix par nuit: <span id="modal-room-price" style="color: var(--success-green); font-weight: 700;"></span>€
+                    </label>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--primary-blue);">
+                        Date d'arrivée:
+                    </label>
+                    <input type="date" name="date_entree" required 
+                           style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--primary-blue);">
+                        Date de départ:
+                    </label>
+                    <input type="date" name="date_sortie" required 
+                           style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--primary-blue);">
+                        Nombre de personnes:
+                    </label>
+                    <select name="nombre_personnes" required 
+                            style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="1">1 personne</option>
+                        <option value="2">2 personnes</option>
+                        <option value="3">3 personnes</option>
+                        <option value="4">4 personnes</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button type="button" class="btn" style="background: var(--text-light); flex: 1;" 
+                            onclick="closeReservationModal()">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn" style="flex: 1;">
+                        Confirmer la réservation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p><i class="fas fa-map-marker-alt"></i> Faladjie, Bamako</p>
+                <p><i class="fas fa-phone"></i> +223 77 12 34 56</p>
+                <p><i class="fas fa-envelope"></i> contact@hotel-luxe.com</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Liens rapides</h3>
+                <ul>
+                    <li><a href="/client/dashboard">Accueil</a></li>
+                    <li><a href="/client/chambres">Nos chambres</a></li>
+                    <li><a href="/client/reservation">Réservation</a></li>
+                    <li><a href="/client/contact">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Suivez-nous</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-tripadvisor"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2024 Hôtel de Luxe. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- Chatbot (uniquement si connecté) -->
+    {% if user.is_authenticated %}
+    <div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button id="chatbot-toggle" class="pulse" title="Assistant IA" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #3498db, #2c3e50); color: white; border: none; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); cursor: pointer; font-size: 1.5rem;">
+            <i class="fas fa-robot"></i>
+        </button>
+        <div id="chatbot-box" style="position: fixed; bottom: 90px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 1001; overflow: hidden;">
+            <div id="chatbot-header" style="background: linear-gradient(135deg, #2c3e50, #1a2530); color: white; padding: 1.2rem 1.5rem; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-robot me-2"></i> Assistant IA</span>
+                <button id="chatbot-close" style="background: none; border: none; color: white; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chatbot-messages" style="flex: 1; padding: 1.5rem; overflow-y: auto; background-color: #fafafa;">
+                <div class="message bot" style="margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    Bonjour {% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %} ! 👋<br>
+                    Je suis votre assistant IA. Comment puis-je vous aider aujourd'hui ?
+                </div>
+            </div>
+            <div id="chatbot-input-container" style="padding: 1rem 1.5rem; border-top: 1px solid #ecf0f1; display: flex; gap: 0.8rem; background: white;">
+                <input type="text" id="chatbot-input" placeholder="Posez votre question..." style="flex: 1; border: 1px solid #ecf0f1; border-radius: 20px; padding: 0.8rem 1.2rem; font-size: 0.9rem; outline: none;">
+                <button id="chatbot-send" style="background: #3498db; color: white; border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+                // Chatbot functionality
+                {% if user.is_authenticated %}
+                const chatbotToggle = document.getElementById('chatbot-toggle');
+                const chatbotBox = document.getElementById('chatbot-box');
+                const chatbotClose = document.getElementById('chatbot-close');
+                const chatbotInput = document.getElementById('chatbot-input');
+                const chatbotSend = document.getElementById('chatbot-send');
+                const chatbotMessages = document.getElementById('chatbot-messages');
+
+                // Ouvrir/Fermer le chatbot
+                chatbotToggle.addEventListener('click', () => {
+                    chatbotBox.classList.toggle('show');
+                    chatbotToggle.classList.remove('pulse');
+                    chatbotBox.style.display = chatbotBox.classList.contains('show') ? 'flex' : 'none';
+                    if (chatbotBox.classList.contains('show')) {
+                        chatbotInput.focus();
+                    }
+                });
+                chatbotClose.addEventListener('click', () => {
+                    chatbotBox.classList.remove('show');
+                    chatbotBox.style.display = 'none';
+                });
+                document.addEventListener('click', (e) => {
+                    if (chatbotBox && !chatbotBox.contains(e.target) && !chatbotToggle.contains(e.target)) {
+                        chatbotBox.classList.remove('show');
+                        chatbotBox.style.display = 'none';
+                    }
+                });
+                async function sendMessage() {
+                    const message = chatbotInput.value.trim();
+                    if (!message) return;
+                    const userMessageDiv = document.createElement('div');
+                    userMessageDiv.className = 'message user';
+                    userMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; margin-left: auto; border-radius: 12px 12px 0 12px;';
+                    userMessageDiv.textContent = message;
+                    chatbotMessages.appendChild(userMessageDiv);
+                    chatbotInput.value = '';
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.className = 'message bot';
+                    typingIndicator.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
+                    typingIndicator.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                    chatbotMessages.appendChild(typingIndicator);
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    try {
+                        const currentPath = window.location.pathname;
+                        let pageContext = 'client_chambres';
+                        const response = await fetch('{% url "chatbot_api" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({ 
+                                message: message,
+                                page_context: pageContext,
+                                user_type: 'client'
+                            })
+                        });
+                        const data = await response.json();
+                        typingIndicator.remove();
+                        const botMessageDiv = document.createElement('div');
+                        botMessageDiv.className = 'message bot';
+                        botMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        botMessageDiv.textContent = data.message;
+                        chatbotMessages.appendChild(botMessageDiv);
+                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'message bot';
+                        errorDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        errorDiv.textContent = 'Désolé, une erreur s\'est produite. Veuillez réessayer.';
+                        chatbotMessages.appendChild(errorDiv);
+                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    }
+                }
+                chatbotSend.addEventListener('click', sendMessage);
+                chatbotInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                {% endif %}
+        // Menu burger
+        const burger = document.querySelector('.burger');
+        const nav = document.querySelector('.nav-links');
+        
+        burger.addEventListener('click', () => {
+            nav.classList.toggle('active');
+            burger.classList.toggle('toggle');
+        });
+
+        // Fermer le menu au clic sur un lien
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                nav.classList.remove('active');
+                burger.classList.remove('toggle');
+            });
+        });
+
+        // Filtres de prix
+        const priceRange = document.getElementById('price-range');
+        const priceValue = document.getElementById('price-value');
+        
+        priceRange.addEventListener('input', function() {
+            priceValue.textContent = this.value + '€';
+        });
+
+        // Filtrage en temps réel
+        function applyRealTimeFilters() {
+            const selectedType = document.getElementById('room-type').value;
+            const maxPrice = parseInt(priceRange.value);
+            const selectedStatus = document.getElementById('room-status').value;
+            const disponibleOnly = document.getElementById('disponible-only').checked;
+            
+            const roomCards = document.querySelectorAll('.room-card');
+            
+            roomCards.forEach(card => {
+                const roomType = card.dataset.type;
+                const roomPrice = parseFloat(card.dataset.price);
+                const roomStatus = card.dataset.statut;
+                const isDisponible = card.dataset.disponible === 'true';
+                
+                let show = true;
+                
+                // Filtre par type
+                if (selectedType && roomType !== selectedType) {
+                    show = false;
+                }
+                
+                // Filtre par prix
+                if (roomPrice > maxPrice) {
+                    show = false;
+                }
+                
+                // Filtre par statut
+                if (selectedStatus && roomStatus !== selectedStatus) {
+                    show = false;
+                }
+                
+                // Filtre disponible uniquement
+                if (disponibleOnly && !isDisponible) {
+                    show = false;
+                }
+                
+                // Appliquer le filtre visuel avec animation
+                if (show) {
+                    card.style.display = 'block';
+                    card.style.opacity = '1';
+                } else {
+                    card.style.opacity = '0.3';
+                    setTimeout(() => {
+                        if (card.style.opacity === '0.3') {
+                            card.style.display = 'none';
+                        }
+                    }, 300);
+                }
+            });
+            
+            // Compter les résultats visibles
+            const visibleCards = Array.from(roomCards).filter(card => card.style.display !== 'none');
+            updateFilterResults(visibleCards.length, roomCards.length);
+        }
+
+        // Mettre à jour le message de résultats
+        function updateFilterResults(visibleCount, totalCount) {
+            let resultMessage = document.getElementById('filter-results');
+            if (!resultMessage) {
+                resultMessage = document.createElement('div');
+                resultMessage.id = 'filter-results';
+                resultMessage.style.cssText = 'margin: 1rem 0; padding: 1rem; background: var(--light-blue); border-radius: 10px; text-align: center; color: var(--primary-blue); transition: var(--transition);';
+                document.querySelector('.rooms-grid').parentNode.insertBefore(resultMessage, document.querySelector('.rooms-grid'));
+            }
+            
+            if (visibleCount === 0) {
+                resultMessage.innerHTML = `<i class="fas fa-search"></i> Aucune chambre ne correspond à vos critères. Essayez d'élargir vos filtres.`;
+                resultMessage.style.display = 'block';
+            } else if (visibleCount < totalCount) {
+                resultMessage.innerHTML = `<i class="fas fa-filter"></i> ${visibleCount} chambre${visibleCount > 1 ? 's' : ''} trouvée${visibleCount > 1 ? 's' : ''} sur ${totalCount}`;
+                resultMessage.style.display = 'block';
+            } else {
+                resultMessage.style.display = 'none';
+            }
+        }
+
+        // Ajouter les écouteurs d'événements pour le filtrage en temps réel
+        document.getElementById('room-type').addEventListener('change', applyRealTimeFilters);
+        document.getElementById('room-status').addEventListener('change', applyRealTimeFilters);
+        document.getElementById('disponible-only').addEventListener('change', applyRealTimeFilters);
+
+        // Filtres dynamiques complets
+        document.getElementById('apply-filters').addEventListener('click', function() {
+            const selectedType = document.getElementById('room-type').value;
+            const maxPrice = parseInt(priceRange.value);
+            const selectedStatus = document.getElementById('room-status').value;
+            const disponibleOnly = document.getElementById('disponible-only').checked;
+            
+            const roomCards = document.querySelectorAll('.room-card');
+            
+            roomCards.forEach(card => {
+                const roomType = card.dataset.type;
+                const roomPrice = parseFloat(card.dataset.price);
+                const roomStatus = card.dataset.statut;
+                const isDisponible = card.dataset.disponible === 'true';
+                
+                let show = true;
+                
+                // Filtre par type
+                if (selectedType && roomType !== selectedType) {
+                    show = false;
+                }
+                
+                // Filtre par prix
+                if (roomPrice > maxPrice) {
+                    show = false;
+                }
+                
+                // Filtre par statut
+                if (selectedStatus && roomStatus !== selectedStatus) {
+                    show = false;
+                }
+                
+                // Filtre disponible uniquement
+                if (disponibleOnly && !isDisponible) {
+                    show = false;
+                }
+                
+                // Appliquer le filtre visuel
+                card.style.display = show ? 'block' : 'none';
+            });
+            
+            // Compter et afficher les résultats
+            const visibleCards = Array.from(roomCards).filter(card => card.style.display !== 'none');
+            const totalCards = roomCards.length;
+            
+            // Afficher un message de résultats si nécessaire
+            let resultMessage = document.getElementById('filter-results');
+            if (!resultMessage) {
+                resultMessage = document.createElement('div');
+                resultMessage.id = 'filter-results';
+                resultMessage.style.cssText = 'margin: 1rem 0; padding: 1rem; background: var(--light-blue); border-radius: 10px; text-align: center; color: var(--primary-blue);';
+                document.querySelector('.rooms-grid').parentNode.insertBefore(resultMessage, document.querySelector('.rooms-grid'));
+            }
+            
+            if (visibleCards.length === 0) {
+                resultMessage.innerHTML = `<i class="fas fa-search"></i> Aucune chambre ne correspond à vos critères. Essayez d'élargir vos filtres.`;
+                resultMessage.style.display = 'block';
+            } else if (visibleCards.length < totalCards) {
+                resultMessage.innerHTML = `<i class="fas fa-filter"></i> ${visibleCards.length} chambre${visibleCards.length > 1 ? 's' : ''} trouvée${visibleCards.length > 1 ? 's' : ''} sur ${totalCards}`;
+                resultMessage.style.display = 'block';
+            } else {
+                resultMessage.style.display = 'none';
+            }
+        });
+
+        // Réinitialiser les filtres
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            // Réinitialiser tous les champs de filtre
+            document.getElementById('room-type').value = '';
+            document.getElementById('room-status').value = '';
+            document.getElementById('disponible-only').checked = false;
+            document.getElementById('price-range').value = 500;
+            document.getElementById('price-value').textContent = '500€';
+            
+            // Afficher toutes les chambres
+            const roomCards = document.querySelectorAll('.room-card');
+            roomCards.forEach(card => {
+                card.style.display = 'block';
+            });
+            
+            // Cacher le message de résultats
+            const resultMessage = document.getElementById('filter-results');
+            if (resultMessage) {
+                resultMessage.style.display = 'none';
+            }
+        });
+
+        // Gestion des réservations
+        function handleReservation(chambreId, chambreNumero, prix, disponible, statutReel, reservableAutresDates) {
+            if (!reservableAutresDates) {
+                // Messages spécifiques selon le statut
+                let message = '';
+                if (statutReel === 'maintenance') {
+                    message = `La chambre ${chambreNumero} est actuellement en maintenance. Veuillez choisir une autre chambre ou revenir plus tard.`;
+                } else {
+                    message = `La chambre ${chambreNumero} n'est pas disponible pour le moment. Veuillez choisir une autre chambre.`;
+                }
+                alert(message);
+                return;
+            }
+            
+            // Si la chambre est occupée mais réservable pour d'autres dates
+            if (statutReel === 'occupee' && reservableAutresDates) {
+                const message = `La chambre ${chambreNumero} est actuellement occupée mais vous pouvez la réserver pour d'autres dates. Vous serez redirigé vers la page de réservation.`;
+                if (confirm(message)) {
+                    window.location.href = `/client/reservation/?chambre_id=${chambreId}`;
+                }
+                return;
+            }
+            
+            // Pour les chambres disponibles maintenant
+            window.location.href = `/client/reservation/?chambre_id=${chambreId}`;
+        }
+
+        // Filtres dynamiques améliorés
+        document.getElementById('apply-filters').addEventListener('click', function() {
+            const selectedType = document.getElementById('room-type').value;
+            const maxPrice = parseInt(priceRange.value);
+            const selectedStatus = document.getElementById('room-status').value;
+            const disponibleOnly = document.getElementById('disponible-only').checked;
+            
+            // Construire l'URL avec les filtres
+            let url = new URL(window.location);
+            url.searchParams.set('type', selectedType);
+            url.searchParams.set('prix_max', maxPrice);
+            url.searchParams.set('statut', selectedStatus);
+            if (disponibleOnly) {
+                url.searchParams.set('disponible', 'oui');
+            }
+            
+            // Rediriger vers la nouvelle URL
+            window.location.href = url.toString();
+        });
+
+        function closeReservationModal() {
+            document.getElementById('reservationModal').style.display = 'none';
+            document.getElementById('reservationForm').reset();
+        }
+
+        // Fermer le modal en cliquant en dehors
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('reservationModal');
+            if (event.target === modal) {
+                closeReservationModal();
+            }
+        });
+
+        // Validation du formulaire de réservation
+        document.getElementById('reservationForm').addEventListener('submit', function(e) {
+            const dateEntree = this.date_entree.value;
+            const dateSortie = this.date_sortie.value;
+            
+            if (dateEntree >= dateSortie) {
+                e.preventDefault();
+                alert('La date de départ doit être postérieure à la date d\'arrivée.');
+                return false;
+            }
+            
+            // Calculer le nombre de nuits
+            const entree = new Date(dateEntree);
+            const sortie = new Date(dateSortie);
+            const diffTime = Math.abs(sortie - entree);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 1) {
+                e.preventDefault();
+                alert('La réservation doit être d\'au moins une nuit.');
+                return false;
+            }
+            
+            return true;
+        });
+
+        // Profile Dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            const trigger = document.querySelector('.profile-trigger');
+            
+            dropdown.classList.toggle('active');
+            trigger.classList.toggle('active');
+        }
+
+        // Fermer le dropdown en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const profileTrigger = document.querySelector('.profile-trigger');
+            
+            if (!profileDropdown.contains(event.target)) {
+                const dropdown = document.getElementById('profileDropdown');
+                const trigger = document.querySelector('.profile-trigger');
+                
+                dropdown.classList.remove('active');
+                trigger.classList.remove('active');
+            }
+        });
+
+        // Tri initial des chambres par disponibilité
+        document.addEventListener('DOMContentLoaded', function() {
+            const roomsContainer = document.getElementById('rooms-container');
+            const roomCards = Array.from(roomsContainer.querySelectorAll('.room-card'));
+            
+            // Trier par disponibilité (disponibles en premier)
+            roomCards.sort((a, b) => {
+                const aDispo = a.querySelector('.room-badge').classList.contains('disponible');
+                const bDispo = b.querySelector('.room-badge').classList.contains('disponible');
+                return bDispo - aDispo;
+            });
+            
+            // Réorganiser le DOM
+            roomCards.forEach(card => {
+                roomsContainer.appendChild(card);
+            });
+        });
+    </script>
+</body>
+</html>

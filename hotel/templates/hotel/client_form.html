@@ -1,0 +1,1250 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}{{ action }} un client - Gestion Hôtel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-edit"></i>
+<span>{{ action }} client</span>
+{% endblock %}
+
+{% block content %}
+<div class="client-form-container">
+    <div class="client-form-card">
+        <div class="form-header">
+            <div class="header-icon">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="header-content">
+                <h2>{{ action }} un client</h2>
+                <p class="form-subtitle">
+                    {% if action == 'Modifier' %}
+                        Mise à jour des informations du client
+                    {% else %}
+                        Création d'un nouveau client
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <form method="post" class="client-form">
+            {% csrf_token %}
+            
+            <div class="form-sections">
+                <!-- Section Informations personnelles -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-id-card"></i>
+                        <h3>Informations personnelles</h3>
+                        <span class="section-badge">Obligatoire</span>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">
+                                <i class="fas fa-user"></i> Nom
+                            </label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   id="nom" 
+                                   name="nom" 
+                                   value="{{ client.nom|default:'' }}" 
+                                   required
+                                   placeholder="Entrez le nom de famille">
+                            <div class="input-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Nom de famille du client
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label required">
+                                <i class="fas fa-user"></i> Prénom
+                            </label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   id="prenom" 
+                                   name="prenom" 
+                                   value="{{ client.prenom|default:'' }}" 
+                                   required
+                                   placeholder="Entrez le prénom">
+                            <div class="input-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Prénom du client
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Contact -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-address-book"></i>
+                        <h3>Coordonnées</h3>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input type="email" 
+                                   class="form-input" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ client.email|default:'' }}" 
+                                   required
+                                   placeholder="client@example.com"
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+                            <div class="input-validation" id="email-validation">
+                                <i class="fas fa-check-circle"></i>
+                                Format d'email valide
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label required">
+                                <i class="fas fa-phone"></i> Téléphone
+                            </label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   id="telephone" 
+                                   name="telephone" 
+                                   value="{{ client.telephone|default:'' }}" 
+                                   required
+                                   placeholder="+33 1 23 45 67 89"
+                                   pattern="[\+\s\d\-\(\)]+">
+                            <div class="input-validation" id="phone-validation">
+                                <i class="fas fa-check-circle"></i>
+                                Format de téléphone valide
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Identification -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-passport"></i>
+                        <h3>Identification</h3>
+                        <span class="section-badge security-badge">
+                            <i class="fas fa-shield-alt"></i> Sécurisé
+                        </span>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label required">
+                            <i class="fas fa-id-card"></i> Numéro de pièce d'identité
+                        </label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="numero_piece_identite" 
+                               name="numero_piece_identite" 
+                               value="{{ client.numero_piece_identite|default:'' }}" 
+                               required
+                               placeholder="Ex: 1234567890123">
+                        <div class="input-hint">
+                            <i class="fas fa-lock"></i>
+                            Ces informations sont stockées de manière sécurisée
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Adresse -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h3>Adresse</h3>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label required">
+                            <i class="fas fa-home"></i> Adresse complète
+                        </label>
+                        <textarea class="form-input textarea-input" 
+                                  id="adresse" 
+                                  name="adresse" 
+                                  rows="3" 
+                                  required
+                                  placeholder="Numéro, rue, complément d'adresse...">{{ client.adresse|default:'' }}</textarea>
+                        <div class="textarea-counter">
+                            <span id="address-counter">0</span> caractères
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">
+                                <i class="fas fa-city"></i> Ville
+                            </label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   id="ville" 
+                                   name="ville" 
+                                   value="{{ client.ville|default:'' }}" 
+                                   required
+                                   placeholder="Nom de la ville">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label required">
+                                <i class="fas fa-globe-europe"></i> Pays
+                            </label>
+                            <div class="select-wrapper">
+                                <select class="form-input select-input" 
+                                        id="pays" 
+                                        name="pays" 
+                                        required>
+                                    <option value="">Sélectionner un pays</option>
+                                    <option value="France" {% if client.pays == "France" %}selected{% endif %}>France</option>
+                                    <option value="Belgique" {% if client.pays == "Belgique" %}selected{% endif %}>Belgique</option>
+                                    <option value="Suisse" {% if client.pays == "Suisse" %}selected{% endif %}>Suisse</option>
+                                    <option value="Luxembourg" {% if client.pays == "Luxembourg" %}selected{% endif %}>Luxembourg</option>
+                                    <option value="Autre" {% if client.pays == "Autre" %}selected{% endif %}>Autre</option>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Compte utilisateur -->
+                <div class="form-section account-section">
+                    <div class="section-header">
+                        <i class="fas fa-user-lock"></i>
+                        <h3>Compte utilisateur</h3>
+                        <span class="section-badge optional-badge">Optionnel</span>
+                    </div>
+                    
+                    <div class="account-toggle">
+                        <div class="toggle-switch">
+                            <input type="checkbox" 
+                                   id="create_account" 
+                                   name="create_account" 
+                                   class="toggle-input" 
+                                   checked>
+                            <label for="create_account" class="toggle-label">
+                                <span class="toggle-handle"></span>
+                                <span class="toggle-text-on">
+                                    <i class="fas fa-check"></i> Activé
+                                </span>
+                                <span class="toggle-text-off">
+                                    <i class="fas fa-times"></i> Désactivé
+                                </span>
+                            </label>
+                        </div>
+                        <div class="toggle-description">
+                            <h4>Créer un compte utilisateur</h4>
+                            <p>Permet au client de se connecter à l'espace client pour gérer ses réservations.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="account-fields" id="account_fields">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-user-tag"></i> Nom d'utilisateur
+                                </label>
+                                <input type="text" 
+                                       class="form-input" 
+                                       id="username" 
+                                       name="username" 
+                                       value="{{ client.user_profile.user.username|default:'' }}"
+                                       placeholder="Suggestion automatique">
+                                <div class="input-hint username-suggestion" id="username-suggestion">
+                                    <i class="fas fa-magic"></i>
+                                    Suggestion: <span id="suggested-username"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-key"></i> Mot de passe
+                                </label>
+                                <div class="password-wrapper">
+                                    <input type="password" 
+                                           class="form-input" 
+                                           id="password" 
+                                           name="password"
+                                           placeholder="Saisir un mot de passe sécurisé">
+                                    <button type="button" class="password-toggle" id="password-toggle">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="password-strength" id="password-strength">
+                                    <div class="strength-bar">
+                                        <div class="strength-segment" id="segment1"></div>
+                                        <div class="strength-segment" id="segment2"></div>
+                                        <div class="strength-segment" id="segment3"></div>
+                                        <div class="strength-segment" id="segment4"></div>
+                                    </div>
+                                    <div class="strength-text" id="strength-text">Non défini</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="password-requirements" id="password-requirements">
+                            <h5><i class="fas fa-clipboard-check"></i> Exigences de sécurité</h5>
+                            <ul>
+                                <li id="req-length"><i class="fas fa-circle"></i> Minimum 8 caractères</li>
+                                <li id="req-number"><i class="fas fa-circle"></i> Au moins un chiffre</li>
+                                <li id="req-upper"><i class="fas fa-circle"></i> Au moins une majuscule</li>
+                                <li id="req-lower"><i class="fas fa-circle"></i> Au moins une minuscule</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions du formulaire -->
+            <div class="form-actions">
+                <div class="form-status">
+                    <div class="status-indicator" id="form-status">
+                        <i class="fas fa-edit"></i>
+                        <span>Formulaire en cours de modification</span>
+                    </div>
+                    <div class="required-info">
+                        <span class="required-marker">*</span> Champs obligatoires
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{% url 'client_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        <span>Annuler</span>
+                    </a>
+                    
+                    <button type="submit" class="btn btn-primary" id="submit-button">
+                        <i class="fas fa-save"></i>
+                        <span>{% if action == 'Modifier' %}Mettre à jour{% else %}Créer le client{% endif %}</span>
+                        <div class="button-loader" id="button-loader">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Sidebar d'aide -->
+        <div class="form-sidebar">
+            <div class="sidebar-card">
+                <h4><i class="fas fa-lightbulb"></i> Conseils</h4>
+                <ul class="sidebar-tips">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Vérifiez les coordonnées</strong>
+                        <p>Assurez-vous que l'email et le téléphone sont valides pour les communications.</p>
+                    </li>
+                    <li>
+                        <i class="fas fa-id-badge"></i>
+                        <strong>Identification</strong>
+                        <p>Le numéro de pièce d'identité est requis pour toutes les réservations.</p>
+                    </li>
+                    <li>
+                        <i class="fas fa-user-shield"></i>
+                        <strong>Compte utilisateur</strong>
+                        <p>Créez un compte pour permettre au client de gérer ses réservations en ligne.</p>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-card">
+                <h4><i class="fas fa-history"></i> Dernière modification</h4>
+                <div class="modification-info">
+                    <div class="modification-item">
+                        <i class="fas fa-calendar"></i>
+                        <div>
+                            <strong>Date</strong>
+                            <span id="modification-date">{% now "d/m/Y" %}</span>
+                        </div>
+                    </div>
+                    <div class="modification-item">
+                        <i class="fas fa-user-tie"></i>
+                        <div>
+                            <strong>Par</strong>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour le formulaire client */
+    .client-form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .client-form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 2rem;
+    }
+    
+    .form-header {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        color: white;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .header-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .header-content h2 {
+        margin: 0 0 0.3rem 0;
+        font-size: 1.8rem;
+        color: white;
+    }
+    
+    .form-subtitle {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    /* Form sections */
+    .form-sections {
+        padding: 2rem;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        transition: var(--transition);
+    }
+    
+    .form-section:hover {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .section-header h3 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.2rem;
+        flex: 1;
+    }
+    
+    .section-header i {
+        color: var(--secondary-blue);
+        font-size: 1.2rem;
+    }
+    
+    .section-badge {
+        background: var(--secondary-blue);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .security-badge {
+        background: var(--success-green);
+    }
+    
+    .optional-badge {
+        background: var(--text-light);
+    }
+    
+    /* Form elements */
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-label.required:after {
+        content: "*";
+        color: var(--danger-red);
+        margin-left: 0.2rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        background: white;
+        font-family: inherit;
+    }
+    
+    .form-input:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    
+    .form-input:invalid:not(:focus):not(:placeholder-shown) {
+        border-color: var(--danger-red);
+    }
+    
+    .textarea-input {
+        resize: vertical;
+        min-height: 100px;
+        max-height: 200px;
+    }
+    
+    .textarea-counter {
+        text-align: right;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-top: 0.3rem;
+    }
+    
+    .select-wrapper {
+        position: relative;
+    }
+    
+    .select-input {
+        appearance: none;
+        cursor: pointer;
+    }
+    
+    .select-arrow {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+        pointer-events: none;
+    }
+    
+    /* Input hints and validation */
+    .input-hint {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .input-validation {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--success-green);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    
+    .input-validation.valid {
+        opacity: 1;
+    }
+    
+    /* Account section */
+    .account-toggle {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(52, 152, 219, 0.05);
+        border-radius: 8px;
+    }
+    
+    .toggle-switch {
+        flex-shrink: 0;
+    }
+    
+    .toggle-input {
+        display: none;
+    }
+    
+    .toggle-label {
+        position: relative;
+        display: block;
+        width: 80px;
+        height: 36px;
+        background: #ddd;
+        border-radius: 18px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .toggle-input:checked + .toggle-label {
+        background: var(--success-green);
+    }
+    
+    .toggle-handle {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 30px;
+        height: 30px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .toggle-input:checked + .toggle-label .toggle-handle {
+        transform: translateX(44px);
+    }
+    
+    .toggle-text-on,
+    .toggle-text-off {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .toggle-text-on {
+        left: 10px;
+        opacity: 0;
+    }
+    
+    .toggle-text-off {
+        right: 10px;
+        opacity: 1;
+    }
+    
+    .toggle-input:checked + .toggle-label .toggle-text-on {
+        opacity: 1;
+    }
+    
+    .toggle-input:checked + .toggle-label .toggle-text-off {
+        opacity: 0;
+    }
+    
+    .toggle-description h4 {
+        margin: 0 0 0.3rem 0;
+        color: var(--primary-blue);
+        font-size: 1rem;
+    }
+    
+    .toggle-description p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .account-fields {
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        max-height: 0;
+        opacity: 0;
+    }
+    
+    .account-fields.show {
+        max-height: 500px;
+        opacity: 1;
+    }
+    
+    /* Password field */
+    .password-wrapper {
+        position: relative;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        padding: 0.5rem;
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .password-toggle:hover {
+        color: var(--secondary-blue);
+    }
+    
+    .password-strength {
+        margin-top: 0.8rem;
+    }
+    
+    .strength-bar {
+        display: flex;
+        gap: 4px;
+        margin: 0.5rem 0;
+    }
+    
+    .strength-segment {
+        flex: 1;
+        height: 6px;
+        background: #e0e0e0;
+        border-radius: 3px;
+        transition: var(--transition);
+    }
+    
+    .strength-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: right;
+    }
+    
+    .password-requirements {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .password-requirements h5 {
+        margin: 0 0 0.8rem 0;
+        color: var(--primary-blue);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .password-requirements ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    .password-requirements li {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+    }
+    
+    .password-requirements li.requirement-met {
+        color: var(--success-green);
+    }
+    
+    .password-requirements li.requirement-met i {
+        color: var(--success-green);
+    }
+    
+    /* Form actions */
+    .form-actions {
+        grid-column: 1 / -1;
+        padding: 1.5rem 2rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .form-status {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--warning-orange);
+    }
+    
+    .required-info {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    .required-marker {
+        color: var(--danger-red);
+        font-weight: bold;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.9rem 1.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        position: relative;
+    }
+    
+    .btn-secondary {
+        background: #f8f9fa;
+        color: var(--text-dark);
+        border: 2px solid #dee2e6;
+    }
+    
+    .btn-secondary:hover {
+        background: #e9ecef;
+        color: var(--primary-blue);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        color: white;
+        min-width: 180px;
+        justify-content: center;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, var(--accent-blue), #2980b9);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+    
+    .button-loader {
+        display: none;
+        margin-left: 0.5rem;
+    }
+    
+    .loader-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Sidebar */
+    .form-sidebar {
+        padding: 2rem 2rem 2rem 0;
+    }
+    
+    .sidebar-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .sidebar-card h4 {
+        color: var(--primary-blue);
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .sidebar-tips {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .sidebar-tips li {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .sidebar-tips li:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .sidebar-tips li i {
+        color: var(--success-green);
+        margin-right: 0.5rem;
+    }
+    
+    .sidebar-tips li strong {
+        display: block;
+        margin-bottom: 0.2rem;
+        font-size: 0.95rem;
+    }
+    
+    .sidebar-tips li p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    .modification-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .modification-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .modification-item i {
+        color: var(--secondary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .modification-item strong {
+        display: block;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+    }
+    
+    .modification-item span {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    /* Username suggestion */
+    .username-suggestion {
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .username-suggestion:hover {
+        color: var(--secondary-blue);
+    }
+    
+    .username-suggestion span {
+        font-weight: 600;
+        text-decoration: underline;
+    }
+    
+    /* Responsive */
+    @media screen and (max-width: 1024px) {
+        .client-form-card {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-sidebar {
+            padding: 2rem;
+            border-top: 1px solid #e9ecef;
+        }
+    }
+    
+    @media screen and (max-width: 768px) {
+        .form-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .header-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .form-sections {
+            padding: 1.5rem;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1.5rem;
+            text-align: center;
+        }
+        
+        .action-buttons {
+            width: 100%;
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .password-requirements ul {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle account fields
+        const accountToggle = document.getElementById('create_account');
+        const accountFields = document.getElementById('account_fields');
+        
+        function toggleAccountFields() {
+            if (accountToggle.checked) {
+                accountFields.classList.add('show');
+            } else {
+                accountFields.classList.remove('show');
+            }
+        }
+        
+        accountToggle.addEventListener('change', toggleAccountFields);
+        toggleAccountFields();
+        
+        // Username suggestion
+        const nomInput = document.getElementById('nom');
+        const prenomInput = document.getElementById('prenom');
+        const usernameInput = document.getElementById('username');
+        const usernameSuggestion = document.getElementById('suggested-username');
+        
+        function generateUsername() {
+            if (nomInput.value && prenomInput.value) {
+                const nom = nomInput.value.toLowerCase().replace(/[^a-z]/g, '');
+                const prenom = prenomInput.value.toLowerCase().replace(/[^a-z]/g, '');
+                const username = `${prenom}.${nom}`;
+                usernameSuggestion.textContent = username;
+                
+                // Auto-fill if empty
+                if (!usernameInput.value) {
+                    usernameInput.value = username;
+                }
+            }
+        }
+        
+        nomInput.addEventListener('input', generateUsername);
+        prenomInput.addEventListener('input', generateUsername);
+        
+        // Fill username suggestion on click
+        document.getElementById('username-suggestion').addEventListener('click', function() {
+            usernameInput.value = usernameSuggestion.textContent;
+        });
+        
+        // Password strength checker
+        const passwordInput = document.getElementById('password');
+        const strengthSegments = document.querySelectorAll('.strength-segment');
+        const strengthText = document.getElementById('strength-text');
+        const requirements = {
+            length: document.getElementById('req-length'),
+            number: document.getElementById('req-number'),
+            upper: document.getElementById('req-upper'),
+            lower: document.getElementById('req-lower')
+        };
+        
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            
+            // Reset requirements
+            Object.values(requirements).forEach(req => {
+                req.classList.remove('requirement-met');
+                req.querySelector('i').classList.remove('fa-check-circle');
+                req.querySelector('i').classList.add('fa-circle');
+            });
+            
+            // Length requirement
+            if (password.length >= 8) {
+                strength++;
+                requirements.length.classList.add('requirement-met');
+                requirements.length.querySelector('i').classList.remove('fa-circle');
+                requirements.length.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Number requirement
+            if (/\d/.test(password)) {
+                strength++;
+                requirements.number.classList.add('requirement-met');
+                requirements.number.querySelector('i').classList.remove('fa-circle');
+                requirements.number.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Uppercase requirement
+            if (/[A-Z]/.test(password)) {
+                strength++;
+                requirements.upper.classList.add('requirement-met');
+                requirements.upper.querySelector('i').classList.remove('fa-circle');
+                requirements.upper.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Lowercase requirement
+            if (/[a-z]/.test(password)) {
+                strength++;
+                requirements.lower.classList.add('requirement-met');
+                requirements.lower.querySelector('i').classList.remove('fa-circle');
+                requirements.lower.querySelector('i').classList.add('fa-check-circle');
+            }
+            
+            // Update strength bar
+            strengthSegments.forEach((segment, index) => {
+                segment.style.background = index < strength ? getStrengthColor(strength) : '#e0e0e0';
+            });
+            
+            // Update strength text
+            const strengthLabels = ['Très faible', 'Faible', 'Moyen', 'Fort', 'Très fort'];
+            strengthText.textContent = password.length === 0 ? 'Non défini' : strengthLabels[strength];
+            strengthText.style.color = getStrengthColor(strength);
+        }
+        
+        function getStrengthColor(strength) {
+            switch(strength) {
+                case 0:
+                    return '#95a5a6'; // Grey
+                case 1:
+                    return '#e74c3c'; // Red
+                case 2:
+                    return '#f39c12'; // Orange
+                case 3:
+                    return '#f1c40f'; // Yellow
+                case 4:
+                    return '#2ecc71'; // Green
+                default:
+                    return '#e0e0e0';
+            }
+        }
+        
+        passwordInput.addEventListener('input', function(e) {
+            checkPasswordStrength(e.target.value);
+        });
+        
+        // Toggle password visibility
+        const passwordToggle = document.getElementById('password-toggle');
+        passwordToggle.addEventListener('click', function() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+        
+        // Address character counter
+        const addressInput = document.getElementById('adresse');
+        const addressCounter = document.getElementById('address-counter');
+        
+        addressInput.addEventListener('input', function() {
+            addressCounter.textContent = this.value.length;
+        });
+        
+        // Form submission
+        const form = document.querySelector('.client-form');
+        const submitButton = document.getElementById('submit-button');
+        const buttonLoader = document.getElementById('button-loader');
+        
+        form.addEventListener('submit', function(e) {
+            // Show loading state
+            submitButton.disabled = true;
+            buttonLoader.style.display = 'block';
+            
+            // Validate email format
+            const emailInput = document.getElementById('email');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value)) {
+                e.preventDefault();
+                alert('Veuillez entrer une adresse email valide.');
+                submitButton.disabled = false;
+                buttonLoader.style.display = 'none';
+                return;
+            }
+            
+            // Validate account creation if enabled
+            if (accountToggle.checked) {
+                if (passwordInput.value && passwordInput.value.length < 8) {
+                    e.preventDefault();
+                    alert('Le mot de passe doit contenir au moins 8 caractères.');
+                    submitButton.disabled = false;
+                    buttonLoader.style.display = 'none';
+                    return;
+                }
+            }
+        });
+        
+        // Form modification detection
+        const formInputs = form.querySelectorAll('input, textarea, select');
+        const formStatus = document.getElementById('form-status');
+        
+        let isModified = false;
+        
+        formInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                if (!isModified) {
+                    isModified = true;
+                    formStatus.innerHTML = '<i class="fas fa-edit"></i><span>Modifications non enregistrées</span>';
+                    formStatus.style.color = 'var(--warning-orange)';
+                }
+            });
+        });
+        
+        // Prevent leaving page with unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (isModified) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+        
+        // Generate initial username suggestion
+        generateUsername();
+        
+        // Initialize address counter
+        addressCounter.textContent = addressInput.value.length;
+    });
+</script>
+{% endblock %}

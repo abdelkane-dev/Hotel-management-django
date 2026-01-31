@@ -1,0 +1,327 @@
+{% extends 'hotel/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Détail Charge - {{ block.super }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-receipt me-2"></i>
+<span>Détail Charge</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-receipt me-2"></i>
+                        {{ charge.libelle }}
+                    </h5>
+                    <div>
+                        {% if charge.statut == 'en_attente' %}
+                        <button type="button" class="btn btn-success" onclick="markChargeAsPaid('{{ charge.id }}')">
+                            <i class="fas fa-money-bill-wave me-1"></i>
+                            Marquer comme payée
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'billing_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Informations principales -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Informations générales</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Libellé:</strong></td>
+                                    <td>{{ charge.libelle }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Type de charge:</strong></td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ charge.get_type_charge_display }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fournisseur:</strong></td>
+                                    <td>{{ charge.fournisseur|default:"Non spécifié" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Statut:</strong></td>
+                                    <td>
+                                        {% if charge.statut == 'payee' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i> Payée
+                                            </span>
+                                        {% elif charge.statut == 'en_attente' %}
+                                            {% if charge.est_en_retard %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-circle me-1"></i> En retard
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i> En attente
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Dates et échéances</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Date facture:</strong></td>
+                                    <td>{{ charge.date_facture|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Date échéance:</strong></td>
+                                    <td>
+                                        {% if charge.est_en_retard %}
+                                            <span class="text-danger">{{ charge.date_echeance|date:"d/m/Y" }}</span>
+                                        {% else %}
+                                            {{ charge.date_echeance|date:"d/m/Y" }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Retard:</strong></td>
+                                    <td>
+                                        {% if charge.est_en_retard %}
+                                            <span class="text-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                Oui ({{ charge.jours_retard }} jours)
+                                            </span>
+                                        {% else %}
+                                            <span class="text-success">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                Non
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Créée le:</strong></td>
+                                    <td>{{ charge.date_creation|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Montants -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">Détails financiers</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted">Montant HT</h6>
+                                            <h4 class="text-primary">{{ charge.montant_ht|floatformat:2|intcomma }} €</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted">TVA</h6>
+                                            <h4 class="text-info">{{ charge.tva|floatformat:2|intcomma }} €</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted">Taux TVA</h6>
+                                            <h4 class="text-warning">{{ charge.taux_tva }}%</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-white-50">Montant TTC</h6>
+                                            <h4>{{ charge.montant_ttc|floatformat:2|intcomma }} €</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    {% if charge.description %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">Description</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <p class="mb-0">{{ charge.description|linebreaks }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Informations de paiement -->
+                    {% if charge.statut == 'payee' %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">Informations de paiement</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Date paiement:</strong></td>
+                                    <td>{{ charge.date_paiement|date:"d/m/Y H:i"|default:"Non renseignée" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Moyen paiement:</strong></td>
+                                    <td>{{ charge.get_moyen_paiement_display|default:"Non renseigné" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Référence:</strong></td>
+                                    <td>{{ charge.reference_paiement|default:"Non renseignée" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            {% if charge.statut == 'en_attente' %}
+                            <button type="button" class="btn btn-success" onclick="markChargeAsPaid('{{ charge.id }}')">
+                                <i class="fas fa-money-bill-wave me-1"></i>
+                                Marquer comme payée
+                            </button>
+                            {% endif %}
+                            <button type="button" class="btn btn-primary" onclick="window.print()">
+                                <i class="fas fa-print me-1"></i>
+                                Imprimer
+                            </button>
+                            <a href="{% url 'billing_list' %}#charges" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Retour à la liste
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Paiement -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Enregistrer le paiement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="paymentId" name="id">
+                    <input type="hidden" id="paymentType" name="type">
+                    <div class="mb-3">
+                        <label class="form-label">Montant</label>
+                        <input type="number" step="0.01" class="form-control" id="paymentAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Moyen de paiement</label>
+                        <select class="form-select" id="paymentMethod" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="virement">Virement bancaire</option>
+                            <option value="carte">Carte bancaire</option>
+                            <option value="especes">Espèces</option>
+                            <option value="cheque">Chèque</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Référence</label>
+                        <input type="text" class="form-control" id="paymentReference" placeholder="Numéro de transaction">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="submitPayment()">Valider</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Fonctions de gestion
+function markChargeAsPaid(id) {
+    document.getElementById('paymentId').value = id;
+    document.getElementById('paymentType').value = 'charge';
+    document.getElementById('paymentAmount').value = '{{ charge.montant_ttc|floatformat:2 }}';
+    document.getElementById('paymentMethod').value = '';
+    document.getElementById('paymentReference').value = '';
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+// Helper to retrieve CSRF token
+function getCsrfToken() {
+    const el = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (el && el.value) return el.value;
+    const match = document.cookie.match(/(^|; )csrftoken=([^;]+)/);
+    return match ? match[2] : '';
+}
+
+function submitPayment() {
+    const form = document.getElementById('paymentForm');
+    const id = document.getElementById('paymentId').value;
+    const type = document.getElementById('paymentType').value;
+    const amount = document.getElementById('paymentAmount').value;
+    const method = document.getElementById('paymentMethod').value;
+    const reference = document.getElementById('paymentReference').value;
+    const csrfToken = getCsrfToken();
+
+    const payload = { id: id, type: type, amount: amount, method: method, reference: reference };
+
+    const submitBtn = document.querySelector('#paymentModal .btn-primary');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = 'En traitement...'; }
+
+    fetch('/billing/mark-paid/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        const text = await response.text();
+        try {
+            const data = text ? JSON.parse(text) : null;
+            if (response.ok && data && data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                location.reload();
+                return;
+            }
+            const msg = (data && data.error) ? data.error : (text || response.statusText || 'Erreur serveur');
+            alert('Erreur: ' + msg + ' (code ' + response.status + ')');
+        } catch (e) {
+            alert('Erreur serveur inattendue (code ' + response.status + '). Voir console pour plus de détails.');
+            console.error('Non-JSON response:', response.status, text);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur réseau lors du paiement');
+    })
+    .finally(() => {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'Valider'; }
+    });
+}
+</script>
+{% endblock %}

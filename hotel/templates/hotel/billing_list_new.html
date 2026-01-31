@@ -1,0 +1,1201 @@
+{% extends 'hotel/base.html' %}
+{% load humanize %}
+
+{% block title %}Tableau de Bord Comptable - Hôtel{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styles spécifiques au tableau de bord comptable */
+    .container-fluid {
+        padding: 0 0.5rem;
+    }
+    
+    .stat-card {
+        background: var(--white);
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        border: none;
+        transition: var(--transition);
+        overflow: hidden;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card.bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    }
+    
+    .stat-card.bg-gradient-success {
+        background: linear-gradient(135deg, var(--success-green), #2ecc71);
+    }
+    
+    .stat-card.bg-gradient-info {
+        background: linear-gradient(135deg, var(--secondary-blue), #1abc9c);
+    }
+    
+    .stat-card.bg-gradient-danger {
+        background: linear-gradient(135deg, var(--danger-red), #c0392b);
+    }
+    
+    .stat-card.bg-gradient-warning {
+        background: linear-gradient(135deg, var(--warning-orange), #f1c40f);
+        color: var(--text-dark);
+    }
+    
+    .stat-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .stat-card h6 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-card i {
+        font-size: 2.2rem;
+        opacity: 0.8;
+    }
+    
+    .trend-up {
+        color: var(--success-green);
+    }
+    
+    .trend-down {
+        color: var(--danger-red);
+    }
+    
+    .trend-neutral {
+        color: var(--text-light);
+    }
+    
+    .revenue-progress {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    
+    .revenue-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #27ae60, #2ecc71);
+        transition: width 0.3s ease;
+    }
+    
+    .expense-breakdown {
+        display: flex;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    
+    .expense-salaries { background: var(--secondary-blue); }
+    .expense-maintenance { background: var(--warning-orange); }
+    .expense-inventory { background: var(--danger-red); }
+    .expense-other { background: var(--text-light); }
+    
+    .filter-section {
+        background: var(--light-blue);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .nav-tabs {
+        border-bottom: 1px solid var(--light-blue);
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--text-light);
+        font-weight: 600;
+        padding: 0.8rem 1.2rem;
+        transition: var(--transition);
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: var(--secondary-blue);
+        background: rgba(52, 152, 219, 0.05);
+    }
+    
+    .nav-tabs .nav-link.active {
+        border-bottom-color: var(--secondary-blue);
+        color: var(--secondary-blue);
+        background: none;
+    }
+    
+    .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    table.table {
+        margin-bottom: 0;
+    }
+    
+    table.table th {
+        background: var(--light-blue);
+        border-top: none;
+        font-weight: 600;
+        color: var(--primary-blue);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+    }
+    
+    table.table td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+    
+    table.table tbody tr {
+        transition: var(--transition);
+    }
+    
+    table.table tbody tr:hover {
+        background: rgba(52, 152, 219, 0.03);
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+        border-radius: 6px;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .avatar-sm {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--light-blue);
+        color: var(--text-light);
+    }
+    
+    .period-selector {
+        display: flex;
+        gap: 0.5rem;
+        background: var(--light-blue);
+        padding: 0.3rem;
+        border-radius: 8px;
+    }
+    
+    .period-selector .btn {
+        padding: 0.4rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .period-selector .btn-outline-primary {
+        background: var(--white);
+        color: var(--secondary-blue);
+        border-color: var(--secondary-blue);
+    }
+    
+    .period-selector .btn-outline-secondary {
+        background: transparent;
+        color: var(--text-light);
+        border-color: transparent;
+    }
+    
+    .period-selector .btn-outline-secondary:hover {
+        background: rgba(255, 255, 255, 0.5);
+        color: var(--text-dark);
+    }
+    
+    /* Charts container */
+    .chart-container {
+        position: relative;
+        height: 250px;
+        max-height: 250px;
+    }
+    
+    /* Modal styles */
+    .modal-content {
+        border-radius: 10px;
+        border: none;
+        box-shadow: var(--shadow);
+    }
+    
+    .modal-header {
+        background: var(--light-blue);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border: 1px solid var(--light-blue);
+        border-radius: 8px;
+        padding: 0.6rem 0.8rem;
+        transition: var(--transition);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+    }
+    
+    /* Responsive adjustments */
+    @media screen and (max-width: 768px) {
+        .stat-card h2 {
+            font-size: 1.5rem;
+        }
+        
+        .period-selector {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .nav-tabs .nav-link {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.9rem;
+        }
+        
+        table.table th, table.table td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-chart-line"></i>
+<span>Tableau de Bord Comptable</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Période d'analyse -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div>
+                    <h5 class="mb-1">Période d'analyse</h5>
+                    <p class="text-muted mb-0">Vue mensuelle • {{ current_month|date:"F Y" }}</p>
+                </div>
+                <div class="period-selector">
+                    <button type="button" class="btn btn-outline-primary" onclick="changePeriod('month')">
+                        <i class="fas fa-calendar-alt me-1"></i>Mois
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="changePeriod('quarter')">
+                        <i class="fas fa-calendar me-1"></i>Trimestre
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="changePeriod('year')">
+                        <i class="fas fa-calendar-day me-1"></i>Année
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartes de statistiques principales -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6>Chiffre d'Affaires</h6>
+                            <h2>{{ monthly_revenue|floatformat:0|intcomma }} €</h2>
+                            <div class="d-flex align-items-center mb-2">
+                                {% if revenue_trend > 0 %}
+                                    <i class="fas fa-arrow-up trend-up me-1"></i>
+                                    <span class="trend-up">+{{ revenue_trend|floatformat:1 }}%</span>
+                                {% elif revenue_trend < 0 %}
+                                    <i class="fas fa-arrow-down trend-down me-1"></i>
+                                    <span class="trend-down">{{ revenue_trend|floatformat:1 }}%</span>
+                                {% else %}
+                                    <i class="fas fa-minus trend-neutral me-1"></i>
+                                    <span class="trend-neutral">0%</span>
+                                {% endif %}
+                                <small class="ms-2 opacity-75">vs mois dernier</small>
+                            </div>
+                            <small class="opacity-75 d-block">
+                                <i class="fas fa-check-circle me-1"></i>Payées: {{ paid_invoices_count }} 
+                                <i class="fas fa-clock ms-2 me-1"></i>En attente: {{ pending_invoices_count }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-euro-sign"></i>
+                        </div>
+                    </div>
+                    <div class="revenue-progress">
+                        <div class="revenue-progress-bar" style="width: {{ revenue_progress }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6>Total Charges</h6>
+                            <h2>{{ monthly_expenses|floatformat:0|intcomma }} €</h2>
+                            <div class="d-flex align-items-center mb-2">
+                                {% if expense_trend > 0 %}
+                                    <i class="fas fa-arrow-up trend-up me-1"></i>
+                                    <span class="trend-up">+{{ expense_trend|floatformat:1 }}%</span>
+                                {% elif expense_trend < 0 %}
+                                    <i class="fas fa-arrow-down trend-down me-1"></i>
+                                    <span class="trend-down">{{ expense_trend|floatformat:1 }}%</span>
+                                {% else %}
+                                    <i class="fas fa-minus trend-neutral me-1"></i>
+                                    <span class="trend-neutral">0%</span>
+                                {% endif %}
+                                <small class="ms-2 opacity-75">vs mois dernier</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                    <div class="expense-breakdown">
+                        <div class="expense-salaries" style="width: {{ salaries_percentage }}%" title="Salaires"></div>
+                        <div class="expense-maintenance" style="width: {{ maintenance_percentage }}%" title="Maintenance"></div>
+                        <div class="expense-inventory" style="width: {{ inventory_percentage }}%" title="Inventaire"></div>
+                        <div class="expense-other" style="width: {{ other_percentage }}%" title="Autres"></div>
+                    </div>
+                    <small class="opacity-75 mt-2 d-block">
+                        <i class="fas fa-users me-1"></i>Salaires: {{ salaries_percentage|floatformat:0 }}% 
+                        <i class="fas fa-tools ms-2 me-1"></i>Maintenance: {{ maintenance_percentage|floatformat:0 }}%
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+            <div class="card stat-card {% if monthly_profit >= 0 %}bg-gradient-info text-white{% else %}bg-gradient-danger text-white{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6>Résultat Net</h6>
+                            <h2>{{ monthly_profit|floatformat:0|intcomma }} €</h2>
+                            <div class="d-flex align-items-center">
+                                {% if profit_margin >= 0 %}
+                                    <i class="fas fa-arrow-up trend-up me-1"></i>
+                                    <span class="trend-up">Marge: {{ profit_margin|floatformat:1 }}%</span>
+                                {% else %}
+                                    <i class="fas fa-arrow-down trend-down me-1"></i>
+                                    <span class="trend-down">Perte: {{ profit_margin|floatformat:1 }}%</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {% if monthly_profit >= 0 %}
+                                <i class="fas fa-chart-line"></i>
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+            <div class="card stat-card bg-gradient-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6>Trésorerie</h6>
+                            <h2>{{ cash_flow|floatformat:0|intcomma }} €</h2>
+                            <div class="d-flex align-items-center">
+                                {% if cash_flow_trend > 0 %}
+                                    <i class="fas fa-arrow-up trend-up me-1"></i>
+                                    <span class="trend-up">+{{ cash_flow_trend|floatformat:1 }}%</span>
+                                {% else %}
+                                    <i class="fas fa-arrow-down trend-down me-1"></i>
+                                    <span class="trend-down">{{ cash_flow_trend|floatformat:1 }}%</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                    <small class="opacity-75 mt-2 d-block">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Argent réel: {{ pending_invoices|floatformat:0|intcomma }}€ en attente
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onglets de navigation -->
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#factures" role="tab">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>Factures Clients
+                        <span class="badge bg-primary ms-1">{{ total_invoices_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#salaires" role="tab">
+                        <i class="fas fa-users me-2"></i>Salaires Employés
+                        <span class="badge bg-success ms-1">{{ total_salaries_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#charges" role="tab">
+                        <i class="fas fa-receipt me-2"></i>Charges Diverses
+                        <span class="badge bg-warning ms-1">{{ total_charges_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#rapports" role="tab">
+                        <i class="fas fa-chart-pie me-2"></i>Rapports
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="tab-content">
+                <!-- Onglet Factures Clients -->
+                <div class="tab-pane fade show active p-3" id="factures" role="tabpanel">
+                    <!-- Filtres -->
+                    <div class="filter-section">
+                        <form method="get" class="row g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label">Statut</label>
+                                <select name="status" class="form-select">
+                                    <option value="">Tous les statuts</option>
+                                    <option value="payee" {% if request.GET.status == 'payee' %}selected{% endif %}>Payée</option>
+                                    <option value="en_attente" {% if request.GET.status == 'en_attente' %}selected{% endif %}>En attente</option>
+                                    <option value="remboursee" {% if request.GET.status == 'remboursee' %}selected{% endif %}>Remboursée</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label">Client</label>
+                                <input type="text" name="client" class="form-control" placeholder="Nom du client" value="{{ request.GET.client }}">
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label">Du</label>
+                                <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="form-label">Au</label>
+                                <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                            </div>
+                            <div class="col-lg-3 col-md-6 d-flex align-items-end gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-1"></i>Filtrer
+                                </button>
+                                <a href="?" class="btn btn-outline-secondary">
+                                    <i class="fas fa-sync-alt"></i>
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Tableau des factures -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th># Facture</th>
+                                    <th>Client</th>
+                                    <th>Réservation</th>
+                                    <th>Date émission</th>
+                                    <th>Échéance</th>
+                                    <th class="text-end">Montant TTC</th>
+                                    <th>Statut</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for facture in factures %}
+                                <tr>
+                                    <td><strong>{{ facture.numero_facture }}</strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ facture.client.nom_complet }}</div>
+                                                <small class="text-muted">{{ facture.client.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'reservation_detail' facture.reservation.id %}" class="text-decoration-none">
+                                            #{{ facture.reservation.id }}
+                                        </a>
+                                    </td>
+                                    <td>{{ facture.date_emission|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if facture.est_en_retard %}
+                                            <span class="text-danger">{{ facture.date_echeance|date:"d/m/Y" }}</span>
+                                        {% else %}
+                                            {{ facture.date_echeance|date:"d/m/Y" }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end fw-bold">{{ facture.montant_ttc|floatformat:2|intcomma }} €</td>
+                                    <td>
+                                        {% if facture.statut == 'payee' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i> Payée
+                                            </span>
+                                        {% elif facture.statut == 'en_attente' %}
+                                            {% if facture.est_en_retard %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-circle me-1"></i> En retard
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i> En attente
+                                                </span>
+                                            {% endif %}
+                                        {% elif facture.statut == 'remboursee' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-undo me-1"></i> Remboursée
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'billing_invoice' facture.id %}" class="btn btn-outline-primary" title="Voir">
+                                                <i class="far fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'billing_invoice_pdf' facture.id %}" class="btn btn-outline-secondary" target="_blank" rel="noopener" title="PDF">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            {% if facture.statut == 'en_attente' %}
+                                            <button type="button" class="btn btn-success" data-quickpay="invoice-{{ facture.id }}" onclick="quickMarkAsPaid('{{ facture.id }}')" title="Payer (1‑clic)">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success" onclick="markAsPaid('{{ facture.id }}')" title="Marquer payée">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <p class="text-muted">Aucune facture trouvée</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Onglet Salaires Employés -->
+                <div class="tab-pane fade p-3" id="salaires" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Employé</th>
+                                    <th>Mois</th>
+                                    <th>Salaire Brut</th>
+                                    <th>Primes</th>
+                                    <th>Retenues</th>
+                                    <th class="text-end">Salaire Net</th>
+                                    <th>Statut</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in employes_paie %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <i class="fas fa-user-tie"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ item.employe.get_full_name|default:item.employe.username }}</div>
+                                                <small class="text-muted">{{ item.employe.profile.poste|default:"Non défini" }} • <em>{{ item.employe.profile.statut_employe|default:"-" }}</em></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ current_month|date:"F Y" }}</td>
+                                    <td>{{ item.salaire_brut|floatformat:2|intcomma }} €</td>
+                                    <td class="text-success">{{ item.prime_anciennete|floatformat:2|intcomma }} €</td>
+                                    <td class="text-danger">{{ item.total_retenu|floatformat:2|intcomma }} €</td>
+                                    <td class="text-end fw-bold">{{ item.salaire_net|floatformat:2|intcomma }} €</td>
+                                    <td>
+                                        {% if item.status == 'paye' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i> Payé
+                                            </span>
+                                        {% elif item.status == 'a_payer' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i> À payer
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-info-circle me-1"></i> Aucune fiche
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            {% if item.fiche %}
+                                                <button type="button" class="btn btn-outline-primary" onclick="viewPayslip('{{ item.fiche.id }}')" title="Voir fiche">
+                                                    <i class="far fa-eye"></i>
+                                                </button>
+                                                {% if item.fiche.statut == 'a_payer' %}
+                                                <button type="button" class="btn btn-success" data-quickpay="salary-{{ item.fiche.id }}" onclick="quickMarkSalaryAsPaid('{{ item.fiche.id }}')" title="Payer (1‑clic)">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-success" onclick="markSalaryAsPaid('{{ item.fiche.id }}')" title="Marquer payée">
+                                                    <i class="fas fa-money-bill-wave"></i>
+                                                </button>
+                                                {% endif %}
+                                            {% else %}
+                                                <button type="button" class="btn btn-outline-success" onclick="generatePayslip('{{ item.employe.id }}')" title="Générer fiche">
+                                                    <i class="fas fa-file-medical"></i> Générer
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="empty-state">
+                                        <i class="fas fa-users"></i>
+                                        <p class="text-muted">Aucun employé trouvé</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Onglet Charges Diverses -->
+                <div class="tab-pane fade p-3" id="charges" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Libellé</th>
+                                    <th>Type</th>
+                                    <th>Fournisseur</th>
+                                    <th>Date facture</th>
+                                    <th>Échéance</th>
+                                    <th class="text-end">Montant TTC</th>
+                                    <th>Statut</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for charge in charges %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <div class="fw-semibold">{{ charge.libelle }}</div>
+                                            {% if charge.description %}
+                                                <small class="text-muted">{{ charge.description|truncatechars:50 }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ charge.get_type_charge_display }}</span>
+                                    </td>
+                                    <td>{{ charge.fournisseur|default:"-" }}</td>
+                                    <td>{{ charge.date_facture|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if charge.est_en_retard %}
+                                            <span class="text-danger">{{ charge.date_echeance|date:"d/m/Y" }}</span>
+                                        {% else %}
+                                            {{ charge.date_echeance|date:"d/m/Y" }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end fw-bold">{{ charge.montant_ttc|floatformat:2|intcomma }} €</td>
+                                    <td>
+                                        {% if charge.statut == 'payee' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i> Payée
+                                            </span>
+                                        {% elif charge.statut == 'en_attente' %}
+                                            {% if charge.est_en_retard %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-circle me-1"></i> En retard
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i> En attente
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" onclick="viewCharge('{{ charge.id }}')" title="Voir">
+                                                <i class="far fa-eye"></i>
+                                            </button>
+                                            {% if charge.statut == 'en_attente' %}
+                                            <button type="button" class="btn btn-success" data-quickpay="charge-{{ charge.id }}" onclick="quickMarkChargeAsPaid('{{ charge.id }}')" title="Payer (1‑clic)">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success" onclick="markChargeAsPaid('{{ charge.id }}')" title="Marquer payée">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="empty-state">
+                                        <i class="fas fa-receipt"></i>
+                                        <p class="text-muted">Aucune charge trouvée</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Onglet Rapports -->
+                <div class="tab-pane fade p-3" id="rapports" role="tabpanel">
+                    <div class="row">
+                        <div class="col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Répartition des revenus</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="revenueChart"></canvas>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-6 text-center">
+                                            <div class="fw-semibold">Réservations</div>
+                                            <div class="text-primary">{{ reservation_revenue|floatformat:2|intcomma }} €</div>
+                                            <small class="text-muted">{{ reservation_pct|floatformat:1 }}%</small>
+                                        </div>
+                                        <div class="col-6 text-center">
+                                            <div class="fw-semibold">Services annexes</div>
+                                            <div class="text-success">{{ other_revenue|floatformat:2|intcomma }} €</div>
+                                            <small class="text-muted">{{ other_pct|floatformat:1 }}%</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Répartition des charges</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="expenseChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Évolution mensuelle</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div style="height: 300px;">
+                                        <canvas id="trendChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Paiement Facture -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Enregistrer un paiement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="paymentId" name="id">
+                    <input type="hidden" id="paymentType" name="type">
+                    <div class="mb-3">
+                        <label class="form-label">Montant</label>
+                        <input type="number" step="0.01" class="form-control" id="paymentAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Moyen de paiement</label>
+                        <select class="form-select" id="paymentMethod" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="carte">Carte bancaire</option>
+                            <option value="especes">Espèces</option>
+                            <option value="virement">Virement bancaire</option>
+                            <option value="cheque">Chèque</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Référence</label>
+                        <input type="text" class="form-control" id="paymentReference" placeholder="Numéro de transaction">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="submitPayment()">Valider</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Fonctions de gestion
+function changePeriod(period) {
+    window.location.href = `?period=${period}`;
+}
+
+function markAsPaid(id) {
+    document.getElementById('paymentId').value = id;
+    document.getElementById('paymentType').value = 'invoice';
+    document.getElementById('paymentAmount').value = '';
+    document.getElementById('paymentMethod').value = '';
+    document.getElementById('paymentReference').value = '';
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+function markSalaryAsPaid(id) {
+    document.getElementById('paymentId').value = id;
+    document.getElementById('paymentType').value = 'salary';
+    document.getElementById('paymentAmount').value = '';
+    document.getElementById('paymentMethod').value = 'virement';
+    document.getElementById('paymentReference').value = '';
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+function markChargeAsPaid(id) {
+    document.getElementById('paymentId').value = id;
+    document.getElementById('paymentType').value = 'charge';
+    document.getElementById('paymentAmount').value = '';
+    document.getElementById('paymentMethod').value = '';
+    document.getElementById('paymentReference').value = '';
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+// Helper to retrieve CSRF token from DOM or cookies
+function getCsrfToken() {
+    const el = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (el && el.value) return el.value;
+    const match = document.cookie.match(/(^|; )csrftoken=([^;]+)/);
+    return match ? match[2] : '';
+}
+
+function submitPayment() {
+    console.log('submitPayment called');
+    const form = document.getElementById('paymentForm');
+    const id = document.getElementById('paymentId').value;
+    const type = document.getElementById('paymentType').value;
+    const amount = document.getElementById('paymentAmount').value;
+    const method = document.getElementById('paymentMethod').value;
+    const reference = document.getElementById('paymentReference').value;
+    const csrfToken = getCsrfToken();
+
+    const payload = { id: id, type: type, amount: amount, method: method, reference: reference };
+
+    const submitBtn = document.querySelector('#paymentModal .btn-primary');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = 'En traitement...'; }
+
+    fetch('/billing/mark-paid/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        const text = await response.text();
+        try {
+            const data = text ? JSON.parse(text) : null;
+            if (response.ok && data && data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                location.reload();
+                return;
+            }
+            const msg = (data && data.error) ? data.error : (text || response.statusText || 'Erreur serveur');
+            alert('Erreur: ' + msg + ' (code ' + response.status + ')');
+        } catch (e) {
+            alert('Erreur serveur inattendue (code ' + response.status + '). Voir console pour plus de détails.');
+            console.error('Non-JSON response for submitPayment:', response.status, text);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur réseau lors du paiement');
+    })
+    .finally(() => {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = 'Valider'; }
+    });
+}
+
+function downloadPDF(id) {
+    // fallback if popup blocked
+    const url = `/billing/invoice/${id}/pdf/`;
+    const w = window.open(url, '_blank');
+    if (!w) { window.location.href = url; }
+}
+
+function quickMarkGeneric(id, type) {
+    console.log('quickMarkGeneric called', id, type);
+    const csrfToken = getCsrfToken();
+    const btn = document.querySelector(`button[data-quickpay="${type}-${id}"]`);
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+
+    fetch('/billing/mark-paid/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({ id: id, type: type, method: 'virement' })
+    })
+    .then(async response => {
+        const text = await response.text();
+        try {
+            const data = text ? JSON.parse(text) : null;
+            if (response.ok && data && data.success) {
+                location.reload();
+                return;
+            }
+            const msg = (data && data.error) ? data.error : (text || response.statusText || 'Erreur serveur');
+            alert('Erreur: ' + msg + ' (code ' + response.status + ')');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i>'; }
+        } catch (e) {
+            alert('Erreur serveur inattendue (code ' + response.status + '). Voir console pour plus de détails.');
+            console.error('Non-JSON response for quickMarkGeneric:', response.status, text);
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i>'; }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur réseau lors du marquage');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i>'; }
+    });
+}
+
+function quickMarkAsPaid(id) { quickMarkGeneric(id, 'invoice'); }
+function quickMarkSalaryAsPaid(id) { quickMarkGeneric(id, 'salary'); }
+function quickMarkChargeAsPaid(id) { quickMarkGeneric(id, 'charge'); }
+
+function viewPayslip(id) {
+    window.open(`/billing/payslip/${id}/`, '_blank');
+}
+
+function generatePayslip(employeeId) {
+    const csrfToken = getCsrfToken();
+    const generateBtn = document.querySelector(`button[onclick="generatePayslip('${employeeId}')"]`);
+    if (generateBtn) { generateBtn.disabled = true; generateBtn.innerText = 'En cours...'; }
+
+    fetch('/billing/create-payslip/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({employee_id: employeeId})
+    })
+    .then(async response => {
+        const text = await response.text();
+        try {
+            const data = text ? JSON.parse(text) : null;
+            if (response.ok && data && data.success) {
+                location.reload();
+                return;
+            }
+            const msg = (data && data.error) ? data.error : (text || response.statusText || 'Erreur serveur');
+            alert('Erreur: ' + msg + ' (code ' + response.status + ')');
+        } catch (e) {
+            alert('Erreur serveur inattendue (code ' + response.status + '). Voir console pour plus de détails.');
+            console.error('Non-JSON response for generatePayslip:', response.status, text);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur lors de la création de la fiche de paie');
+    })
+    .finally(() => {
+        if (generateBtn) { generateBtn.disabled = false; generateBtn.innerText = 'Générer'; }
+    });
+}
+
+function viewCharge(id) {
+    window.open(`/billing/charge/${id}/`, '_blank');
+}
+
+// Initialisation des graphiques
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique des revenus
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        new Chart(revenueCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Réservations', 'Services annexes'],
+                datasets: [{
+                    data: [parseFloat("{{ reservation_revenue|default:0|floatformat:2 }}".replace(/\s/g, '')), parseFloat("{{ other_revenue|default:0|floatformat:2 }}".replace(/\s/g, ''))],
+                    backgroundColor: ['#3498db', '#2ecc71'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                }
+            }
+        });
+    }
+
+    // Graphique des charges
+    const expenseCtx = document.getElementById('expenseChart');
+    if (expenseCtx) {
+        new Chart(expenseCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Salaires', 'Maintenance', 'Inventaire', 'Autres'],
+                datasets: [{
+                    data: [parseFloat("{{ total_salaries|default:0|floatformat:2 }}".replace(/\s/g, '')), parseFloat("{{ total_maintenance|default:0|floatformat:2 }}".replace(/\s/g, '')), parseFloat("{{ total_inventory|default:0|floatformat:2 }}".replace(/\s/g, '')), parseFloat("{{ total_other_expenses|default:0|floatformat:2 }}".replace(/\s/g, ''))],
+                    backgroundColor: ['#3498db', '#f39c12', '#e74c3c', '#95a5a6'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Graphique des tendances
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
+                datasets: [{
+                    label: 'Revenus',
+                    data: [50000, 52000, 48000, 55000, 58000, 62000],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4,
+                    borderWidth: 2,
+                    fill: true
+                }, {
+                    label: 'Charges',
+                    data: [35000, 36000, 34000, 38000, 39000, 41000],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    tension: 0.4,
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

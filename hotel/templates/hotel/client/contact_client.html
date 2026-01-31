@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Hôtel de Luxe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Variables CSS - Palette bleue */
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f9f9f9;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header et navigation */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: var(--white);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-weight: 500;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .btn-login {
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .btn-login:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://images.unsplash.com/photo-1584132967334-10e028bd69f7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--white);
+            margin-top: 80px;
+            padding: 2rem;
+        }
+
+        .page-header-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .page-header-content p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Section Contact */
+        .contact-section {
+            padding: 4rem 0;
+            background: var(--white);
+        }
+
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        /* Informations de contact */
+        .contact-info {
+            padding: 2.5rem;
+            background: var(--light-blue);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .contact-info h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .contact-info > p {
+            color: var(--text-dark);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .contact-method {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-method:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--secondary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .contact-text h3 {
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .contact-text p {
+            color: var(--text-dark);
+            margin-bottom: 0.3rem;
+        }
+
+        .contact-text p:last-child {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Social media */
+        .social-contact {
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--light-blue);
+        }
+
+        .social-contact h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .social-icon:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-3px);
+        }
+
+        /* Formulaire de contact */
+        .contact-form-container {
+            padding: 2.5rem;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--light-blue);
+        }
+
+        .contact-form-container h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--white);
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-weight: normal;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        .required-fields {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Bouton */
+        .btn {
+            display: inline-block;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        /* Carte */
+        .map-section {
+            background: var(--light-blue);
+            padding: 0;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 450px;
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            filter: grayscale(20%);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-blue);
+            color: var(--white);
+            padding: 4rem 0 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 0 5% 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--secondary-blue);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .footer-section p, .footer-section a {
+            color: var(--light-blue);
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .footer-section i {
+            margin-right: 10px;
+            color: var(--secondary-blue);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            margin-top: 2rem;
+        }
+
+        /* Menu burger pour mobile */
+        .burger {
+            display: none;
+            cursor: pointer;
+        }
+
+        .burger div {
+            width: 25px;
+            height: 3px;
+            background-color: var(--primary-blue);
+            margin: 5px;
+            transition: var(--transition);
+        }
+
+        /* Animation du menu burger */
+        .toggle .line1 {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .toggle .line2 {
+            opacity: 0;
+        }
+
+        .toggle .line3 {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 1024px) {
+            .contact-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                right: -100%;
+                top: 80px;
+                height: calc(100vh - 80px);
+                width: 50%;
+                background-color: var(--white);
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 2rem;
+                transition: var(--transition);
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .burger {
+                display: block;
+            }
+
+            .page-header-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .page-header-content p {
+                font-size: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .contact-info,
+            .contact-form-container {
+                padding: 2rem;
+            }
+
+            .map-container {
+                height: 350px;
+            }
+        }
+
+        /* Modal de confirmation */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            color: var(--success-green);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-content h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            color: var(--text-dark);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* Messages d'erreur/succès */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Heures d'ouverture */
+        .opening-hours {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--light-blue);
+        }
+
+        .opening-hours h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .hours-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .hour-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .hour-item:last-child {
+            border-bottom: none;
+        }
+
+        .hour-day {
+            color: var(--primary-blue);
+            font-weight: 500;
+        }
+
+        .hour-time {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        /* FAQ */
+        .faq-section {
+            padding: 4rem 0;
+            background: var(--light-blue);
+        }
+
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-container h2 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2rem;
+        }
+
+        .faq-item {
+            background: var(--white);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .faq-question {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--primary-blue);
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .faq-question:hover {
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .faq-question i {
+            transition: var(--transition);
+        }
+
+        .faq-question.active i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-answer.active {
+            padding: 0 1.5rem 1.5rem;
+            max-height: 500px;
+        }
+
+        .faq-answer p {
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: relative;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--secondary-blue);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--white);
+        }
+
+        .profile-trigger:hover {
+            background-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar i {
+            color: var(--secondary-blue);
+            font-size: 1rem;
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .profile-trigger i.fa-chevron-down {
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .profile-trigger.active i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: var(--transition);
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .profile-dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-blue);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-avatar-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--light-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-large i {
+            color: var(--secondary-blue);
+            font-size: 1.5rem;
+        }
+
+        .profile-info h4 {
+            color: var(--primary-blue);
+            margin: 0 0 0.3rem 0;
+            font-size: 1.1rem;
+        }
+
+        .profile-info p {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .profile-menu-items {
+            padding: 0.5rem;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .profile-menu-item:hover {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .profile-menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .profile-menu-item.logout {
+            color: var(--danger-red);
+        }
+
+        .profile-menu-item.logout:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger-red);
+        }
+
+        .profile-divider {
+            height: 1px;
+            background: var(--light-blue);
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Hôtel de Luxe</div>
+            <ul class="nav-links">
+                <li><a href="/client/dashboard">Accueil</a></li>
+                <li><a href="/client/chambres">Chambres</a></li>
+                <li><a href="/client/reservation">Réservation</a></li>
+                <li><a href="/client/contact" class="active">Contact</a></li>
+                {% if user.is_authenticated %}
+                <li class="profile-dropdown">
+                    <div class="profile-trigger" onclick="toggleProfileDropdown()">
+                        <div class="profile-avatar">
+                            {% if client.photo %}
+                                <img src="{{ client.photo.url }}" alt="Photo de profil">
+                            {% else %}
+                                <i class="fas fa-user"></i>
+                            {% endif %}
+                        </div>
+                        <span class="profile-name">
+                            {% if client %}{{ client.nom_complet|truncatewords:2 }}{% else %}{{ user.get_full_name|default:user.username|truncatewords:2 }}{% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="profile-header">
+                            <div class="profile-avatar-large">
+                                {% if client.photo %}
+                                    <img src="{{ client.photo.url }}" alt="Photo de profil">
+                                {% else %}
+                                    <i class="fas fa-user"></i>
+                                {% endif %}
+                            </div>
+                            <div class="profile-info">
+                                <h4>{% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}</h4>
+                                <p>{% if client %}{{ client.email|default:user.email }}{% else %}{{ user.email }}{% endif %}</p>
+                            </div>
+                        </div>
+                        <div class="profile-menu-items">
+                            <a href="/client/profile" class="profile-menu-item">
+                                <i class="fas fa-user-cog"></i>
+                                <span>Mon Profil</span>
+                            </a>
+                            <a href="/client/settings" class="profile-menu-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Paramètres</span>
+                            </a>
+                            <div class="profile-divider"></div>
+                            <a href="/logout" class="profile-menu-item logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Déconnexion</span>
+                            </a>
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                <li><a href="/login" class="btn-login">Connexion</a></li>
+                {% endif %}
+            </ul>
+            <div class="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="page-header-content">
+                <h1>Contactez-nous</h1>
+                <p>Nous sommes à votre écoute pour toute demande d'information</p>
+            </div>
+        </section>
+
+        <section class="contact-section">
+            <div class="container">
+                <!-- Messages d'alerte -->
+                <div id="alert-message" class="alert" style="display: none;"></div>
+                
+                <div class="contact-container">
+                    <div class="contact-info">
+                        <h2>Informations de contact</h2>
+                        <p>N'hésitez pas à nous contacter pour toute question ou demande de renseignements. Notre équipe est à votre disposition pour vous apporter une réponse dans les meilleurs délais.</p>
+                        
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="contact-text">
+                                <h3>Adresse</h3>
+                                <p>Faladjie<br> Bamako, Mali</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="contact-text">
+                                <h3>Téléphone</h3>
+                                <p>+223 77 12 34 56</p>
+                                <p>Service disponible 24h/24, 7j/7</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-text">
+                                <h3>Email</h3>
+                                <p>contact@hotel-luxe.com</p>
+                                <p>Réponse sous 24h ouvrées</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Heures d'ouverture -->
+                        <div class="opening-hours">
+                            <h3>Horaires d'ouverture</h3>
+                            <div class="hours-list">
+                                <div class="hour-item">
+                                    <span class="hour-day">Lundi - Vendredi</span>
+                                    <span class="hour-time">8h00 - 22h00</span>
+                                </div>
+                                <div class="hour-item">
+                                    <span class="hour-day">Samedi</span>
+                                    <span class="hour-time">9h00 - 20h00</span>
+                                </div>
+                                <div class="hour-item">
+                                    <span class="hour-day">Dimanche</span>
+                                    <span class="hour-time">9h00 - 18h00</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Réseaux sociaux -->
+                        <div class="social-contact">
+                            <h3>Suivez-nous</h3>
+                            <div class="social-links">
+                                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-tripadvisor"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-form-container">
+                        <h2>Envoyez-nous un message</h2>
+                        <form id="contact-form" class="contact-form" method="POST" action="{% url 'client_contact' %}">
+                            {% csrf_token %}
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nom">Nom complet *</label>
+                                    <input type="text" id="nom" name="nom" required 
+                                           value="{% if client %}{{ client.nom_complet }}{% elif user.get_full_name %}{{ user.get_full_name }}{% endif %}"
+                                           placeholder="Votre nom complet">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="email">Email *</label>
+                                    <input type="email" id="email" name="email" required 
+                                           value="{% if client %}{{ client.email }}{% else %}{{ user.email }}{% endif %}"
+                                           placeholder="votre@email.com">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="telephone">Téléphone</label>
+                                <input type="tel" id="telephone" name="telephone" 
+                                       value="{% if client and client.telephone %}{{ client.telephone }}{% endif %}"
+                                       placeholder="+223 XX XX XX XX">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sujet">Sujet *</label>
+                                <select id="sujet" name="sujet" required onchange="toggleAutreSujet()">
+                                    <option value="">Sélectionnez un sujet</option>
+                                    {% for sujet_value, sujet_label in sujets_choices %}
+                                    <option value="{{ sujet_value }}">{{ sujet_label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" id="sujet_autre_group" style="display: none;">
+                                <label for="sujet_autre">Précisez votre sujet *</label>
+                                <input type="text" id="sujet_autre" name="sujet_autre" 
+                                       placeholder="Décrivez brièvement votre sujet">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="urgence">Niveau d'urgence</label>
+                                <select id="urgence" name="urgence">
+                                    {% for urgence_value, urgence_label in urgence_levels %}
+                                    <option value="{{ urgence_value }}">{{ urgence_label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small style="color: var(--text-light); margin-top: 0.3rem; display: block;">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Les messages urgents sont traités en priorité
+                                </small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="message">Votre message *</label>
+                                <textarea id="message" name="message" rows="6" required 
+                                          placeholder="Décrivez votre demande en détail..."
+                                          oninput="updateCharCount()"></textarea>
+                                <small style="color: var(--text-light); margin-top: 0.3rem; display: block;">
+                                    <span id="char-count">0</span> caractères (minimum 10 requis)
+                                </small>
+                            </div>
+                            
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="newsletter" name="newsletter">
+                                <label for="newsletter">Je souhaite recevoir les offres spéciales et les actualités de l'hôtel</label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <p class="required-fields">* Champs obligatoires</p>
+                                <button type="submit" class="btn" id="submit-btn">
+                                    <i class="fas fa-paper-plane"></i> Envoyer le message
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <div class="container">
+                <div class="faq-container">
+                    <h2>Questions fréquentes</h2>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Quels sont les moyens de paiement acceptés ?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Nous acceptons les cartes Visa, MasterCard, American Express, ainsi que les virements bancaires. Les paiements en espèces sont également acceptés à la réception.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>À quelle heure sont l'arrivée et le départ ?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>L'heure d'arrivée est à partir de 15h00 et l'heure de départ est avant 11h00. Un départ tardif peut être accordé sous réserve de disponibilité.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>L'hôtel est-il adapté aux personnes à mobilité réduite ?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Oui, notre hôtel dispose de chambres spécialement aménagées pour les personnes à mobilité réduite, ainsi que d'un accès adapté à tous les espaces communs.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <span>Acceptez-vous les animaux de compagnie ?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Les petits animaux de compagnie sont acceptés sur demande et sous réserve de disponibilité. Des frais supplémentaires peuvent s'appliquer.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Carte -->
+        <section class="map-section">
+            <div class="map-container">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.215602354197!2d2.307903315675121!3d48.87051147928892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66fc4f800785d%3A0x4af4f1e689f5a40c!2sAvenue%20des%20Champs-%C3%89lys%C3%A9es%2C%20Paris!5e0!3m2!1sfr!2sfr!4v1620000000000!5m2!1sfr!2sfr" 
+                    width="100%" 
+                    height="450" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de confirmation -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Message envoyé !</h2>
+            <p id="confirmation-message">
+                Merci pour votre message. Nous vous répondrons dans les plus brefs délais.
+            </p>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeConfirmationModal()" style="background: var(--secondary-blue);">
+                    <i class="fas fa-home"></i> Retour à l'accueil
+                </button>
+                <button class="btn" onclick="sendNewMessage()" style="background: var(--primary-blue);">
+                    <i class="fas fa-envelope"></i> Nouveau message
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p><i class="fas fa-map-marker-alt"></i> Faladjie, Bamako</p>
+                <p><i class="fas fa-phone"></i> +223 77 12 34 56</p>
+                <p><i class="fas fa-envelope"></i> contact@hotel-luxe.com</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Liens rapides</h3>
+                <ul>
+                    <li><a href="/client/dashboard">Accueil</a></li>
+                    <li><a href="/client/chambres">Nos chambres</a></li>
+                    <li><a href="/client/reservation">Réservation</a></li>
+                    <li><a href="/client/contact">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Suivez-nous</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-tripadvisor"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2024 Hôtel de Luxe. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- Chatbot (uniquement si connecté) -->
+    {% if user.is_authenticated %}
+    <div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button id="chatbot-toggle" class="pulse" title="Assistant IA" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #3498db, #2c3e50); color: white; border: none; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); cursor: pointer; font-size: 1.5rem;">
+            <i class="fas fa-robot"></i>
+        </button>
+        <div id="chatbot-box" style="position: fixed; bottom: 90px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 1001; overflow: hidden;">
+            <div id="chatbot-header" style="background: linear-gradient(135deg, #2c3e50, #1a2530); color: white; padding: 1.2rem 1.5rem; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-robot me-2"></i> Assistant IA</span>
+                <button id="chatbot-close" style="background: none; border: none; color: white; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chatbot-messages" style="flex: 1; padding: 1.5rem; overflow-y: auto; background-color: #fafafa;">
+                <div class="message bot" style="margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    Bonjour {% if client %}{{ client.nom_complet }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %} ! 👋<br>
+                    Je suis votre assistant IA. Comment puis-je vous aider aujourd'hui ?
+                </div>
+            </div>
+            <div id="chatbot-input-container" style="padding: 1rem 1.5rem; border-top: 1px solid #ecf0f1; display: flex; gap: 0.8rem; background: white;">
+                <input type="text" id="chatbot-input" placeholder="Posez votre question..." style="flex: 1; border: 1px solid #ecf0f1; border-radius: 20px; padding: 0.8rem 1.2rem; font-size: 0.9rem; outline: none;">
+                <button id="chatbot-send" style="background: #3498db; color: white; border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+                // Chatbot functionality
+                {% if user.is_authenticated %}
+                const chatbotToggle = document.getElementById('chatbot-toggle');
+                const chatbotBox = document.getElementById('chatbot-box');
+                const chatbotClose = document.getElementById('chatbot-close');
+                const chatbotInput = document.getElementById('chatbot-input');
+                const chatbotSend = document.getElementById('chatbot-send');
+                const chatbotMessages = document.getElementById('chatbot-messages');
+
+                // Ouvrir/Fermer le chatbot
+                chatbotToggle.addEventListener('click', () => {
+                    chatbotBox.classList.toggle('show');
+                    chatbotToggle.classList.remove('pulse');
+                    chatbotBox.style.display = chatbotBox.classList.contains('show') ? 'flex' : 'none';
+                    if (chatbotBox.classList.contains('show')) {
+                        chatbotInput.focus();
+                    }
+                });
+                chatbotClose.addEventListener('click', () => {
+                    chatbotBox.classList.remove('show');
+                    chatbotBox.style.display = 'none';
+                });
+                document.addEventListener('click', (e) => {
+                    if (chatbotBox && !chatbotBox.contains(e.target) && !chatbotToggle.contains(e.target)) {
+                        chatbotBox.classList.remove('show');
+                        chatbotBox.style.display = 'none';
+                    }
+                });
+                async function sendMessage() {
+                    const message = chatbotInput.value.trim();
+                    if (!message) return;
+                    const userMessageDiv = document.createElement('div');
+                    userMessageDiv.className = 'message user';
+                    userMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; margin-left: auto; border-radius: 12px 12px 0 12px;';
+                    userMessageDiv.textContent = message;
+                    chatbotMessages.appendChild(userMessageDiv);
+                    chatbotInput.value = '';
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.className = 'message bot';
+                    typingIndicator.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
+                    typingIndicator.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                    chatbotMessages.appendChild(typingIndicator);
+                    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    try {
+                        const currentPath = window.location.pathname;
+                        let pageContext = 'client_contact';
+                        const response = await fetch('{% url "chatbot_api" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({ 
+                                message: message,
+                                page_context: pageContext,
+                                user_type: 'client'
+                            })
+                        });
+                        const data = await response.json();
+                        typingIndicator.remove();
+                        const botMessageDiv = document.createElement('div');
+                        botMessageDiv.className = 'message bot';
+                        botMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        botMessageDiv.textContent = data.message;
+                        chatbotMessages.appendChild(botMessageDiv);
+                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'message bot';
+                        errorDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        errorDiv.textContent = 'Désolé, une erreur s\'est produite. Veuillez réessayer.';
+                        chatbotMessages.appendChild(errorDiv);
+                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                    }
+                }
+                chatbotSend.addEventListener('click', sendMessage);
+                chatbotInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                {% endif %}
+        // Menu burger
+        const burger = document.querySelector('.burger');
+        const nav = document.querySelector('.nav-links');
+        
+        burger.addEventListener('click', () => {
+            nav.classList.toggle('active');
+            burger.classList.toggle('toggle');
+        });
+
+        // Fermer le menu au clic sur un lien
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                nav.classList.remove('active');
+                burger.classList.remove('toggle');
+            });
+        });
+
+        // FAQ toggle
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const answer = question.nextElementSibling;
+                const isActive = question.classList.contains('active');
+                
+                // Fermer toutes les autres FAQ
+                document.querySelectorAll('.faq-question').forEach(q => {
+                    q.classList.remove('active');
+                    q.nextElementSibling.classList.remove('active');
+                });
+                
+                // Ouvrir/fermer la FAQ cliquée
+                if (!isActive) {
+                    question.classList.add('active');
+                    answer.classList.add('active');
+                }
+            });
+        });
+
+        // Gestion du formulaire de contact
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            // Validation du formulaire avant envoi
+            const nom = document.getElementById('nom').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const sujet = document.getElementById('sujet').value;
+            const sujet_autre = document.getElementById('sujet_autre').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            // Validation des champs
+            const errors = validateForm();
+            if (errors.length > 0) {
+                e.preventDefault(); // Bloquer l'envoi si erreurs
+                errors.forEach(error => showAlert(error, 'error'));
+                return;
+            }
+            
+            // Validation spécifique pour sujet "autre"
+            if (sujet === 'autre' && !sujet_autre) {
+                e.preventDefault();
+                showAlert('Veuillez préciser votre sujet.', 'error');
+                return;
+            }
+            
+            // Validation du message minimum 10 caractères
+            if (message.length < 10) {
+                e.preventDefault();
+                showAlert('Votre message doit contenir au moins 10 caractères.', 'error');
+                return;
+            }
+            
+            // Afficher le chargement
+            const submitBtn = document.getElementById('submit-btn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+            submitBtn.disabled = true;
+            
+            // Remettre le bouton après 3 secondes (au cas où le formulaire ne se soumet pas)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 3000);
+        });
+
+        // Fonctionnalités dynamiques du formulaire
+        function toggleAutreSujet() {
+            const sujetSelect = document.getElementById('sujet');
+            const sujetAutreGroup = document.getElementById('sujet_autre_group');
+            const sujetAutreInput = document.getElementById('sujet_autre');
+            
+            if (sujetSelect.value === 'autre') {
+                sujetAutreGroup.style.display = 'block';
+                sujetAutreInput.required = true;
+            } else {
+                sujetAutreGroup.style.display = 'none';
+                sujetAutreInput.required = false;
+                sujetAutreInput.value = '';
+            }
+        }
+
+        function updateCharCount() {
+            const message = document.getElementById('message');
+            const charCount = document.getElementById('char-count');
+            const count = message.value.length;
+            
+            charCount.textContent = count;
+            
+            // Mettre à jour le style selon le nombre de caractères
+            if (count < 10) {
+                charCount.style.color = 'var(--danger-red)';
+            } else if (count < 50) {
+                charCount.style.color = 'var(--warning-orange)';
+            } else {
+                charCount.style.color = 'var(--success-green)';
+            }
+        }
+
+        function validateForm() {
+            const nom = document.getElementById('nom').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const sujet = document.getElementById('sujet').value;
+            const sujetAutre = document.getElementById('sujet_autre').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            const errors = [];
+            
+            if (!nom) errors.push('Le nom est obligatoire.');
+            if (!email || !isValidEmail(email)) errors.push('Veuillez entrer une adresse email valide.');
+            if (!sujet) errors.push('Veuillez sélectionner un sujet.');
+            if (sujet === 'autre' && !sujetAutre) errors.push('Veuillez préciser votre sujet.');
+            if (!message || message.length < 10) errors.push('Votre message doit contenir au moins 10 caractères.');
+            
+            return errors;
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alert-message');
+            alertDiv.textContent = message;
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.style.display = 'block';
+            
+            // Auto-cacher après 5 secondes
+            setTimeout(() => {
+                hideAlert();
+            }, 5000);
+        }
+
+        function hideAlert() {
+            const alertDiv = document.getElementById('alert-message');
+            alertDiv.style.display = 'none';
+        }
+
+        function showConfirmationModal(nom) {
+            const modal = document.getElementById('confirmationModal');
+            const message = document.getElementById('confirmation-message');
+            
+            message.textContent = `Merci ${nom}, votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.`;
+            modal.style.display = 'flex';
+        }
+
+        function closeConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            modal.style.display = 'none';
+            window.location.href = '/client/dashboard';
+        }
+
+        function sendNewMessage() {
+            const modal = document.getElementById('confirmationModal');
+            modal.style.display = 'none';
+            document.getElementById('contact-form').reset();
+            updateCharCount();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Profile Dropdown
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            const trigger = document.querySelector('.profile-trigger');
+            
+            dropdown.classList.toggle('active');
+            trigger.classList.toggle('active');
+        }
+
+        // Fermer le dropdown en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const profileTrigger = document.querySelector('.profile-trigger');
+            
+            if (!profileDropdown.contains(event.target)) {
+                const dropdown = document.getElementById('profileDropdown');
+                const trigger = document.querySelector('.profile-trigger');
+                
+                dropdown.classList.remove('active');
+                trigger.classList.remove('active');
+            }
+        });
+
+        // Validation email
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Fonctions pour les alertes
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert-message');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            // Faire défiler jusqu'à l'alerte
+            alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function hideAlert() {
+            const alert = document.getElementById('alert-message');
+            alert.style.display = 'none';
+        }
+
+        // Fonctions pour le modal de confirmation
+        function showConfirmationModal(name) {
+            const modal = document.getElementById('confirmationModal');
+            const message = document.getElementById('confirmation-message');
+            
+            message.textContent = `Merci ${name} pour votre message. Nous vous répondrons dans les plus brefs délais.`;
+            modal.style.display = 'flex';
+        }
+
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            window.location.href = '/';
+        }
+
+        function sendNewMessage() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            document.getElementById('contact-form').reset();
+            
+            // Faire défiler jusqu'au formulaire
+            document.getElementById('contact-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Fermer le modal en cliquant en dehors
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('confirmationModal');
+            if (event.target === modal) {
+                closeConfirmationModal();
+            }
+        });
+
+        // Pré-remplir le formulaire pour les utilisateurs connectés
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if user.is_authenticated %}
+            // Le formulaire est déjà pré-rempli avec les données Django
+            // Vous pouvez ajouter des données supplémentaires ici si nécessaire
+            {% endif %}
+            
+            // Ajouter un masque pour le téléphone
+            const phoneInput = document.getElementById('phone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 10) value = value.substring(0, 10);
+                    
+                    if (value.length >= 2) {
+                        value = value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
+                    }
+                    
+                    e.target.value = value;
+                });
+            }
+        });
+
+        // Animation d'apparition au scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observer les éléments à animer
+        document.querySelectorAll('.contact-method, .faq-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

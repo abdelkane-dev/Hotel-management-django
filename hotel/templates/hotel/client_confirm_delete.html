@@ -1,0 +1,695 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Supprimer un client - Gestion Hôtel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-slash"></i>
+<span>Suppression de client</span>
+{% endblock %}
+
+{% block content %}
+<div class="delete-client-container">
+    <div class="delete-client-card">
+        <div class="delete-header">
+            <div class="delete-icon">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <div class="delete-title">
+                <h2>Suppression de client</h2>
+                <p class="delete-subtitle">Action irréversible - Confirmation requise</p>
+            </div>
+        </div>
+        
+        <div class="delete-body">
+            <!-- Client Info -->
+            <div class="client-info-card">
+                <div class="client-header">
+                    <div class="client-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="client-details">
+                        <h3>{{ client.nom_complet }}</h3>
+                        <div class="client-meta">
+                            <span class="meta-item">
+                                <i class="fas fa-envelope"></i>
+                                {{ client.email }}
+                            </span>
+                            <span class="meta-item">
+                                <i class="fas fa-phone"></i>
+                                {{ client.telephone }}
+                            </span>
+                            <span class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ client.ville }}, {{ client.pays }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="client-stats">
+                    {% with reservations_count=client.reservations.count %}
+                    <div class="stat-item">
+                        <div class="stat-icon reservation-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ reservations_count }}</div>
+                            <div class="stat-label">Réservation(s)</div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon date-icon">
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-date">
+                                {% if client.date_creation %}
+                                    {{ client.date_creation|date:"d/m/Y" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div class="stat-label">Date d'inscription</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Warning Messages -->
+            <div class="warning-section">
+                <div class="warning-card warning-critical">
+                    <div class="warning-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="warning-content">
+                        <h4><i class="fas fa-skull-crossbones"></i> Action critique</h4>
+                        <p>La suppression de ce client entraînera la suppression définitive de toutes ses données, y compris l'historique complet des réservations et des transactions.</p>
+                    </div>
+                </div>
+                
+                <div class="warning-card warning-impact">
+                    <div class="warning-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="warning-content">
+                        <h4><i class="fas fa-chart-line"></i> Impact sur les statistiques</h4>
+                        <ul class="impact-list">
+                            <li>Suppression de l'historique client</li>
+                            <li>Modification des statistiques de fréquentation</li>
+                            <li>Effacement des préférences et commentaires</li>
+                            <li>Perte des données de fidélité</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="warning-card warning-irreversible">
+                    <div class="warning-icon">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <div class="warning-content">
+                        <h4><i class="fas fa-undo-alt"></i> Action irréversible</h4>
+                        <p>Cette action ne peut pas être annulée. Une fois le client supprimé, il n'y aura aucun moyen de récupérer ses données.</p>
+                        <div class="irreversible-badge">
+                            <i class="fas fa-lock"></i> PERMANENT
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Confirmation -->
+            <div class="confirmation-section">
+                <div class="confirmation-card">
+                    <div class="confirmation-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="confirmation-content">
+                        <h4>Confirmation finale</h4>
+                        <p>Pour confirmer la suppression, veuillez vérifier que vous comprenez les conséquences de cette action.</p>
+                        
+                        <form method="post" class="confirmation-form">
+                            {% csrf_token %}
+                            
+                            <div class="confirmation-checkbox">
+                                <input type="checkbox" id="confirmDelete" name="confirm_delete" required>
+                                <label for="confirmDelete">
+                                    <i class="fas fa-check-square"></i>
+                                    Je comprends que cette action supprimera définitivement le client <strong>{{ client.nom_complet }}</strong> ainsi que toutes ses données associées.
+                                </label>
+                            </div>
+                            
+                            <div class="confirmation-checkbox">
+                                <input type="checkbox" id="confirmBackup" name="confirm_backup" required>
+                                <label for="confirmBackup">
+                                    <i class="fas fa-check-square"></i>
+                                    Je confirme avoir effectué une sauvegarde si nécessaire et être conscient que cette action est irréversible.
+                                </label>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <a href="{% url 'client_list' %}" class="btn btn-cancel">
+                                    <i class="fas fa-arrow-left"></i>
+                                    <span>Retour en sécurité</span>
+                                </a>
+                                
+                                <button type="submit" class="btn btn-delete" id="deleteButton" disabled>
+                                    <i class="fas fa-trash"></i>
+                                    <span>Supprimer définitivement</span>
+                                    <span class="delete-countdown" id="countdown">5</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour la suppression de client */
+    .delete-client-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .delete-client-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+    
+    .delete-header {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: white;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .delete-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .delete-title h2 {
+        margin: 0 0 0.3rem 0;
+        font-size: 1.8rem;
+        color: white;
+    }
+    
+    .delete-subtitle {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    .delete-body {
+        padding: 2rem;
+    }
+    
+    /* Client Info Card */
+    .client-info-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 2px solid #dee2e6;
+    }
+    
+    .client-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .client-avatar {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+    }
+    
+    .client-details h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary-blue);
+        font-size: 1.4rem;
+    }
+    
+    .client-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        background: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .client-stats {
+        display: flex;
+        gap: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: white;
+    }
+    
+    .reservation-icon {
+        background: linear-gradient(135deg, var(--purple), #8e44ad);
+    }
+    
+    .date-icon {
+        background: linear-gradient(135deg, var(--success-green), #27ae60);
+    }
+    
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+    
+    .stat-date {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-blue);
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    /* Warning Section */
+    .warning-section {
+        margin-bottom: 2rem;
+    }
+    
+    .warning-card {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        align-items: flex-start;
+    }
+    
+    .warning-critical {
+        background: rgba(231, 76, 60, 0.1);
+        border: 2px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .warning-impact {
+        background: rgba(243, 156, 18, 0.1);
+        border: 2px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .warning-irreversible {
+        background: rgba(149, 165, 166, 0.1);
+        border: 2px solid rgba(149, 165, 166, 0.2);
+    }
+    
+    .warning-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .warning-critical .warning-icon {
+        background: var(--danger-red);
+    }
+    
+    .warning-impact .warning-icon {
+        background: var(--warning-orange);
+    }
+    
+    .warning-irreversible .warning-icon {
+        background: #95a5a6;
+    }
+    
+    .warning-content {
+        flex: 1;
+    }
+    
+    .warning-content h4 {
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: inherit;
+        font-size: 1rem;
+    }
+    
+    .warning-content p {
+        margin: 0 0 0.5rem 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .impact-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .impact-list li {
+        padding: 0.3rem 0;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .impact-list li:before {
+        content: "•";
+        color: var(--warning-orange);
+        font-weight: bold;
+    }
+    
+    .irreversible-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #2c3e50;
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+    
+    /* Confirmation Section */
+    .confirmation-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 2rem;
+        border: 2px solid #dee2e6;
+    }
+    
+    .confirmation-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1.5rem;
+    }
+    
+    .confirmation-content h4 {
+        color: var(--primary-blue);
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+    
+    .confirmation-content p {
+        color: var(--text-light);
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .confirmation-checkbox {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+    
+    .confirmation-checkbox input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-top: 0.2rem;
+        cursor: pointer;
+        accent-color: var(--danger-red);
+    }
+    
+    .confirmation-checkbox label {
+        flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        cursor: pointer;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .confirmation-checkbox label i {
+        color: var(--secondary-blue);
+        margin-top: 0.1rem;
+    }
+    
+    .confirmation-checkbox label strong {
+        color: var(--danger-red);
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.9rem 1.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    
+    .btn-cancel {
+        background: #f8f9fa;
+        color: var(--text-dark);
+        border: 2px solid #dee2e6;
+    }
+    
+    .btn-cancel:hover {
+        background: #e9ecef;
+        color: var(--primary-blue);
+        transform: translateX(-5px);
+    }
+    
+    .btn-delete {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-delete:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    .btn-delete:not(:disabled):hover {
+        background: linear-gradient(135deg, #a93226, #c0392b);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+    }
+    
+    .delete-countdown {
+        background: rgba(255, 255, 255, 0.2);
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-left: 0.5rem;
+    }
+    
+    /* Animations */
+    @keyframes pulseWarning {
+        0% {
+            box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+        }
+    }
+    
+    .delete-client-card {
+        animation: pulseWarning 2s infinite;
+    }
+    
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .delete-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .delete-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .client-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .client-meta {
+            justify-content: center;
+        }
+        
+        .client-stats {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .warning-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButton = document.getElementById('deleteButton');
+        const countdownElement = document.getElementById('countdown');
+        const confirmCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+        
+        let countdown = 5;
+        let countdownInterval;
+        
+        // Fonction pour vérifier si tous les checkboxes sont cochés
+        function checkConfirmation() {
+            const allChecked = Array.from(confirmCheckboxes).every(checkbox => checkbox.checked);
+            
+            if (allChecked) {
+                // Démarrer le compte à rebours
+                deleteButton.disabled = true;
+                countdown = 5;
+                countdownElement.textContent = countdown;
+                
+                countdownInterval = setInterval(() => {
+                    countdown--;
+                    countdownElement.textContent = countdown;
+                    
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                        deleteButton.disabled = false;
+                        deleteButton.innerHTML = '<i class="fas fa-trash"></i><span>Supprimer définitivement</span>';
+                    }
+                }, 1000);
+            } else {
+                // Réinitialiser si un checkbox est décoché
+                clearInterval(countdownInterval);
+                deleteButton.disabled = true;
+                countdownElement.textContent = '5';
+            }
+        }
+        
+        // Écouter les changements sur les checkboxes
+        confirmCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', checkConfirmation);
+        });
+        
+        // Confirmation finale avant suppression
+        deleteButton.addEventListener('click', function(e) {
+            if (!this.disabled) {
+                const confirmed = confirm('⚠️ DERNIER AVERTISSEMENT ⚠️\n\nVous êtes sur le point de supprimer définitivement le client {{ client.nom_complet }}.\n\nCette action ne peut être annulée. Voulez-vous vraiment continuer ?');
+                
+                if (!confirmed) {
+                    e.preventDefault();
+                    // Réinitialiser le compte à rebours
+                    clearInterval(countdownInterval);
+                    deleteButton.disabled = true;
+                    confirmCheckboxes.forEach(checkbox => checkbox.checked = false);
+                    checkConfirmation();
+                }
+            }
+        });
+        
+        // Éviter la soumission du formulaire avec Entrée
+        document.querySelector('form').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1023 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Changer rôle - {{ employee.username }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-cog"></i>
+<span>Modification de rôle</span>
+{% endblock %}
+
+{% block content %}
+<div class="role-management-container">
+    <div class="role-management-card">
+        <!-- En-tête avec infos employé -->
+        <div class="employee-header">
+            <div class="employee-avatar">
+                <span>{{ employee.username|slice:":1"|upper }}</span>
+            </div>
+            <div class="employee-info">
+                <h2>{{ employee.username }}</h2>
+                <div class="employee-details">
+                    {% if employee.get_full_name %}
+                    <span class="detail-item">
+                        <i class="fas fa-user"></i> {{ employee.get_full_name }}
+                    </span>
+                    {% endif %}
+                    {% if employee.email %}
+                    <span class="detail-item">
+                        <i class="fas fa-envelope"></i> {{ employee.email }}
+                    </span>
+                    {% endif %}
+                    <span class="detail-item">
+                        <i class="fas fa-calendar-alt"></i> 
+                        Inscrit le {{ employee.date_joined|date:"d/m/Y" }}
+                    </span>
+                </div>
+            </div>
+            <div class="current-role">
+                <div class="role-badge {% if employee.is_superuser %}role-admin{% elif employee.is_staff %}role-staff{% else %}role-user{% endif %}">
+                    {% if employee.is_superuser %}
+                        <i class="fas fa-crown"></i> Administrateur
+                    {% elif employee.is_staff %}
+                        <i class="fas fa-user-tie"></i> Staff
+                    {% else %}
+                        <i class="fas fa-user"></i> Utilisateur
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="role-management-body">
+            <!-- Section de confirmation -->
+            <div class="confirmation-section">
+                <div class="confirmation-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="confirmation-content">
+                    <h3>Modification des permissions</h3>
+                    <p>
+                        Vous êtes sur le point de modifier les permissions d'accès de 
+                        <strong>{{ employee.username }}</strong>. Les changements prendront effet immédiatement.
+                    </p>
+                    <div class="warning-notice">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Attention :</strong> Les permissions élevées donnent accès à toutes les fonctionnalités du système.
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" class="role-form" id="roleForm">
+                {% csrf_token %}
+                
+                <!-- Cartes de rôle -->
+                <div class="role-cards">
+                    <div class="role-card" data-role="user">
+                        <input type="radio" 
+                               name="role" 
+                               value="user" 
+                               id="role-user"
+                               {% if not employee.is_staff and not employee.is_superuser %}checked{% endif %}>
+                        <label for="role-user" class="role-label">
+                            <div class="role-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="role-content">
+                                <h4>Utilisateur standard</h4>
+                                <ul class="role-permissions">
+                                    <li><i class="fas fa-times"></i> Pas d'accès admin</li>
+                                    <li><i class="fas fa-times"></i> Pas de gestion système</li>
+                                    <li><i class="fas fa-check"></i> Vue limitée</li>
+                                </ul>
+                                <div class="role-description">
+                                    Accès basique aux fonctionnalités publiques
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="role-card" data-role="staff">
+                        <input type="radio" 
+                               name="role" 
+                               value="staff" 
+                               id="role-staff"
+                               {% if employee.is_staff and not employee.is_superuser %}checked{% endif %}>
+                        <label for="role-staff" class="role-label">
+                            <div class="role-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="role-content">
+                                <h4>Employé (Staff)</h4>
+                                <ul class="role-permissions">
+                                    <li><i class="fas fa-check"></i> Gestion des clients</li>
+                                    <li><i class="fas fa-check"></i> Gestion des réservations</li>
+                                    <li><i class="fas fa-check"></i> Vue des rapports</li>
+                                    <li><i class="fas fa-times"></i> Pas de configuration système</li>
+                                </ul>
+                                <div class="role-description">
+                                    Accès complet aux opérations quotidiennes
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="role-card" data-role="admin">
+                        <input type="radio" 
+                               name="role" 
+                               value="admin" 
+                               id="role-admin"
+                               {% if employee.is_superuser %}checked{% endif %}>
+                        <label for="role-admin" class="role-label">
+                            <div class="role-icon">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <div class="role-content">
+                                <h4>Administrateur</h4>
+                                <ul class="role-permissions">
+                                    <li><i class="fas fa-check"></i> Toutes les permissions</li>
+                                    <li><i class="fas fa-check"></i> Configuration système</li>
+                                    <li><i class="fas fa-check"></i> Gestion des utilisateurs</li>
+                                    <li><i class="fas fa-check"></i> Accès total</li>
+                                </ul>
+                                <div class="role-description">
+                                    Accès complet à toutes les fonctionnalités
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Permissions avancées (checkboxes cachés pour compatibilité) -->
+                <div class="advanced-permissions" style="display: none;">
+                    <input type="checkbox" 
+                           name="is_staff" 
+                           id="is_staff_hidden"
+                           {% if employee.is_staff %}checked{% endif %}>
+                    <input type="checkbox" 
+                           name="is_superuser" 
+                           id="is_superuser_hidden"
+                           {% if employee.is_superuser %}checked{% endif %}>
+                </div>
+                
+                <!-- Résumé des changements -->
+                <div class="changes-summary">
+                    <div class="summary-header">
+                        <h4><i class="fas fa-exchange-alt"></i> Récapitulatif des changements</h4>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-item">
+                            <span class="summary-label">Rôle actuel :</span>
+                            <span class="summary-value current-role-value">
+                                {% if employee.is_superuser %}
+                                    Administrateur
+                                {% elif employee.is_staff %}
+                                    Employé (Staff)
+                                {% else %}
+                                    Utilisateur standard
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Nouveau rôle :</span>
+                            <span class="summary-value new-role-value" id="newRoleValue">
+                                {% if employee.is_superuser %}
+                                    Administrateur
+                                {% elif employee.is_staff %}
+                                    Employé (Staff)
+                                {% else %}
+                                    Utilisateur standard
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Impact :</span>
+                            <span class="summary-value impact-value" id="impactValue">
+                                Aucun changement
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Avertissements conditionnels -->
+                <div class="role-warnings" id="roleWarnings">
+                    <div class="warning-card warning-admin" style="display: none;">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="warning-content">
+                            <h5><i class="fas fa-crown"></i> Attribution des droits administrateur</h5>
+                            <p>
+                                L'utilisateur aura accès à <strong>toutes les fonctionnalités du système</strong>, y compris :
+                                la gestion des utilisateurs, la configuration système, et toutes les données sensibles.
+                            </p>
+                            <div class="warning-list">
+                                <span class="warning-item"><i class="fas fa-check"></i> Accès complet à la base de données</span>
+                                <span class="warning-item"><i class="fas fa-check"></i> Modification des paramètres système</span>
+                                <span class="warning-item"><i class="fas fa-check"></i> Gestion de tous les utilisateurs</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="warning-card warning-downgrade" style="display: none;">
+                        <div class="warning-icon">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="warning-content">
+                            <h5><i class="fas fa-user-slash"></i> Rétrogradation de rôle</h5>
+                            <p>
+                                L'utilisateur <strong>perdra certaines permissions</strong>. Assurez-vous qu'il n'a pas de tâches critiques en cours.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Confirmation -->
+                <div class="confirmation-check">
+                    <div class="confirmation-item">
+                        <input type="checkbox" 
+                               id="confirmChanges" 
+                               name="confirm_changes" 
+                               required>
+                        <label for="confirmChanges">
+                            <i class="fas fa-check-square"></i>
+                            Je confirme vouloir modifier les permissions de 
+                            <strong>{{ employee.username }}</strong> et comprends les implications.
+                        </label>
+                    </div>
+                    <div class="confirmation-item">
+                        <input type="checkbox" 
+                               id="confirmNotify" 
+                               name="confirm_notify" 
+                               checked>
+                        <label for="confirmNotify">
+                            <i class="fas fa-bell"></i>
+                            Notifier l'utilisateur par email du changement de permissions.
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'employee_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Retour à la liste</span>
+                    </a>
+                    
+                    <button type="submit" class="btn btn-primary" id="submitButton" disabled>
+                        <i class="fas fa-save"></i>
+                        <span>Appliquer les changements</span>
+                        <div class="button-loader" id="buttonLoader">
+                            <div class="loader-spinner"></div>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour la gestion des rôles */
+    .role-management-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .role-management-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+    
+    /* En-tête employé */
+    .employee-header {
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+        color: white;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .employee-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 600;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .employee-info {
+        flex: 1;
+    }
+    
+    .employee-info h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.8rem;
+        color: white;
+    }
+    
+    .employee-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .current-role {
+        flex-shrink: 0;
+    }
+    
+    .role-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .role-admin {
+        background: rgba(231, 76, 60, 0.3);
+        border: 2px solid rgba(231, 76, 60, 0.5);
+    }
+    
+    .role-staff {
+        background: rgba(243, 156, 18, 0.3);
+        border: 2px solid rgba(243, 156, 18, 0.5);
+    }
+    
+    .role-user {
+        background: rgba(149, 165, 166, 0.3);
+        border: 2px solid rgba(149, 165, 166, 0.5);
+    }
+    
+    /* Corps du formulaire */
+    .role-management-body {
+        padding: 2rem;
+    }
+    
+    /* Section confirmation */
+    .confirmation-section {
+        background: rgba(52, 152, 219, 0.1);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .confirmation-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--secondary-blue);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .confirmation-content h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary-blue);
+        font-size: 1.3rem;
+    }
+    
+    .confirmation-content p {
+        margin: 0 0 1rem 0;
+        color: var(--text-dark);
+        line-height: 1.5;
+    }
+    
+    .warning-notice {
+        background: rgba(243, 156, 18, 0.1);
+        border: 1px solid rgba(243, 156, 18, 0.3);
+        border-radius: 6px;
+        padding: 0.8rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--warning-orange);
+        font-size: 0.9rem;
+    }
+    
+    /* Cartes de rôle */
+    .role-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .role-card {
+        position: relative;
+    }
+    
+    .role-card input[type="radio"] {
+        display: none;
+    }
+    
+    .role-label {
+        display: block;
+        background: #f8f9fa;
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: var(--transition);
+        height: 100%;
+    }
+    
+    .role-card input[type="radio"]:checked + .role-label {
+        border-color: var(--secondary-blue);
+        background: rgba(52, 152, 219, 0.05);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(52, 152, 219, 0.15);
+    }
+    
+    .role-card[data-role="admin"] input[type="radio"]:checked + .role-label {
+        border-color: var(--danger-red);
+        background: rgba(231, 76, 60, 0.05);
+    }
+    
+    .role-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    
+    .role-card[data-role="admin"] .role-icon {
+        background: linear-gradient(135deg, var(--danger-red), #c0392b);
+    }
+    
+    .role-card[data-role="staff"] .role-icon {
+        background: linear-gradient(135deg, var(--warning-orange), #f39c12);
+    }
+    
+    .role-content h4 {
+        margin: 0 0 1rem 0;
+        color: var(--primary-blue);
+        font-size: 1.2rem;
+    }
+    
+    .role-permissions {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1rem 0;
+    }
+    
+    .role-permissions li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .role-permissions li i.fa-check {
+        color: var(--success-green);
+    }
+    
+    .role-permissions li i.fa-times {
+        color: var(--danger-red);
+    }
+    
+    .role-description {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        font-style: italic;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    /* Résumé des changements */
+    .changes-summary {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border: 1px solid #dee2e6;
+    }
+    
+    .summary-header {
+        margin-bottom: 1rem;
+    }
+    
+    .summary-header h4 {
+        margin: 0;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .summary-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .summary-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    
+    .summary-label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .summary-value {
+        font-weight: 600;
+        color: var(--primary-blue);
+        font-size: 1rem;
+    }
+    
+    .impact-value {
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        background: #e9ecef;
+        display: inline-block;
+    }
+    
+    .impact-value.changed {
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--secondary-blue);
+    }
+    
+    .impact-value.downgrade {
+        background: rgba(243, 156, 18, 0.1);
+        color: var(--warning-orange);
+    }
+    
+    .impact-value.elevated {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger-red);
+    }
+    
+    /* Avertissements */
+    .role-warnings {
+        margin: 1.5rem 0;
+    }
+    
+    .warning-card {
+        display: flex;
+        gap: 1rem;
+        padding: 1.2rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        align-items: flex-start;
+        animation: slideIn 0.3s ease;
+    }
+    
+    .warning-admin {
+        background: rgba(231, 76, 60, 0.1);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .warning-downgrade {
+        background: rgba(243, 156, 18, 0.1);
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .warning-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .warning-admin .warning-icon {
+        background: var(--danger-red);
+    }
+    
+    .warning-downgrade .warning-icon {
+        background: var(--warning-orange);
+    }
+    
+    .warning-content {
+        flex: 1;
+    }
+    
+    .warning-content h5 {
+        margin: 0 0 0.5rem 0;
+        color: inherit;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .warning-content p {
+        margin: 0 0 0.5rem 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .warning-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin-top: 0.8rem;
+    }
+    
+    .warning-item {
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: rgba(255, 255, 255, 0.3);
+        padding: 0.3rem 0.6rem;
+        border-radius: 12px;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Confirmation */
+    .confirmation-check {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border: 1px solid #dee2e6;
+    }
+    
+    .confirmation-item {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+    
+    .confirmation-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .confirmation-item input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-top: 0.2rem;
+        cursor: pointer;
+        accent-color: var(--secondary-blue);
+    }
+    
+    .confirmation-item label {
+        flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        cursor: pointer;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .confirmation-item label i {
+        color: var(--secondary-blue);
+        margin-top: 0.1rem;
+    }
+    
+    .confirmation-item label strong {
+        color: var(--primary-blue);
+    }
+    
+    /* Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.9rem 1.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        position: relative;
+    }
+    
+    .btn-secondary {
+        background: #f8f9fa;
+        color: var(--text-dark);
+        border: 2px solid #dee2e6;
+    }
+    
+    .btn-secondary:hover {
+        background: #e9ecef;
+        color: var(--primary-blue);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        color: white;
+        min-width: 180px;
+        justify-content: center;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, var(--accent-blue), #2980b9);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+    
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    .button-loader {
+        display: none;
+        margin-left: 0.5rem;
+    }
+    
+    .loader-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .employee-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .employee-details {
+            justify-content: center;
+        }
+        
+        .role-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .summary-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .warning-card {
+            flex-direction: column;
+        }
+        
+        .warning-icon {
+            align-self: center;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('roleForm');
+        const submitButton = document.getElementById('submitButton');
+        const buttonLoader = document.getElementById('buttonLoader');
+        const roleRadios = document.querySelectorAll('input[name="role"]');
+        const hiddenIsStaff = document.getElementById('is_staff_hidden');
+        const hiddenIsSuperuser = document.getElementById('is_superuser_hidden');
+        const confirmCheckbox = document.getElementById('confirmChanges');
+        const newRoleValue = document.getElementById('newRoleValue');
+        const impactValue = document.getElementById('impactValue');
+        const currentRole = document.querySelector('.current-role-value').textContent.trim();
+        
+        // Mapper les rôles aux permissions
+        const roleMapping = {
+            'user': { is_staff: false, is_superuser: false, label: 'Utilisateur standard' },
+            'staff': { is_staff: true, is_superuser: false, label: 'Employé (Staff)' },
+            'admin': { is_staff: true, is_superuser: true, label: 'Administrateur' }
+        };
+        
+        // Déterminer le rôle actuel
+        let currentRoleValue;
+        if ({{ employee.is_superuser|yesno:"true,false" }}) {
+            currentRoleValue = 'admin';
+        } else if ({{ employee.is_staff|yesno:"true,false" }}) {
+            currentRoleValue = 'staff';
+        } else {
+            currentRoleValue = 'user';
+        }
+        
+        // Mettre à jour les champs cachés et l'interface
+        function updateRole(roleValue) {
+            const role = roleMapping[roleValue];
+            
+            // Mettre à jour les champs cachés
+            hiddenIsStaff.checked = role.is_staff;
+            hiddenIsSuperuser.checked = role.is_superuser;
+            
+            // Mettre à jour le résumé
+            newRoleValue.textContent = role.label;
+            
+            // Déterminer l'impact
+            let impactText = 'Aucun changement';
+            let impactClass = '';
+            
+            if (roleValue !== currentRoleValue) {
+                const currentIndex = ['user', 'staff', 'admin'].indexOf(currentRoleValue);
+                const newIndex = ['user', 'staff', 'admin'].indexOf(roleValue);
+                
+                if (newIndex > currentIndex) {
+                    impactText = 'Élévation de privilèges';
+                    impactClass = 'elevated';
+                } else if (newIndex < currentIndex) {
+                    impactText = 'Rétrogradation';
+                    impactClass = 'downgrade';
+                } else {
+                    impactText = 'Changement mineur';
+                    impactClass = 'changed';
+                }
+            }
+            
+            impactValue.textContent = impactText;
+            impactValue.className = 'summary-value impact-value ' + impactClass;
+            
+            // Afficher les avertissements appropriés
+            const adminWarning = document.querySelector('.warning-admin');
+            const downgradeWarning = document.querySelector('.warning-downgrade');
+            
+            // Masquer tous les avertissements d'abord
+            adminWarning.style.display = 'none';
+            downgradeWarning.style.display = 'none';
+            
+            // Afficher les avertissements si nécessaire
+            if (roleValue === 'admin' && currentRoleValue !== 'admin') {
+                adminWarning.style.display = 'flex';
+            }
+            
+            if (roleValue !== currentRoleValue && roleValue !== 'admin') {
+                downgradeWarning.style.display = 'flex';
+            }
+            
+            // Vérifier si le bouton de soumission doit être activé
+            updateSubmitButton();
+        }
+        
+        // Mettre à jour l'état du bouton de soumission
+        function updateSubmitButton() {
+            const isConfirmed = confirmCheckbox.checked;
+            const isChanged = document.querySelector('input[name="role"]:checked').value !== currentRoleValue;
+            
+            submitButton.disabled = !(isConfirmed && isChanged);
+            
+            if (isChanged) {
+                submitButton.querySelector('span').textContent = 'Appliquer les changements';
+            } else {
+                submitButton.querySelector('span').textContent = 'Aucun changement';
+            }
+        }
+        
+        // Écouter les changements de rôle
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                updateRole(this.value);
+            });
+        });
+        
+        // Écouter la confirmation
+        confirmCheckbox.addEventListener('change', updateSubmitButton);
+        
+        // Initialiser l'interface
+        updateRole(currentRoleValue);
+        
+        // Soumission du formulaire
+        form.addEventListener('submit', function(e) {
+            // Vérifier s'il y a des changements
+            const selectedRole = document.querySelector('input[name="role"]:checked').value;
+            if (selectedRole === currentRoleValue) {
+                e.preventDefault();
+                alert('Aucun changement détecté. Veuillez sélectionner un rôle différent.');
+                return;
+            }
+            
+            // Vérifier la confirmation
+            if (!confirmCheckbox.checked) {
+                e.preventDefault();
+                alert('Veuillez confirmer les changements avant de continuer.');
+                return;
+            }
+            
+            // Afficher le loader
+            submitButton.disabled = true;
+            buttonLoader.style.display = 'inline-block';
+            
+            // Confirmation finale pour les changements critiques
+            if (selectedRole === 'admin') {
+                const confirmed = confirm(
+                    '⚠️ ATTENTION : Attribution des droits administrateur\n\n' +
+                    'Vous êtes sur le point de donner les droits administrateur complets à ' +
+                    '{{ employee.username }}.\n\n' +
+                    'Cette action donnera accès à :\n' +
+                    '• Toutes les données sensibles\n' +
+                    '• La configuration système complète\n' +
+                    '• La gestion de tous les utilisateurs\n\n' +
+                    'Êtes-vous absolument sûr de vouloir continuer ?'
+                );
+                
+                if (!confirmed) {
+                    e.preventDefault();
+                    submitButton.disabled = false;
+                    buttonLoader.style.display = 'none';
+                    return;
+                }
+            }
+            
+            if (selectedRole === 'user' && currentRoleValue === 'admin') {
+                const confirmed = confirm(
+                    '⚠️ ATTENTION : Rétrogradation importante\n\n' +
+                    'Vous êtes sur le point de retirer tous les privilèges administratifs à ' +
+                    '{{ employee.username }}.\n\n' +
+                    'Cette action est critique et peut affecter :\n' +
+                    '• Les opérations en cours\n' +
+                    '• L\'accès aux données sensibles\n' +
+                    '• La continuité des services\n\n' +
+                    'Êtes-vous absolument sûr de vouloir continuer ?'
+                );
+                
+                if (!confirmed) {
+                    e.preventDefault();
+                    submitButton.disabled = false;
+                    buttonLoader.style.display = 'none';
+                    return;
+                }
+            }
+        });
+        
+        // Empêcher la soumission par Entrée
+        form.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

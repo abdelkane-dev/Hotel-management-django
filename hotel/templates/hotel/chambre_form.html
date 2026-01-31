@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ action }} une chambre - Hôtel de Luxe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Variables CSS - Palette bleue moderne */
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --purple: #9b59b6;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --sidebar-width: 250px;
+        }
+
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark-blue), var(--primary-blue));
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            color: var(--light-blue);
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            padding-left: 2rem;
+        }
+
+        .nav-link.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--white);
+            border-left: 3px solid var(--secondary-blue);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 0;
+            transition: var(--transition);
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Content area */
+        .content-area {
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Form Card */
+        .form-card {
+            max-width: 900px;
+            margin: 0 auto;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-header h2 {
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .form-action {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-body {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 0.95rem;
+        }
+
+        .form-label.required:after {
+            content: " *";
+            color: var(--danger-red);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--light-blue);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: var(--transition);
+            background: var(--white);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--light-blue);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--white);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--light-blue);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: var(--transition);
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        /* Checkbox Grid */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            background: var(--light-blue);
+            border-radius: 8px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .form-check:hover {
+            background: rgba(52, 152, 219, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--secondary-blue);
+        }
+
+        .form-check-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .form-check-label i {
+            color: var(--secondary-blue);
+            width: 20px;
+        }
+
+        /* Image Upload */
+        .image-upload-section {
+            background: var(--light-blue);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .image-preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .image-preview-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .image-preview-item:hover .image-actions {
+            opacity: 1;
+        }
+
+        .delete-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 1.5rem;
+            border: 2px dashed var(--secondary-blue);
+            border-radius: 8px;
+            text-align: center;
+            color: var(--secondary-blue);
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .file-input-label:hover {
+            background: rgba(52, 152, 219, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .file-input-label i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .file-input-label span {
+            font-weight: 600;
+        }
+
+        .file-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-list {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: var(--white);
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .file-item-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-item-remove {
+            color: var(--danger-red);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+        }
+
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--light-blue);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.8rem;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .btn-secondary {
+            background: var(--text-light);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #6c757d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--accent-blue), #1f618d);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Form Validation */
+        .form-error {
+            color: var(--danger-red);
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .form-success {
+            color: var(--success-green);
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .form-control.error {
+            border-color: var(--danger-red);
+        }
+
+        .form-control.success {
+            border-color: var(--success-green);
+        }
+
+        /* Price Preview */
+        .price-preview {
+            background: linear-gradient(135deg, #f8f9fa, var(--white));
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border-left: 4px solid var(--success-green);
+        }
+
+        .price-preview h4 {
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .price-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--success-green);
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .content-area {
+                padding: 1.5rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+            
+            .user-info {
+                text-align: center;
+            }
+            
+            .form-body {
+                padding: 1.5rem;
+            }
+            
+            .form-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-preview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: var(--secondary-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+        }
+
+        @media screen and (max-width: 1024px) {
+            .mobile-menu-toggle {
+                display: flex;
+            }
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-hotel"></i>
+                <span>Hôtel Admin</span>
+            </div>
+            <div class="sidebar-subtitle">
+                {% if user.is_superuser %}
+                Mode Administrateur
+                {% elif user.is_staff %}
+                Mode Employé
+                {% else %}
+                Mode Client
+                {% endif %}
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            {% if user.is_authenticated %}
+                <!-- Section Tableau de bord -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Tableau de bord</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="{% url 'dashboard' %}" class="nav-link">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Accueil</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Analytique</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Section Gestion -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestion</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="{% url 'reservation_list' %}" class="nav-link">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Réservations</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'chambre_list' %}" class="nav-link active">
+                                <i class="fas fa-bed"></i>
+                                <span>Chambres</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'client_list' %}" class="nav-link">
+                                <i class="fas fa-users"></i>
+                                <span>Clients</span>
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-user-tie"></i>
+                                <span>Employés</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Section Opérations -->
+                {% if user.is_staff %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Opérations</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Calendrier</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <span>Facturation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-box"></i>
+                                <span>Inventaire</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-tasks"></i>
+                                <span>Maintenance</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Section Rapports -->
+                {% if user.is_staff %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Rapports</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Statistiques</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-euro-sign"></i>
+                                <span>Finances</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>Performances</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Section Système -->
+                {% if user.is_superuser %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Système</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="/admin/" target="_blank" class="nav-link">
+                                <i class="fas fa-cogs"></i>
+                                <span>Paramètres</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-robot"></i>
+                                <span>Agent IA</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-bell"></i>
+                                <span>Notifications</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/" target="_blank" class="nav-link">
+                                <i class="fas fa-database"></i>
+                                <span>Admin Django</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+            {% endif %}
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-bed"></i>
+                <span>{{ action }} une chambre</span>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name">
+                        {% if user.get_full_name %}
+                            {{ user.get_full_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </div>
+                    <div class="user-role">
+                        {% if user.is_superuser %}
+                            <i class="fas fa-crown"></i> Administrateur
+                        {% elif user.is_staff %}
+                            <i class="fas fa-user-tie"></i> Employé
+                        {% else %}
+                            <i class="fas fa-user"></i> Client
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="user-avatar">
+                    {% if user.get_full_name %}
+                        {{ user.get_full_name|first|upper }}
+                    {% else %}
+                        {{ user.username|first|upper }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>
+                        <i class="fas fa-bed"></i>
+                        {{ action }} une chambre
+                    </h2>
+                    <div class="form-action">
+                        {% if action == 'Créer' %}
+                        Nouvelle chambre
+                        {% else %}
+                        Édition
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-body">
+                    <form method="post" enctype="multipart/form-data" id="roomForm">
+                        {% csrf_token %}
+                        
+                        <!-- Information de base -->
+                        <h3 style="color: var(--primary-blue); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-info-circle"></i> Informations de base
+                        </h3>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="numero" class="form-label required">
+                                    <i class="fas fa-hashtag"></i> Numéro de chambre
+                                </label>
+                                <input type="text" class="form-control" id="numero" name="numero" 
+                                       value="{{ chambre.numero|default:'' }}" required
+                                       placeholder="Ex: 101, 202, 305">
+                                <div id="numero-error" class="form-error" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i> Ce numéro est déjà utilisé
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="type_chambre" class="form-label required">
+                                    <i class="fas fa-star"></i> Type de chambre
+                                </label>
+                                <select class="form-select" id="type_chambre" name="type_chambre" required>
+                                    <option value="">Sélectionner un type</option>
+                                    {% for value, label in types %}
+                                    <option value="{{ value }}" {% if chambre.type_chambre == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="prix_par_nuit" class="form-label required">
+                                    <i class="fas fa-euro-sign"></i> Prix par nuit
+                                </label>
+                                <input type="number" step="0.01" class="form-control" id="prix_par_nuit" name="prix_par_nuit" 
+                                       value="{{ chambre.prix_par_nuit|default:'' }}" required
+                                       placeholder="Ex: 120.00" min="0">
+                                <div class="price-preview">
+                                    <h4>Prix estimé</h4>
+                                    <div class="price-amount" id="pricePreview">0.00 €</div>
+                                    <small>Taxes et services inclus</small>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="capacite" class="form-label required">
+                                    <i class="fas fa-user-friends"></i> Capacité
+                                </label>
+                                <select class="form-select" id="capacite" name="capacite" required>
+                                    <option value="1" {% if chambre.capacite == 1 %}selected{% endif %}>1 personne</option>
+                                    <option value="2" {% if chambre.capacite == 2 or not chambre.capacite %}selected{% endif %}>2 personnes</option>
+                                    <option value="3" {% if chambre.capacite == 3 %}selected{% endif %}>3 personnes</option>
+                                    <option value="4" {% if chambre.capacite == 4 %}selected{% endif %}>4 personnes</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Statut et description -->
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="statut" class="form-label required">
+                                    <i class="fas fa-circle"></i> Statut
+                                </label>
+                                <select class="form-select" id="statut" name="statut" required>
+                                    {% for value, label in statuts %}
+                                    <option value="{{ value }}" {% if chambre.statut == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-align-left"></i> Description
+                                </label>
+                                <textarea class="form-textarea" id="description" name="description" 
+                                          placeholder="Décrivez la chambre, ses équipements, la vue...">{{ chambre.description|default:'' }}</textarea>
+                                <div class="form-success" id="description-counter">
+                                    <i class="fas fa-check-circle"></i> 
+                                    <span id="char-count">0</span> caractères
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Équipements -->
+                        <h3 style="color: var(--primary-blue); margin: 2rem 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-concierge-bell"></i> Équipements
+                        </h3>
+                        
+                        <div class="checkbox-grid">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="climatisation" name="climatisation" 
+                                       {% if chambre.climatisation or not chambre %}checked{% endif %}>
+                                <label class="form-check-label" for="climatisation">
+                                    <i class="fas fa-wind"></i> Climatisation
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="wifi" name="wifi" 
+                                       {% if chambre.wifi or not chambre %}checked{% endif %}>
+                                <label class="form-check-label" for="wifi">
+                                    <i class="fas fa-wifi"></i> WiFi
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="television" name="television" 
+                                       {% if chambre.television or not chambre %}checked{% endif %}>
+                                <label class="form-check-label" for="television">
+                                    <i class="fas fa-tv"></i> Télévision
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="minibar" name="minibar" 
+                                       {% if chambre.minibar %}checked{% endif %}>
+                                <label class="form-check-label" for="minibar">
+                                    <i class="fas fa-glass-cheers"></i> Minibar
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="coffre_fort" name="coffre_fort" 
+                                       {% if chambre.coffre_fort %}checked{% endif %}>
+                                <label class="form-check-label" for="coffre_fort">
+                                    <i class="fas fa-lock"></i> Coffre-fort
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="balcon" name="balcon" 
+                                       {% if chambre.balcon %}checked{% endif %}>
+                                <label class="form-check-label" for="balcon">
+                                    <i class="fas fa-door-open"></i> Balcon
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Images -->
+                        <div class="image-upload-section">
+                            <h3 style="color: var(--primary-blue); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-images"></i> Images de la chambre
+                            </h3>
+                            
+                            <!-- Images existantes -->
+                            {% if chambre and chambre.images.exists %}
+                            <div class="image-preview-grid" id="existing-images">
+                                {% for img in chambre.images.all %}
+                                <div class="image-preview-item">
+                                    <img src="{{ img.image.url }}" alt="Image chambre {{ chambre.numero }}">
+                                    <div class="image-actions">
+                                        <label class="delete-checkbox">
+                                            <input type="checkbox" name="delete_image_{{ img.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Upload de nouvelles images -->
+                            <div class="file-input-wrapper">
+                                <label class="file-input-label" for="images">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>Glissez-déposez vos images ici</span>
+                                    <small>ou cliquez pour sélectionner</small>
+                                </label>
+                                <input type="file" class="file-input" id="images" name="images" accept="image/*" multiple>
+                            </div>
+                            
+                            <!-- Liste des fichiers sélectionnés -->
+                            <div class="file-list" id="file-list"></div>
+                        </div>
+                        
+                        <!-- Actions du formulaire -->
+                        <div class="form-actions">
+                            <a href="{% url 'chambre_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Annuler
+                            </a>
+                            
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i> Enregistrer
+                                <div class="loading-spinner" id="loadingSpinner"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.getElementById('mainContent');
+        
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+        });
+        
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        });
+
+        // Price preview
+        const priceInput = document.getElementById('prix_par_nuit');
+        const pricePreview = document.getElementById('pricePreview');
+        
+        function updatePricePreview() {
+            const price = parseFloat(priceInput.value) || 0;
+            pricePreview.textContent = price.toFixed(2) + ' €';
+            
+            // Add tax estimation (20% VAT)
+            const tax = price * 0.20;
+            // You could show this if needed
+        }
+        
+        priceInput.addEventListener('input', updatePricePreview);
+        updatePricePreview(); // Initial update
+
+        // Character counter for description
+        const descriptionTextarea = document.getElementById('description');
+        const charCount = document.getElementById('char-count');
+        
+        function updateCharCount() {
+            const length = descriptionTextarea.value.length;
+            charCount.textContent = length;
+            
+            if (length === 0) {
+                charCount.parentElement.style.color = 'var(--text-light)';
+            } else if (length < 50) {
+                charCount.parentElement.style.color = 'var(--warning-orange)';
+            } else {
+                charCount.parentElement.style.color = 'var(--success-green)';
+            }
+        }
+        
+        descriptionTextarea.addEventListener('input', updateCharCount);
+        updateCharCount(); // Initial update
+
+        // File upload handling
+        const fileInput = document.getElementById('images');
+        const fileList = document.getElementById('file-list');
+        
+        fileInput.addEventListener('change', function(e) {
+            fileList.innerHTML = '';
+            
+            Array.from(e.target.files).forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'file-item-name';
+                
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-file-image';
+                icon.style.color = 'var(--secondary-blue)';
+                
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+                
+                const fileSize = document.createElement('span');
+                fileSize.textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                fileSize.style.color = 'var(--text-light)';
+                fileSize.style.fontSize = '0.8em';
+                fileSize.style.marginLeft = '0.5rem';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'file-item-remove';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                
+                removeBtn.addEventListener('click', function() {
+                    // Remove file from input
+                    const dt = new DataTransfer();
+                    const files = Array.from(fileInput.files);
+                    files.splice(index, 1);
+                    files.forEach(f => dt.items.add(f));
+                    fileInput.files = dt.files;
+                    
+                    // Remove from list
+                    fileItem.remove();
+                    
+                    // Update event
+                    fileInput.dispatchEvent(new Event('change'));
+                });
+                
+                fileInfo.appendChild(icon);
+                fileInfo.appendChild(fileName);
+                fileInfo.appendChild(fileSize);
+                
+                fileItem.appendChild(fileInfo);
+                fileItem.appendChild(removeBtn);
+                fileList.appendChild(fileItem);
+            });
+        });
+
+        // Form validation
+        const roomForm = document.getElementById('roomForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const numeroError = document.getElementById('numero-error');
+        
+        roomForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Basic validation
+            const numero = document.getElementById('numero').value.trim();
+            const prix = parseFloat(document.getElementById('prix_par_nuit').value);
+            const capacite = document.getElementById('capacite').value;
+            
+            let isValid = true;
+            
+            // Validate room number
+            if (!numero || numero.length < 2) {
+                markInvalid('numero', 'Numéro de chambre invalide');
+                isValid = false;
+            } else {
+                markValid('numero');
+            }
+            
+            // Validate price
+            if (isNaN(prix) || prix <= 0) {
+                markInvalid('prix_par_nuit', 'Prix invalide');
+                isValid = false;
+            } else {
+                markValid('prix_par_nuit');
+            }
+            
+            // Validate capacity
+            if (!capacite) {
+                markInvalid('capacite', 'Capacité requise');
+                isValid = false;
+            } else {
+                markValid('capacite');
+            }
+            
+            if (!isValid) {
+                showNotification('Veuillez corriger les erreurs dans le formulaire', 'error');
+                return;
+            }
+            
+            // Check if room number already exists (for creation only)
+            {% if action == 'Créer' %}
+            try {
+                const response = await fetch(`/api/check-room-number/${numero}/`);
+                const data = await response.json();
+                
+                if (data.exists) {
+                    markInvalid('numero', 'Ce numéro de chambre existe déjà');
+                    numeroError.style.display = 'block';
+                    showNotification('Ce numéro de chambre est déjà utilisé', 'error');
+                    return;
+                } else {
+                    markValid('numero');
+                    numeroError.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erreur de vérification:', error);
+                // Continue anyway if check fails
+            }
+            {% endif %}
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement en cours...';
+            
+            // Submit form
+            setTimeout(() => {
+                roomForm.submit();
+            }, 1000);
+        });
+
+        function markInvalid(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            field.classList.add('error');
+            field.classList.remove('success');
+            
+            // Show error message if exists
+            const errorDiv = document.getElementById(`${fieldId}-error`);
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'flex';
+            }
+        }
+
+        function markValid(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.classList.remove('error');
+            field.classList.add('success');
+            
+            // Hide error message if exists
+            const errorDiv = document.getElementById(`${fieldId}-error`);
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.padding = '1rem 1.5rem';
+            notification.style.borderRadius = '8px';
+            notification.style.color = 'white';
+            notification.style.fontWeight = '600';
+            notification.style.zIndex = '10000';
+            notification.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            notification.style.display = 'flex';
+            notification.style.alignItems = 'center';
+            notification.style.gap = '0.8rem';
+            notification.style.animation = 'slideIn 0.3s ease';
+            
+            if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, var(--danger-red), #c0392b)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, var(--success-green), #229954)';
+            }
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S to save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                submitBtn.click();
+            }
+            
+            // Escape to cancel
+            if (e.key === 'Escape') {
+                window.location.href = "{% url 'chambre_list' %}";
+            }
+        });
+
+        // Auto-save draft (every 30 seconds)
+        let autoSaveTimer;
+        let isDraftSaved = false;
+        
+        function saveDraft() {
+            if (roomForm.checkValidity()) {
+                const formData = new FormData(roomForm);
+                // You could implement auto-save to localStorage or API
+                console.log('Auto-save draft...');
+                isDraftSaved = true;
+            }
+        }
+        
+        roomForm.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(saveDraft, 30000); // 30 seconds
+        });
+
+        // Warn before leaving if unsaved changes
+        window.addEventListener('beforeunload', function(e) {
+            if (!isDraftSaved && roomForm.checkValidity()) {
+                e.preventDefault();
+                e.returnValue = 'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?';
+            }
+        });
+
+        // Initialize form state
+        document.addEventListener('DOMContentLoaded', function() {
+            // Highlight current page in sidebar
+            const currentLinks = document.querySelectorAll('.nav-link[href*="chambre"]');
+            currentLinks.forEach(link => {
+                if (link.href.includes(window.location.pathname) || link.classList.contains('active')) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Animate form elements
+            const formGroups = document.querySelectorAll('.form-group');
+            formGroups.forEach((group, index) => {
+                setTimeout(() => {
+                    group.style.opacity = '0';
+                    group.style.transform = 'translateY(20px)';
+                    group.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    
+                    setTimeout(() => {
+                        group.style.opacity = '1';
+                        group.style.transform = 'translateY(0)';
+                    }, 50);
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

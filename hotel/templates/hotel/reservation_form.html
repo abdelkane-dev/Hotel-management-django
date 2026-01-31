@@ -1,0 +1,1776 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}{{ action }} une réservation - Gestion Hôtel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-calendar-plus"></i>
+<span>{{ action }} une réservation</span>
+{% endblock %}
+
+{% block content %}
+<div class="reservation-form-container">
+    <!-- Header avec étapes -->
+    <div class="form-header-steps">
+        <div class="steps-container">
+            <div class="step active" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Client & Chambre</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Dates & Détails</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="reservation-form-wrapper">
+        <!-- Panneau latéral d'informations -->
+        <div class="form-sidebar">
+            <div class="sidebar-card">
+                <div class="sidebar-header">
+                    <h4><i class="fas fa-info-circle"></i> Informations</h4>
+                </div>
+                <div class="sidebar-content">
+                    <div class="info-section">
+                        <h5><i class="fas fa-lightbulb"></i> Conseils</h5>
+                        <ul class="info-list">
+                            <li>Vérifiez la disponibilité des chambres</li>
+                            <li>Confirmez les dates avec le client</li>
+                            <li>Notez toutes les préférences spéciales</li>
+                            <li>Double-check les informations de contact</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h5><i class="fas fa-calculator"></i> Calcul du prix</h5>
+                        <div class="price-formula">
+                            <div class="formula-item">
+                                <span class="formula-label">Nuits :</span>
+                                <span class="formula-value" id="nightsPreview">0</span>
+                            </div>
+                            <div class="formula-item">
+                                <span class="formula-label">Prix/nuit :</span>
+                                <span class="formula-value" id="pricePerNightPreview">0€</span>
+                            </div>
+                            <div class="formula-divider">×</div>
+                            <div class="formula-total">
+                                <span class="total-label">Total estimé :</span>
+                                <span class="total-value" id="totalPricePreview">0€</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h5><i class="fas fa-history"></i> Réservations récentes</h5>
+                        <div class="recent-reservations">
+                            {% for recent in recent_reservations|slice:":3" %}
+                            <div class="recent-item">
+                                <div class="recent-client">
+                                    <i class="fas fa-user"></i>
+                                    {{ recent.client.nom_complet|truncatechars:15 }}
+                                </div>
+                                <div class="recent-dates">
+                                    {{ recent.date_entree|date:"d/m" }} → {{ recent.date_sortie|date:"d/m" }}
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted small">Aucune réservation récente</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire principal -->
+        <div class="form-main">
+            <div class="form-card">
+                <form method="post" id="reservationForm" class="reservation-form">
+                    {% csrf_token %}
+                    
+                    <!-- Étape 1 : Client & Chambre -->
+                    <div class="form-step active" id="step1">
+                        <div class="step-header">
+                            <h3><i class="fas fa-user-tie"></i> Sélection du client</h3>
+                            <p>Choisissez un client existant ou créez-en un nouveau</p>
+                        </div>
+                        
+                        <div class="client-selection">
+                            <div class="form-group">
+                                <label class="form-label required">
+                                    <i class="fas fa-user"></i>
+                                    <span>Client</span>
+                                </label>
+                                <div class="search-select-wrapper">
+                                    <div class="search-input-group">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" class="search-input" placeholder="Rechercher un client..." id="clientSearch">
+                                    </div>
+                                    <select class="form-select" id="clientSelect" name="client" required style="display: none;">
+                                        <option value="">Sélectionner un client</option>
+                                        {% for client in clients %}
+                                        <option value="{{ client.id }}" 
+                                                data-phone="{{ client.telephone|default:'Non renseigné' }}"
+                                                data-email="{{ client.email }}"
+                                                data-address="{{ client.adresse|default:'Non renseigné' }}">
+                                            {{ client.nom_complet }} - {{ client.email }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="client-preview" id="clientPreview" style="display: none;">
+                                    <div class="preview-header">
+                                        <div class="client-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="client-info">
+                                            <h5 id="clientName">Nom du client</h5>
+                                            <div class="client-details">
+                                                <span id="clientEmail">email@exemple.com</span>
+                                                <span id="clientPhone">Téléphone</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="preview-footer">
+                                        <a href="{% url 'client_create' %}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <div class="client-actions">
+                                    <a href="{% url 'client_create' %}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-plus"></i> Créer un nouveau client
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required">
+                                    <i class="fas fa-bed"></i>
+                                    <span>Sélection de la chambre</span>
+                                </label>
+                                
+                                <div class="room-grid" id="roomGrid">
+                                    {% for chambre in chambres %}
+                                    <div class="room-card {% if not chambre.est_disponible %}unavailable{% endif %}" 
+                                         data-id="{{ chambre.id }}"
+                                         data-price="{{ chambre.prix_par_nuit }}"
+                                         data-type="{{ chambre.get_type_chambre_display }}"
+                                         data-capacity="{{ chambre.capacite }}"
+                                         data-number="{{ chambre.numero }}">
+                                        <div class="room-header">
+                                            <div class="room-number">
+                                                <i class="fas fa-door-closed"></i>
+                                                {{ chambre.numero }}
+                                            </div>
+                                            <div class="room-status">
+                                                {% if chambre.est_disponible %}
+                                                <span class="status-available">Disponible</span>
+                                                {% else %}
+                                                <span class="status-occupied">Occupée</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="room-body">
+                                            <h5>{{ chambre.get_type_chambre_display }}</h5>
+                                            <div class="room-features">
+                                                <span class="feature">
+                                                    <i class="fas fa-user"></i>
+                                                    {{ chambre.capacite }} pers.
+                                                </span>
+                                                <span class="feature">
+                                                    <i class="fas fa-euro-sign"></i>
+                                                    {{ chambre.prix_par_nuit }}€/nuit
+                                                </span>
+                                            </div>
+                                            <div class="room-description">
+                                                {{ chambre.description|default:"Chambre confortable"|truncatechars:60 }}
+                                            </div>
+                                        </div>
+                                        <div class="room-footer">
+                                            {% if chambre.est_disponible %}
+                                            <button type="button" class="btn btn-sm btn-outline-primary select-room">
+                                                Sélectionner
+                                            </button>
+                                            {% else %}
+                                            <button type="button" class="btn btn-sm btn-secondary" disabled>
+                                                Indisponible
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="alert alert-warning">
+                                        Aucune chambre disponible pour le moment.
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <input type="hidden" id="selectedRoom" name="chambre" value="{{ form.chambre.value|default:'' }}" required>
+                                <div class="selected-room-preview" id="selectedRoomPreview" style="display: none;">
+                                    <div class="selected-room-info">
+                                        <h5><i class="fas fa-check-circle text-success"></i> Chambre sélectionnée</h5>
+                                        <div class="room-details">
+                                            <span id="selectedRoomNumber">-</span>
+                                            <span id="selectedRoomType">-</span>
+                                            <span id="selectedRoomPrice">-€/nuit</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-actions">
+                            <a href="{% url 'reservation_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="button" class="btn btn-primary btn-next-step" data-next="2">
+                                <span>Continuer vers les dates</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Étape 2 : Dates & Détails -->
+                    <div class="form-step" id="step2">
+                        <div class="step-header">
+                            <h3><i class="fas fa-calendar-alt"></i> Dates et détails du séjour</h3>
+                            <p>Définissez les dates et les préférences du séjour</p>
+                        </div>
+                        
+                        <div class="dates-section">
+                            <div class="date-picker-grid">
+                                <div class="date-picker">
+                                    <label class="form-label required">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        <span>Date d'arrivée</span>
+                                    </label>
+                                    <div class="date-input-group">
+                                        <input type="date" class="form-control date-input" 
+                                               id="date_entree" name="date_entree" 
+                                               value="{{ form.date_entree.value|date:'Y-m-d'|default:'' }}" 
+                                               required>
+                                        <button type="button" class="btn btn-outline-secondary btn-today">
+                                            Aujourd'hui
+                                        </button>
+                                    </div>
+                                    <div class="date-hint">
+                                        Heure d'arrivée standard : 14h00
+                                    </div>
+                                </div>
+                                
+                                <div class="date-picker">
+                                    <label class="form-label required">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span>Date de départ</span>
+                                    </label>
+                                    <div class="date-input-group">
+                                        <input type="date" class="form-control date-input" 
+                                               id="date_sortie" name="date_sortie" 
+                                               value="{{ form.date_sortie.value|date:'Y-m-d'|default:'' }}" 
+                                               required>
+                                        <button type="button" class="btn btn-outline-secondary btn-tomorrow">
+                                            Demain
+                                        </button>
+                                    </div>
+                                    <div class="date-hint">
+                                        Heure de départ standard : 11h00
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="stay-duration" id="stayDuration">
+                                <div class="duration-card">
+                                    <div class="duration-header">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Durée du séjour</span>
+                                    </div>
+                                    <div class="duration-content">
+                                        <div class="nights-count">
+                                            <span class="count" id="nightsCount">0</span>
+                                            <span class="label">nuit(s)</span>
+                                        </div>
+                                        <div class="dates-range">
+                                            <span id="datesRange">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="details-section">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <i class="fas fa-users"></i>
+                                        <span>Nombre de personnes</span>
+                                    </label>
+                                    <div class="person-counter">
+                                        <button type="button" class="btn-counter btn-minus">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" class="form-control counter-input" 
+                                               id="nombre_personnes" name="nombre_personnes" 
+                                               value="{{ form.nombre_personnes.value|default:'1' }}" 
+                                               min="1" max="10" required>
+                                        <button type="button" class="btn-counter btn-plus">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-hint">
+                                        Maximum selon la capacité de la chambre
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label required">
+                                        <i class="fas fa-flag"></i>
+                                        <span>Statut de la réservation</span>
+                                    </label>
+                                    <div class="status-selector">
+                                        {% for value, label in statuts %}
+                                        <label class="status-option">
+                                            <input type="radio" name="statut" value="{{ value }}"
+                                                   {% if form.statut.value == value %}checked{% endif %}
+                                                   {% if value == 'en_attente' and not form.statut.value %}checked{% endif %}>
+                                            <span class="status-label status-{{ value }}">
+                                                {{ label }}
+                                            </span>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-sticky-note"></i>
+                                    <span>Remarques et préférences</span>
+                                </label>
+                                <textarea class="form-control remarks-input" 
+                                          id="remarques" 
+                                          name="remarques" 
+                                          rows="3"
+                                          placeholder="Ajoutez des remarques, préférences spéciales, allergies alimentaires, etc.">{{ form.remarques.value|default:'' }}</textarea>
+                                <div class="form-hint">
+                                    Ces informations seront partagées avec le service hôtelier
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-actions">
+                            <button type="button" class="btn btn-outline-secondary btn-prev-step">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Retour aux chambres</span>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-next-step" data-next="3">
+                                <span>Continuer vers confirmation</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Étape 3 : Confirmation -->
+                    <div class="form-step" id="step3">
+                        <div class="step-header">
+                            <h3><i class="fas fa-check-circle"></i> Confirmation</h3>
+                            <p>Vérifiez les informations et finalisez la réservation</p>
+                        </div>
+                        
+                        <div class="confirmation-summary">
+                            <div class="summary-card">
+                                <div class="summary-section">
+                                    <h5><i class="fas fa-user-tie"></i> Client</h5>
+                                    <div class="summary-content" id="summaryClient">
+                                        Sélectionnez un client
+                                    </div>
+                                </div>
+                                
+                                <div class="summary-section">
+                                    <h5><i class="fas fa-bed"></i> Chambre</h5>
+                                    <div class="summary-content" id="summaryRoom">
+                                        Sélectionnez une chambre
+                                    </div>
+                                </div>
+                                
+                                <div class="summary-section">
+                                    <h5><i class="fas fa-calendar-alt"></i> Dates</h5>
+                                    <div class="summary-content" id="summaryDates">
+                                        Sélectionnez les dates
+                                    </div>
+                                </div>
+                                
+                                <div class="summary-section">
+                                    <h5><i class="fas fa-users"></i> Détails</h5>
+                                    <div class="summary-content">
+                                        <div class="summary-details">
+                                            <div class="detail-item">
+                                                <span class="detail-label">Nombre de personnes :</span>
+                                                <span class="detail-value" id="summaryPersons">1</span>
+                                            </div>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Statut :</span>
+                                                <span class="detail-value" id="summaryStatus">En attente</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="summary-section">
+                                    <h5><i class="fas fa-calculator"></i> Prix</h5>
+                                    <div class="summary-content">
+                                        <div class="price-breakdown">
+                                            <div class="breakdown-row">
+                                                <span id="nightsBreakdown">0 nuit(s) × 0€</span>
+                                                <span id="subtotalPrice">0€</span>
+                                            </div>
+                                            <div class="breakdown-total">
+                                                <strong>Total estimé :</strong>
+                                                <strong id="totalPrice">0€</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="final-actions">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="sendConfirmation" name="send_confirmation" checked>
+                                <label class="form-check-label" for="sendConfirmation">
+                                    Envoyer une confirmation par email au client
+                                </label>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="button" class="btn btn-outline-secondary btn-prev-step">
+                                    <i class="fas fa-arrow-left"></i>
+                                    <span>Modifier</span>
+                                </button>
+                                <button type="submit" class="btn btn-success btn-submit">
+                                    <i class="fas fa-check"></i>
+                                    <span>Finaliser la réservation</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Container principal */
+    .reservation-form-container {
+        padding: 20px;
+    }
+    
+    /* Étapes */
+    .form-header-steps {
+        background: linear-gradient(135deg, #3498db, #2c3e50);
+        padding: 2rem;
+        border-radius: 12px 12px 0 0;
+        margin-bottom: 2rem;
+    }
+    
+    .steps-container {
+        display: flex;
+        justify-content: space-between;
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .steps-container::before {
+        content: '';
+        position: absolute;
+        top: 24px;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.3);
+        z-index: 1;
+    }
+    
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        flex: 1;
+    }
+    
+    .step-circle {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 10px;
+        border: 4px solid #2c3e50;
+        transition: all 0.3s ease;
+    }
+    
+    .step.active .step-circle {
+        background: #3498db;
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+    }
+    
+    .step-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+    }
+    
+    .step.active .step-label {
+        color: white;
+    }
+    
+    /* Wrapper principal */
+    .reservation-form-wrapper {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        min-height: 600px;
+    }
+    
+    /* Sidebar */
+    .form-sidebar {
+        position: sticky;
+        top: 100px;
+        height: fit-content;
+    }
+    
+    .sidebar-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    .sidebar-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 1.25rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .sidebar-header h4 {
+        color: #3498db;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .sidebar-content {
+        padding: 1.5rem;
+    }
+    
+    .info-section {
+        margin-bottom: 2rem;
+    }
+    
+    .info-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .info-section h5 {
+        color: #3498db;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .info-list li {
+        padding: 0.5rem 0;
+        color: #666;
+        font-size: 0.9rem;
+        position: relative;
+        padding-left: 1.5rem;
+    }
+    
+    .info-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #27ae60;
+        font-weight: bold;
+    }
+    
+    .price-formula {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .formula-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .formula-label {
+        color: #666;
+    }
+    
+    .formula-value {
+        color: #3498db;
+        font-weight: 600;
+    }
+    
+    .formula-divider {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #666;
+        margin: 0.5rem 0;
+    }
+    
+    .formula-total {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 0.5rem;
+        border-top: 1px solid #e0e0e0;
+        margin-top: 0.5rem;
+    }
+    
+    .total-label {
+        color: #3498db;
+        font-weight: 600;
+    }
+    
+    .total-value {
+        color: #27ae60;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .recent-reservations {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .recent-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+    
+    .recent-client {
+        color: #3498db;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .recent-dates {
+        color: #666;
+    }
+    
+    /* Formulaire principal */
+    .form-main {
+        flex: 1;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        min-height: 600px;
+    }
+    
+    .form-step {
+        padding: 2rem;
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .form-step.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .step-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .step-header h3 {
+        color: #3498db;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .step-header p {
+        color: #666;
+    }
+    
+    /* Client selection */
+    .search-select-wrapper {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    
+    .search-input-group {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    
+    .search-input-group i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .client-preview {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 1rem;
+    }
+    
+    .preview-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .client-avatar {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #3498db, #9b59b6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .client-info {
+        flex: 1;
+    }
+    
+    .client-info h5 {
+        color: #3498db;
+        margin-bottom: 0.25rem;
+    }
+    
+    .client-details {
+        display: flex;
+        gap: 1rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .preview-footer {
+        text-align: right;
+    }
+    
+    .client-actions {
+        margin-top: 1rem;
+    }
+    
+    /* Room selection */
+    .room-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .room-card {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .room-card:hover:not(.unavailable) {
+        border-color: #3498db;
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+    }
+    
+    .room-card.selected {
+        border-color: #27ae60;
+        background: rgba(39, 174, 96, 0.05);
+    }
+    
+    .room-card.unavailable {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .room-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .room-number {
+        font-weight: 600;
+        color: #3498db;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .room-status .status-available {
+        color: #27ae60;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: rgba(39, 174, 96, 0.1);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    
+    .room-status .status-occupied {
+        color: #e74c3c;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: rgba(231, 76, 60, 0.1);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    
+    .room-body {
+        padding: 1rem;
+    }
+    
+    .room-body h5 {
+        color: #3498db;
+        margin-bottom: 0.75rem;
+    }
+    
+    .room-features {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .room-features .feature {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .room-description {
+        color: #666;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    
+    .room-footer {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+        text-align: center;
+    }
+    
+    .selected-room-preview {
+        background: rgba(39, 174, 96, 0.1);
+        border: 1px solid rgba(39, 174, 96, 0.2);
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .selected-room-info h5 {
+        color: #27ae60;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .room-details {
+        display: flex;
+        gap: 1rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    /* Dates section */
+    .date-picker-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .date-input-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .date-input-group .form-control {
+        flex: 1;
+    }
+    
+    .btn-today, .btn-tomorrow {
+        white-space: nowrap;
+    }
+    
+    .date-hint {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+    
+    .stay-duration {
+        margin-bottom: 2rem;
+    }
+    
+    .duration-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .duration-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #3498db;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .duration-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .nights-count {
+        text-align: center;
+    }
+    
+    .nights-count .count {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #3498db;
+        display: block;
+        line-height: 1;
+    }
+    
+    .nights-count .label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .dates-range {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    /* Person counter */
+    .person-counter {
+        display: flex;
+        gap: 0.5rem;
+        max-width: 200px;
+    }
+    
+    .btn-counter {
+        width: 40px;
+        height: 40px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        color: #3498db;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-counter:hover {
+        background: #f8f9fa;
+    }
+    
+    .counter-input {
+        flex: 1;
+        text-align: center;
+        font-weight: 600;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+    }
+    
+    /* Status selector */
+    .status-selector {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .status-option {
+        cursor: pointer;
+    }
+    
+    .status-option input[type="radio"] {
+        display: none;
+    }
+    
+    .status-label {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .status-option input[type="radio"]:checked + .status-label {
+        border-color: currentColor;
+    }
+    
+    .status-en_attente {
+        color: #f39c12;
+    }
+    
+    .status-confirmee {
+        color: #27ae60;
+    }
+    
+    .status-en_cours {
+        color: #3498db;
+    }
+    
+    .status-terminee {
+        color: #666;
+    }
+    
+    .status-annulee {
+        color: #e74c3c;
+    }
+    
+    /* Confirmation summary */
+    .confirmation-summary {
+        margin-bottom: 2rem;
+    }
+    
+    .summary-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        padding: 1.5rem;
+    }
+    
+    .summary-section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .summary-section:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .summary-section h5 {
+        color: #3498db;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .summary-content {
+        font-size: 1rem;
+        color: #333;
+    }
+    
+    .summary-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .detail-label {
+        color: #666;
+    }
+    
+    .detail-value {
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .price-breakdown {
+        max-width: 300px;
+    }
+    
+    .breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .breakdown-total {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+        border-top: 2px solid #e0e0e0;
+        color: #3498db;
+        font-size: 1.1rem;
+    }
+    
+    /* Form controls */
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #3498db;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-label.required::after {
+        content: "*";
+        color: #e74c3c;
+        margin-left: 4px;
+    }
+    
+    .form-control {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .form-hint {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Actions */
+    .step-actions, .final-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 2rem;
+        margin-top: 2rem;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-outline-secondary {
+        background: white;
+        color: #333;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .btn-outline-secondary:hover {
+        background: #f8f9fa;
+    }
+    
+    .btn-primary {
+        background: #3498db;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+    
+    .btn-success {
+        background: #27ae60;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #229954;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+    }
+    
+    .form-check-label {
+        cursor: pointer;
+        color: #333;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .reservation-form-wrapper {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-sidebar {
+            position: static;
+            order: 2;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .form-header-steps {
+            padding: 1.5rem;
+        }
+        
+        .steps-container {
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .steps-container::before {
+            display: none;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            font-size: 0.9rem;
+        }
+        
+        .date-picker-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .room-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .step-actions, .final-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            width: 100%;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .form-step {
+            padding: 1.5rem;
+        }
+        
+        .client-details {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .duration-content {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .status-selector {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Variables
+    const steps = document.querySelectorAll('.form-step');
+    const stepButtons = document.querySelectorAll('.step');
+    let currentStep = 1;
+    let selectedRoom = null;
+    let selectedClient = null;
+    
+    // Initialisation
+    initForm();
+    
+    function initForm() {
+        // Navigation entre étapes
+        document.querySelectorAll('.btn-next-step').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const nextStep = parseInt(this.dataset.next);
+                if (validateStep(currentStep)) {
+                    showStep(nextStep);
+                    updateSummary();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+        });
+        
+        document.querySelectorAll('.btn-prev-step').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const prevStep = currentStep - 1;
+                if (prevStep >= 1) {
+                    showStep(prevStep);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Sélection de chambre
+        document.querySelectorAll('.select-room').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const roomCard = this.closest('.room-card');
+                selectRoom(roomCard);
+            });
+        });
+        
+        // Recherche de client
+        const clientSearch = document.getElementById('clientSearch');
+        const clientSelect = document.getElementById('clientSelect');
+        
+        if (clientSearch && clientSelect) {
+            clientSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const options = clientSelect.options;
+                
+                for (let i = 0; i < options.length; i++) {
+                    const option = options[i];
+                    const text = option.text.toLowerCase();
+                    option.style.display = text.includes(searchTerm) ? '' : 'none';
+                }
+                
+                clientSelect.size = Math.min(options.length, 5);
+                clientSelect.style.display = 'block';
+            });
+            
+            clientSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    selectClient(selectedOption);
+                }
+            });
+        }
+        
+        // Dates
+        document.querySelectorAll('.btn-today').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('date_entree').value = today;
+                updateDuration();
+            });
+        });
+        
+        document.querySelectorAll('.btn-tomorrow').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('date_sortie').value = tomorrow.toISOString().split('T')[0];
+                updateDuration();
+            });
+        });
+        
+        // Compteur de personnes
+        const minusBtn = document.querySelector('.btn-minus');
+        const plusBtn = document.querySelector('.btn-plus');
+        const counterInput = document.getElementById('nombre_personnes');
+        
+        if (minusBtn && plusBtn && counterInput) {
+            minusBtn.addEventListener('click', function() {
+                let value = parseInt(counterInput.value);
+                if (value > 1) {
+                    counterInput.value = value - 1;
+                }
+            });
+            
+            plusBtn.addEventListener('click', function() {
+                let value = parseInt(counterInput.value);
+                const maxCapacity = selectedRoom ? parseInt(selectedRoom.capacity) : 10;
+                if (value < maxCapacity) {
+                    counterInput.value = value + 1;
+                }
+            });
+        }
+        
+        // Événements de dates
+        document.getElementById('date_entree').addEventListener('change', updateDuration);
+        document.getElementById('date_sortie').addEventListener('change', updateDuration);
+        
+        // Initialiser
+        showStep(1);
+        updateDuration();
+    }
+    
+    function showStep(stepNumber) {
+        // Masquer toutes les étapes
+        steps.forEach(step => {
+            step.classList.remove('active');
+        });
+        
+        // Afficher l'étape active
+        const activeStep = document.getElementById('step' + stepNumber);
+        if (activeStep) {
+            activeStep.classList.add('active');
+        }
+        
+        // Mettre à jour les indicateurs d'étapes
+        stepButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if (parseInt(btn.dataset.step) <= stepNumber) {
+                btn.classList.add('active');
+            }
+        });
+        
+        currentStep = stepNumber;
+    }
+    
+    function validateStep(stepNumber) {
+        if (stepNumber === 1) {
+            const clientSelect = document.getElementById('clientSelect');
+            const roomInput = document.getElementById('selectedRoom');
+            
+            if (!clientSelect.value) {
+                alert('Veuillez sélectionner un client.');
+                return false;
+            }
+            
+            if (!roomInput.value) {
+                alert('Veuillez sélectionner une chambre.');
+                return false;
+            }
+            
+            return true;
+            
+        } else if (stepNumber === 2) {
+            const dateEntree = document.getElementById('date_entree').value;
+            const dateSortie = document.getElementById('date_sortie').value;
+            
+            if (!dateEntree || !dateSortie) {
+                alert('Veuillez remplir les dates d\'arrivée et de départ.');
+                return false;
+            }
+            
+            const entree = new Date(dateEntree);
+            const sortie = new Date(dateSortie);
+            
+            if (entree >= sortie) {
+                alert('La date de départ doit être après la date d\'arrivée.');
+                return false;
+            }
+            
+            // Vérifier la capacité
+            const nombrePersonnes = parseInt(document.getElementById('nombre_personnes').value);
+            if (selectedRoom && nombrePersonnes > parseInt(selectedRoom.capacity)) {
+                alert(`Cette chambre ne peut accueillir que ${selectedRoom.capacity} personne(s).`);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        return true;
+    }
+    
+    function selectRoom(roomCard) {
+        // Retirer la sélection précédente
+        document.querySelectorAll('.room-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Ajouter la nouvelle sélection
+        roomCard.classList.add('selected');
+        selectedRoom = {
+            id: roomCard.dataset.id,
+            number: roomCard.dataset.number,
+            type: roomCard.dataset.type,
+            price: roomCard.dataset.price,
+            capacity: roomCard.dataset.capacity
+        };
+        
+        // Mettre à jour le champ caché
+        document.getElementById('selectedRoom').value = selectedRoom.id;
+        
+        // Afficher la prévisualisation
+        const preview = document.getElementById('selectedRoomPreview');
+        preview.style.display = 'block';
+        document.getElementById('selectedRoomNumber').textContent = `Chambre ${selectedRoom.number}`;
+        document.getElementById('selectedRoomType').textContent = selectedRoom.type;
+        document.getElementById('selectedRoomPrice').textContent = `${selectedRoom.price}€/nuit`;
+        
+        // Mettre à jour la sidebar
+        document.getElementById('pricePerNightPreview').textContent = `${selectedRoom.price}€`;
+        
+        // Recalculer le prix
+        updateDuration();
+        
+        // Ajuster le nombre de personnes si nécessaire
+        const nombrePersonnes = document.getElementById('nombre_personnes');
+        const currentValue = parseInt(nombrePersonnes.value);
+        const maxCapacity = parseInt(selectedRoom.capacity);
+        
+        if (currentValue > maxCapacity) {
+            nombrePersonnes.value = maxCapacity;
+        }
+        nombrePersonnes.max = maxCapacity;
+    }
+    
+    function selectClient(selectedOption) {
+        selectedClient = {
+            id: selectedOption.value,
+            name: selectedOption.text.split(' - ')[0],
+            email: selectedOption.dataset.email,
+            phone: selectedOption.dataset.phone,
+            address: selectedOption.dataset.address
+        };
+        
+        // Afficher la prévisualisation
+        const preview = document.getElementById('clientPreview');
+        preview.style.display = 'block';
+        document.getElementById('clientName').textContent = selectedClient.name;
+        document.getElementById('clientEmail').textContent = selectedClient.email;
+        document.getElementById('clientPhone').textContent = selectedClient.phone;
+        
+        // Cacher le select
+        document.getElementById('clientSelect').style.display = 'none';
+        document.getElementById('clientSearch').value = selectedClient.name;
+    }
+    
+    function updateDuration() {
+        const dateEntree = document.getElementById('date_entree').value;
+        const dateSortie = document.getElementById('date_sortie').value;
+        
+        if (dateEntree && dateSortie) {
+            const entree = new Date(dateEntree);
+            const sortie = new Date(dateSortie);
+            const diffTime = Math.abs(sortie - entree);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Mettre à jour l'affichage
+            document.getElementById('nightsCount').textContent = diffDays;
+            document.getElementById('datesRange').textContent = 
+                `${formatDate(entree)} → ${formatDate(sortie)}`;
+            document.getElementById('nightsPreview').textContent = diffDays;
+            
+            // Calculer le prix
+            calculatePrice(diffDays);
+        }
+    }
+    
+    function calculatePrice(nights) {
+        let pricePerNight = 0;
+        if (selectedRoom) {
+            pricePerNight = parseFloat(selectedRoom.price);
+        }
+        
+        const totalPrice = nights * pricePerNight;
+        
+        // Mettre à jour la sidebar
+        document.getElementById('totalPricePreview').textContent = `${totalPrice.toFixed(2)}€`;
+    }
+    
+    function formatDate(date) {
+        return date.toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+    
+    function updateSummary() {
+        // Client
+        if (selectedClient) {
+            document.getElementById('summaryClient').textContent = selectedClient.name;
+        } else if (document.getElementById('clientSelect').value) {
+            const clientSelect = document.getElementById('clientSelect');
+            const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+            if (selectedOption.value) {
+                document.getElementById('summaryClient').textContent = selectedOption.text.split(' - ')[0];
+            }
+        }
+        
+        // Chambre
+        if (selectedRoom) {
+            document.getElementById('summaryRoom').textContent = 
+                `Chambre ${selectedRoom.number} - ${selectedRoom.type}`;
+        } else if (document.getElementById('selectedRoom').value) {
+            const roomId = document.getElementById('selectedRoom').value;
+            const roomCard = document.querySelector(`.room-card[data-id="${roomId}"]`);
+            if (roomCard) {
+                document.getElementById('summaryRoom').textContent = 
+                    `Chambre ${roomCard.dataset.number} - ${roomCard.dataset.type}`;
+            }
+        }
+        
+        // Dates
+        const dateEntree = document.getElementById('date_entree').value;
+        const dateSortie = document.getElementById('date_sortie').value;
+        if (dateEntree && dateSortie) {
+            const entree = new Date(dateEntree);
+            const sortie = new Date(dateSortie);
+            const diffTime = Math.abs(sortie - entree);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('summaryDates').textContent = 
+                `${formatDate(entree)} → ${formatDate(sortie)} (${diffDays} nuit${diffDays > 1 ? 's' : ''})`;
+        }
+        
+        // Détails
+        const nombrePersonnes = document.getElementById('nombre_personnes').value;
+        document.getElementById('summaryPersons').textContent = nombrePersonnes;
+        
+        const selectedStatus = document.querySelector('input[name="statut"]:checked');
+        if (selectedStatus) {
+            const statusLabel = selectedStatus.nextElementSibling.textContent;
+            document.getElementById('summaryStatus').textContent = statusLabel;
+        }
+        
+        // Prix
+        const dateEntree2 = document.getElementById('date_entree').value;
+        const dateSortie2 = document.getElementById('date_sortie').value;
+        let pricePerNight = 0;
+        
+        if (selectedRoom) {
+            pricePerNight = parseFloat(selectedRoom.price);
+        }
+        
+        if (dateEntree2 && dateSortie2) {
+            const entree = new Date(dateEntree2);
+            const sortie = new Date(dateSortie2);
+            const diffTime = Math.abs(sortie - entree);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const totalPrice = diffDays * pricePerNight;
+            
+            document.getElementById('nightsBreakdown').textContent = 
+                `${diffDays} nuit${diffDays > 1 ? 's' : ''} × ${pricePerNight}€`;
+            document.getElementById('subtotalPrice').textContent = `${totalPrice.toFixed(2)}€`;
+            document.getElementById('totalPrice').textContent = `${totalPrice.toFixed(2)}€`;
+        }
+    }
+});
+</script>
+{% endblock %}

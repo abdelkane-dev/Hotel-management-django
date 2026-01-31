@@ -1,0 +1,573 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Licencier - {{ employee.username }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-slash"></i>
+<span>Licencier un employé</span>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-exclamation-triangle text-danger me-2"></i>Licenciement de {{ employee.username }}</h2>
+    </div>
+    
+    <div class="card-body">
+        <!-- Avertissement sérieux -->
+        <div class="alert alert-danger alert-critical">
+            <div class="alert-icon">
+                <i class="fas fa-radiation"></i>
+            </div>
+            <div class="alert-content">
+                <h4><i class="fas fa-exclamation-circle me-2"></i>Action irréversible</h4>
+                <p class="mb-0">Cette action est permanente et aura des conséquences significatives. Veuillez vérifier toutes les informations avant de continuer.</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="termination-card">
+                    <h4 class="mb-3"><i class="fas fa-user-tie me-2"></i>Informations sur l'employé</h4>
+                    
+                    <div class="employee-info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Nom complet</div>
+                            <div class="info-value">
+                                {% if employee.get_full_name %}
+                                    {{ employee.get_full_name }}
+                                {% else %}
+                                    {{ employee.username }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Poste actuel</div>
+                            <div class="info-value">
+                                {{ profile.poste|default:"Non défini" }}
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value">
+                                {{ employee.email|default:"Non défini" }}
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Date d'embauche</div>
+                            <div class="info-value">
+                                {{ employee.date_joined|date:"d/m/Y" }}
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Dernière connexion</div>
+                            <div class="info-value">
+                                {% if employee.last_login %}
+                                    {{ employee.last_login|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Jamais
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Statut actuel</div>
+                            <div class="info-value">
+                                {% if employee.is_active %}
+                                    <span class="status-badge active">Actif</span>
+                                {% else %}
+                                    <span class="status-badge inactive">Inactif</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulaire de licenciement -->
+                    <form method="post" class="termination-form mt-4">
+                        {% csrf_token %}
+                        
+                        <div class="form-section">
+                            <h4 class="mb-3"><i class="fas fa-file-alt me-2"></i>Documentation du licenciement</h4>
+                            
+                            <div class="mb-4">
+                                <label class="form-label required">
+                                    <i class="fas fa-balance-scale me-1"></i>Raison du licenciement
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-comment-medical"></i>
+                                    </span>
+                                    <textarea 
+                                        name="reason" 
+                                        class="form-control" 
+                                        rows="5"
+                                        placeholder="Détaillez les raisons du licenciement. Cette information sera conservée dans les archives et pourra être consultée ultérieurement..."
+                                        required
+                                    ></textarea>
+                                </div>
+                                <div class="form-text">
+                                    Soyez précis et factuel. Incluez les dates, les incidents, et toute documentation pertinente.
+                                </div>
+                            </div>
+                            
+                            <!-- Checklist de confirmation -->
+                            <div class="confirmation-checklist mb-4">
+                                <h5><i class="fas fa-clipboard-check me-2"></i>Checklist de vérification</h5>
+                                
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="check1" class="checklist-input" required>
+                                    <label for="check1" class="checklist-label">
+                                        <i class="fas fa-check-circle checklist-icon"></i>
+                                        J'ai informé l'employé de cette décision
+                                    </label>
+                                </div>
+                                
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="check2" class="checklist-input" required>
+                                    <label for="check2" class="checklist-label">
+                                        <i class="fas fa-check-circle checklist-icon"></i>
+                                        Toutes les procédures légales ont été respectées
+                                    </label>
+                                </div>
+                                
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="check3" class="checklist-input" required>
+                                    <label for="check3" class="checklist-label">
+                                        <i class="fas fa-check-circle checklist-icon"></i>
+                                        Le service RH a été consulté
+                                    </label>
+                                </div>
+                                
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="check4" class="checklist-input" required>
+                                    <label for="check4" class="checklist-label">
+                                        <i class="fas fa-check-circle checklist-icon"></i>
+                                        Tous les documents sont en ordre
+                                    </label>
+                                </div>
+                                
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="check5" class="checklist-input" required>
+                                    <label for="check5" class="checklist-label">
+                                        <i class="fas fa-check-circle checklist-icon"></i>
+                                        Je comprends que cette action est irréversible
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Actions -->
+                            <div class="form-actions">
+                                <a href="{% url 'employee_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>Annuler
+                                </a>
+                                <button type="submit" class="btn btn-danger" id="confirmTermination">
+                                    <i class="fas fa-user-slash me-2"></i>Confirmer le licenciement
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Panel de conséquences -->
+                <div class="consequences-panel">
+                    <h4><i class="fas fa-exclamation-triangle text-danger me-2"></i>Conséquences</h4>
+                    
+                    <div class="consequences-list">
+                        <div class="consequence-item severe">
+                            <i class="fas fa-ban consequence-icon"></i>
+                            <div class="consequence-content">
+                                <h6>Compte désactivé</h6>
+                                <p>L'accès au système sera immédiatement révoqué</p>
+                            </div>
+                        </div>
+                        
+                        <div class="consequence-item severe">
+                            <i class="fas fa-calendar-times consequence-icon"></i>
+                            <div class="consequence-content">
+                                <h6>Statut modifié</h6>
+                                <p>Le statut sera changé en "Renvoyé" dans les archives</p>
+                            </div>
+                        </div>
+                        
+                        <div class="consequence-item warning">
+                            <i class="fas fa-history consequence-icon"></i>
+                            <div class="consequence-content">
+                                <h6>Historique permanent</h6>
+                                <p>Cette action sera enregistrée dans l'historique des employés</p>
+                            </div>
+                        </div>
+                        
+                        <div class="consequence-item info">
+                            <i class="fas fa-file-contract consequence-icon"></i>
+                            <div class="consequence-content">
+                                <h6>Documentation requise</h6>
+                                <p>Toutes les raisons doivent être documentées légalement</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Avertissement légal -->
+                    <div class="legal-notice mt-4">
+                        <h5><i class="fas fa-gavel me-2"></i>Avertissement légal</h5>
+                        <p class="small">
+                            Assurez-vous de respecter toutes les lois du travail locales et nationales. 
+                            Un licenciement injustifié peut entraîner des conséquences légales.
+                        </p>
+                    </div>
+                    
+                    <!-- Contact RH -->
+                    <div class="support-card mt-3">
+                        <h6><i class="fas fa-headset me-2"></i>Besoin d'aide ?</h6>
+                        <p class="small mb-2">Contactez le service RH :</p>
+                        <a href="mailto:rh@hotel.com" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-envelope me-1"></i>Contacter RH
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .alert-critical {
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(192, 57, 43, 0.1));
+        border: 2px solid var(--danger-red);
+        border-left: 6px solid var(--danger-red);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .alert-icon {
+        font-size: 2rem;
+        margin-right: 1.5rem;
+        color: var(--danger-red);
+    }
+    
+    .alert-content h4 {
+        color: var(--danger-red);
+        margin-bottom: 0.5rem;
+    }
+    
+    .termination-card {
+        background: var(--white);
+        padding: 2rem;
+        border-radius: 10px;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .employee-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .info-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--primary-blue);
+    }
+    
+    .info-label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: var(--primary-blue);
+        font-size: 1rem;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-badge.active {
+        background: rgba(39, 174, 96, 0.15);
+        color: var(--success-green);
+        border: 1px solid rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-badge.inactive {
+        background: rgba(231, 76, 60, 0.15);
+        color: var(--danger-red);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+    }
+    
+    .form-section {
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.05), rgba(192, 57, 43, 0.02));
+        border-radius: 10px;
+        border: 1px solid rgba(231, 76, 60, 0.1);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .form-label.required:after {
+        content: "*";
+        color: var(--danger-red);
+        margin-left: 4px;
+    }
+    
+    .input-group {
+        margin-bottom: 1rem;
+    }
+    
+    .input-group-text {
+        background-color: rgba(231, 76, 60, 0.1);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+        color: var(--danger-red);
+    }
+    
+    .form-control {
+        border: 1px solid rgba(231, 76, 60, 0.2);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        transition: var(--transition);
+    }
+    
+    .form-control:focus {
+        border-color: var(--danger-red);
+        box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    }
+    
+    .form-text {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+    
+    .confirmation-checklist {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 1px solid var(--light-blue);
+        margin-top: 2rem;
+    }
+    
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: var(--transition);
+    }
+    
+    .checklist-item:hover {
+        background: #e9ecef;
+    }
+    
+    .checklist-input {
+        margin-right: 1rem;
+        width: 20px;
+        height: 20px;
+        accent-color: var(--success-green);
+    }
+    
+    .checklist-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--primary-blue);
+    }
+    
+    .checklist-icon {
+        margin-right: 0.75rem;
+        color: var(--success-green);
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(231, 76, 60, 0.1);
+    }
+    
+    .consequences-panel {
+        background: linear-gradient(135deg, #fff, #f8f9fa);
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        position: sticky;
+        top: 100px;
+    }
+    
+    .consequences-list {
+        margin-top: 1rem;
+    }
+    
+    .consequence-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    
+    .consequence-item.severe {
+        background: rgba(231, 76, 60, 0.08);
+        border-left: 4px solid var(--danger-red);
+    }
+    
+    .consequence-item.warning {
+        background: rgba(243, 156, 18, 0.08);
+        border-left: 4px solid var(--warning-orange);
+    }
+    
+    .consequence-item.info {
+        background: rgba(52, 152, 219, 0.08);
+        border-left: 4px solid var(--secondary-blue);
+    }
+    
+    .consequence-icon {
+        font-size: 1.25rem;
+        margin-right: 1rem;
+        margin-top: 0.25rem;
+    }
+    
+    .consequence-item.severe .consequence-icon {
+        color: var(--danger-red);
+    }
+    
+    .consequence-item.warning .consequence-icon {
+        color: var(--warning-orange);
+    }
+    
+    .consequence-item.info .consequence-icon {
+        color: var(--secondary-blue);
+    }
+    
+    .consequence-content h6 {
+        margin-bottom: 0.25rem;
+        color: var(--primary-blue);
+    }
+    
+    .consequence-content p {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin: 0;
+    }
+    
+    .legal-notice {
+        background: #2c3e50;
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--warning-orange);
+    }
+    
+    .legal-notice h5 {
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+    
+    .support-card {
+        background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.05));
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .support-card h6 {
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, var(--danger-red), #c0392b);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+    
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #c0392b, #a93226);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+        .employee-info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+        
+        .consequences-panel {
+            position: static;
+            margin-top: 2rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmBtn = document.getElementById('confirmTermination');
+        const form = document.querySelector('.termination-form');
+        
+        confirmBtn.addEventListener('click', function(e) {
+            const checkboxes = document.querySelectorAll('.checklist-input:required');
+            let allChecked = true;
+            
+            checkboxes.forEach(cb => {
+                if (!cb.checked) allChecked = false;
+            });
+            
+            if (!allChecked) {
+                e.preventDefault();
+                alert('Veuillez cocher toutes les cases de la checklist avant de continuer.');
+                return;
+            }
+            
+            const reason = document.querySelector('textarea[name="reason"]').value.trim();
+            if (reason.length < 10) {
+                e.preventDefault();
+                alert('Veuillez fournir une raison détaillée (au moins 10 caractères).');
+                return;
+            }
+            
+            const confirmed = confirm('⚠️ ACTION IRRÉVERSIBLE ⚠️\n\nÊtes-vous ABSOLUMENT certain de vouloir licencier cet employé ?\n\nCette action ne peut pas être annulée.');
+            
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

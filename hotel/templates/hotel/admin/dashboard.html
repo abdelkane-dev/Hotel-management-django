@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Hôtel de Luxe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Variables CSS - Palette bleue admin */
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --purple: #9b59b6;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --sidebar-width: 250px;
+            --sidebar-collapsed: 70px;
+        }
+
+        /* Reset et styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark-blue), var(--primary-blue));
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            color: var(--light-blue);
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            padding-left: 2rem;
+        }
+
+        .nav-link.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--white);
+            border-left: 3px solid var(--secondary-blue);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-badge {
+            background: var(--danger-red);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 0;
+            transition: var(--transition);
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--purple), var(--secondary-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Profile popup */
+        .profile-popup {
+            position: absolute;
+            right: 2rem;
+            top: 62px;
+            width: 260px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            overflow: hidden;
+            transform-origin: top right;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 120;
+        }
+
+        .profile-popup.open {
+            opacity: 1;
+            transform: translateY(6px) scale(1);
+            pointer-events: auto;
+        }
+
+        .profile-popup-header {
+            display: flex;
+            gap: 0.8rem;
+            padding: 0.9rem;
+            align-items: center;
+            border-bottom: 1px solid var(--light-blue);
+        }
+
+        .profile-popup-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--purple), var(--secondary-blue));
+            color: white;
+            font-weight: 700;
+        }
+
+        .profile-popup-info .profile-popup-name {
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .profile-popup-info .profile-popup-email {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .profile-popup-body {
+            padding: 0.9rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-popup form { margin: 0; }
+
+        /* Content area */
+        .content-area {
+            padding: 2rem;
+        }
+
+        /* Welcome banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .welcome-icon {
+            font-size: 3rem;
+            color: var(--secondary-blue);
+        }
+
+        .welcome-text h2 {
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .welcome-text p {
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+        /* Dashboard cards */
+        .dashboard-grid {
+            display: grid;
+            /* reduce min width so more cards fit per row */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .stat-card.bg-primary::before { background: var(--primary-blue); }
+        .stat-card.bg-success::before { background: var(--success-green); }
+        .stat-card.bg-warning::before { background: var(--warning-orange); }
+        .stat-card.bg-info::before { background: var(--secondary-blue); }
+        .stat-card.bg-danger::before { background: var(--danger-red); }
+        .stat-card.bg-purple::before { background: var(--purple); }
+
+        .stat-icon {
+            font-size: 1.4rem;
+            margin-bottom: 0.6rem;
+            display: inline-block;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .stat-card.bg-primary .stat-icon { 
+            background: rgba(44, 62, 80, 0.1);
+            color: var(--primary-blue);
+        }
+        .stat-card.bg-success .stat-icon { 
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success-green);
+        }
+        .stat-card.bg-warning .stat-icon { 
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--warning-orange);
+        }
+        .stat-card.bg-info .stat-icon { 
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-blue);
+        }
+        .stat-card.bg-danger .stat-icon { 
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger-red);
+        }
+        .stat-card.bg-purple .stat-icon { 
+            background: rgba(155, 89, 182, 0.1);
+            color: var(--purple);
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0.3rem 0;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        /* Force 4 cards per row on wide screens */
+        @media screen and (min-width: 1400px) {
+            .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success-green);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-red);
+        }
+
+        /* Detailed stats */
+        .detailed-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .detail-header {
+            padding: 1.2rem 1.5rem;
+            background: var(--white);
+            border-bottom: 1px solid var(--light-blue);
+        }
+
+        .detail-header h3 {
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-body {
+            padding: 1.5rem;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .detail-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-top: 1rem;
+            border-top: 2px solid var(--light-blue);
+            font-weight: 700;
+        }
+
+        /* Revenue card special */
+        .revenue-card {
+            background: linear-gradient(135deg, #f8f9fa, var(--white));
+            border-left: 4px solid var(--success-green);
+        }
+
+        .revenue-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--success-green);
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .revenue-period {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Tables */
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            background: var(--white);
+            border-bottom: 1px solid var(--light-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            color: var(--primary-blue);
+            font-size: 1.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: var(--light-blue);
+        }
+
+        .table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-blue);
+            color: var(--text-dark);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning-orange);
+            color: white;
+        }
+
+        .badge-info {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        .badge-primary {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .badge-danger {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        .badge-secondary {
+            background: var(--text-light);
+            color: white;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-info {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: var(--accent-blue);
+        }
+
+        .btn-dark {
+            background: var(--dark-blue);
+            color: white;
+        }
+
+        .btn-dark:hover {
+            background: #1a2520;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        /* Admin actions */
+        .admin-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .admin-action-btn {
+            background: var(--white);
+            border: 2px solid var(--light-blue);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .admin-action-btn:hover {
+            border-color: var(--secondary-blue);
+            background: rgba(52, 152, 219, 0.05);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .admin-action-btn i {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .admin-action-btn.primary i { color: var(--secondary-blue); }
+        .admin-action-btn.success i { color: var(--success-green); }
+        .admin-action-btn.info i { color: var(--secondary-blue); }
+        .admin-action-btn.dark i { color: var(--dark-blue); }
+
+        .admin-action-btn h4 {
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-action-btn p {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 1024px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-collapsed);
+            }
+            
+            .sidebar-header .sidebar-subtitle,
+            .nav-section-title,
+            .nav-link span {
+                display: none;
+            }
+            
+            .nav-link {
+                justify-content: center;
+                padding: 1rem;
+            }
+            
+            .sidebar:hover {
+                width: var(--sidebar-width);
+            }
+            
+            .sidebar:hover .sidebar-subtitle,
+            .sidebar:hover .nav-section-title,
+            .sidebar:hover .nav-link span {
+                display: block;
+            }
+            
+            .sidebar:hover .nav-link {
+                justify-content: flex-start;
+                padding: 0.9rem 1.5rem;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .dashboard-grid,
+            .detailed-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+            
+            .user-info {
+                text-align: center;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+            
+            .welcome-banner {
+                flex-direction: column;
+                text-align: center;
+                padding: 1.5rem;
+            }
+            
+            .welcome-icon {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .admin-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .table {
+                font-size: 0.9rem;
+            }
+            
+            .table th,
+            .table td {
+                padding: 0.5rem;
+            }
+        }
+
+        /* Toggle sidebar button */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--secondary-blue);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        @media screen and (max-width: 1024px) {
+            .sidebar-toggle {
+                display: flex;
+            }
+        }
+
+        /* Loading animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+      <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-crown"></i>
+                <span>Admin Pro</span>
+            </div>
+            <div class="sidebar-subtitle">Hôtel de Luxe</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <!-- Section principale -->
+            <div class="nav-section">
+                <div class="nav-section-title">Tableau de bord</div>
+                <ul class="nav-links">
+                    <li>
+                        <a href="{% url 'dashboard_admin' %}" class="nav-link active">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Accueil</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Section gestion -->
+            <div class="nav-section">
+                <div class="nav-section-title">Gestion</div>
+                <ul class="nav-links">
+                    <li>
+                        <a href="{% url 'reservation_list' %}" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Réservations</span>
+                            {% if reservations_en_attente %}
+                            <span class="nav-badge">{{ reservations_en_attente }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'chambre_list' %}" class="nav-link">
+                            <i class="fas fa-bed"></i>
+                            <span>Chambres</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'client_list' %}" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            <span>Clients</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'employee_list' %}" class="nav-link">
+                            <i class="fas fa-user-tie"></i>
+                            <span>Employés</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+             <!-- Section Opérations -->
+                {% if user.is_staff %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Opérations</div>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="{% url 'calendar' %}" class="nav-link {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Calendrier</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'billing_list' %}" class="nav-link {% if 'billing' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <span>Facturation</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'inventory_list' %}" class="nav-link {% if 'inventory' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-box"></i>
+                                <span>Inventaire</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'maintenance_list' %}" class="nav-link {% if 'maintenance' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-tasks"></i>
+                                <span>Maintenance</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+            
+            <!-- Section rapports -->
+            <div class="nav-section">
+                <div class="nav-section-title">Rapports</div>
+                <ul class="nav-links">
+                                        <li>
+                        <a href="{% url 'admin_notifications' %}" class="nav-link {% if 'notifications' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                    </li>
+                    <li>
+                    <li>
+                       <a href="{% url 'reports' %}" class="nav-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Performances</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Section système -->
+            <div class="nav-section">
+                <div class="nav-section-title">Système</div>
+                <ul class="nav-links">
+                    <li>
+                         <a href="{% url 'agent_ia_dashboard' %}" class="nav-link {% if 'agent_ia' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-robot"></i>
+                            <span>Agent IA</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/" target="_blank" class="nav-link">
+                            <i class="fas fa-database"></i>
+                            <span>Admin Django</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Tableau de bord Administrateur</span>
+            </div>
+            
+            <div class="user-menu" style="position: relative;">
+                <div class="user-info">
+                    <div class="user-name">
+                        {% if user.get_full_name %}
+                            {{ user.get_full_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </div>
+                    <div class="user-role">
+                        <i class="fas fa-shield-alt"></i> Administrateur Principal
+                    </div>
+                </div>
+                <div class="user-avatar" id="profileToggle" role="button" aria-haspopup="true" aria-expanded="false">
+                    {% if user.get_full_name %}
+                        {{ user.get_full_name|first|upper }}
+                    {% else %}
+                        {{ user.username|first|upper }}
+                    {% endif %}
+                </div>
+
+                <div class="profile-popup" id="profilePopup" aria-hidden="true">
+                    <div class="profile-popup-header">
+                        <div class="profile-popup-avatar">
+                            {% if user.get_full_name %}
+                                {{ user.get_full_name|first|upper }}
+                            {% else %}
+                                {{ user.username|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="profile-popup-info">
+                            <div class="profile-popup-name">
+                                {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+                            </div>
+                            <div class="profile-popup-email">{{ user.email }}</div>
+                        </div>
+                    </div>
+                    <div class="profile-popup-body">
+                        <a href="#" class="btn btn-sm btn-primary" onclick="event.preventDefault(); window.location.href='/admin/hotel/userprofile/';">Mon profil</a>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-dark">Déconnecter</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Welcome Banner -->
+            <div class="welcome-banner fade-in">
+                <div class="welcome-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="welcome-text">
+                    <h2>👑 MODE ADMINISTRATEUR</h2>
+                    <p>Vous avez accès complet à toutes les fonctionnalités du système</p>
+                </div>
+            </div>
+
+            <!-- Statistiques principales -->
+            <div class="dashboard-grid">
+                <div class="stat-card bg-primary fade-in">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value">{{ total_clients }}</div>
+                    <div class="stat-label">Total Clients</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 12% ce mois
+                    </div>
+                </div>
+                
+                <div class="stat-card bg-success fade-in">
+                    <div class="stat-icon">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <div class="stat-value">{{ chambres_libres }}</div>
+                    <div class="stat-label">Chambres Libres</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i> {{ chambres_occupees }} occupées
+                    </div>
+                </div>
+                
+                <div class="stat-card bg-warning fade-in">
+                    <div class="stat-icon">
+                        <i class="fas fa-door-closed"></i>
+                    </div>
+                    <div class="stat-value">{{ chambres_occupees }}</div>
+                    <div class="stat-label">Chambres Occupées</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> Taux d'occupation élevé
+                    </div>
+                </div>
+                
+                <div class="stat-card bg-info fade-in">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-value">{{ reservations_confirmees }}</div>
+                    <div class="stat-label">Réservations Confirmées</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> {{ reservations_en_cours }} en cours
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques détaillées -->
+            <div class="detailed-stats">
+                <div class="detail-card fade-in">
+                    <div class="detail-header">
+                        <h3><i class="fas fa-hotel"></i> État des Chambres</h3>
+                    </div>
+                    <div class="detail-body">
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-check-circle text-success"></i> Libres
+                            </span>
+                            <span class="detail-value">{{ chambres_libres }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-door-closed text-warning"></i> Occupées
+                            </span>
+                            <span class="detail-value">{{ chambres_occupees }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-tools text-danger"></i> Maintenance
+                            </span>
+                            <span class="detail-value">{{ chambres_maintenance }}</span>
+                        </div>
+                        <div class="detail-total">
+                            <span>TOTAL CHAMBRES</span>
+                            <span class="detail-value">{{ total_chambres }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-card fade-in">
+                    <div class="detail-header">
+                        <h3><i class="fas fa-list"></i> État des Réservations</h3>
+                    </div>
+                    <div class="detail-body">
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-check text-success"></i> Confirmées
+                            </span>
+                            <span class="detail-value">{{ reservations_confirmees }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-play-circle text-primary"></i> En cours
+                            </span>
+                            <span class="detail-value">{{ reservations_en_cours }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-clock text-warning"></i> En attente
+                            </span>
+                            <span class="detail-value">{{ reservations_en_attente }}</span>
+                        </div>
+                        <div class="detail-total">
+                            <span>TOTAL RÉSERVATIONS</span>
+                            <span class="detail-value">{{ total_reservations }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-card revenue-card fade-in">
+                    <div class="detail-header">
+                        <h3><i class="fas fa-euro-sign"></i> Revenus</h3>
+                    </div>
+                    <div class="detail-body">
+                        <div class="revenue-amount">{{ revenus_mois|floatformat:2 }} €</div>
+                        <div class="revenue-period">Revenus ce mois</div>
+                        <hr>
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-chart-line text-primary"></i> Total général
+                            </span>
+                            <span class="detail-value">{{ revenus_total|floatformat:2 }} €</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-calendar-day text-success"></i> Moyenne/jour
+                            </span>
+                            <span class="detail-value">{{ revenus_moyen|floatformat:2 }} €</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Réservations récentes -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-history"></i> 10 Dernières Réservations</h3>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="fas fa-list"></i> Voir toutes
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if reservations_recentes %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Client</th>
+                                    <th>Chambre</th>
+                                    <th>Dates</th>
+                                    <th>Prix</th>
+                                    <th>Statut</th>
+                                    <th>Créée par</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in reservations_recentes %}
+                                <tr>
+                                    <td><strong>#{{ reservation.id }}</strong></td>
+                                    <td>
+                                        <strong>{{ reservation.client.nom_complet }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">Chambre {{ reservation.chambre.numero }}</span>
+                                    </td>
+                                    <td>
+                                        {{ reservation.date_entree|date:"d/m/Y" }}<br>
+                                        <small>{{ reservation.date_sortie|date:"d/m/Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">{{ reservation.prix_total|floatformat:2 }} €</strong>
+                                    </td>
+                                    <td>
+                                        {% if reservation.statut == 'confirmee' %}
+                                            <span class="badge badge-success">Confirmée</span>
+                                        {% elif reservation.statut == 'en_cours' %}
+                                            <span class="badge badge-primary">En cours</span>
+                                        {% elif reservation.statut == 'terminee' %}
+                                            <span class="badge badge-secondary">Terminée</span>
+                                        {% elif reservation.statut == 'annulee' %}
+                                            <span class="badge badge-danger">Annulée</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">En attente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if reservation.cree_par %}
+                                            {{ reservation.cree_par.username }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                        <i class="fas fa-info-circle fa-2x mb-2"></i>
+                        <p>Aucune réservation récente</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions administrateur -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-bolt"></i> Actions Administrateur</h3>
+                </div>
+                <div class="card-body">
+                    <div class="admin-actions">
+                        <div class="admin-action-btn primary" onclick="window.location.href='#'">
+                            <i class="fas fa-plus"></i>
+                            <h4>Nouvelle réservation</h4>
+                            <p>Créer une réservation pour un client</p>
+                        </div>
+                        
+                        <div class="admin-action-btn success" onclick="window.location.href='#'">
+                            <i class="fas fa-user-plus"></i>
+                            <h4>Nouveau client</h4>
+                            <p>Ajouter un client à la base</p>
+                        </div>
+                        
+                        <div class="admin-action-btn info" onclick="window.location.href='#'">
+                            <i class="fas fa-bed"></i>
+                            <h4>Nouvelle chambre</h4>
+                            <p>Ajouter une chambre à l'hôtel</p>
+                        </div>
+                        
+                        <div class="admin-action-btn dark" onclick="window.open('/admin/', '_blank')">
+                            <i class="fas fa-cog"></i>
+                            <h4>Admin Django</h4>
+                            <p>Accéder à l'interface Django</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Chatbot (uniquement si connecté) -->
+    {% if user.is_authenticated %}
+    <div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button id="chatbot-toggle" class="pulse" title="Assistant IA" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #3498db, #2c3e50); color: white; border: none; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); cursor: pointer; font-size: 1.5rem;">
+            <i class="fas fa-robot"></i>
+        </button>
+        <div id="chatbot-box" style="position: fixed; bottom: 90px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 1001; overflow: hidden;">
+            <div id="chatbot-header" style="background: linear-gradient(135deg, #2c3e50, #1a2530); color: white; padding: 1.2rem 1.5rem; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-robot me-2"></i> Assistant IA</span>
+                <button id="chatbot-close" style="background: none; border: none; color: white; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chatbot-messages" style="flex: 1; padding: 1.5rem; overflow-y: auto; background-color: #fafafa;">
+                <div class="message bot" style="margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    Bonjour {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %} ! 👋<br>
+                    Je suis votre assistant IA. Comment puis-je vous aider aujourd'hui ?
+                </div>
+            </div>
+            <div id="chatbot-input-container" style="padding: 1rem 1.5rem; border-top: 1px solid #ecf0f1; display: flex; gap: 0.8rem; background: white;">
+                <input type="text" id="chatbot-input" placeholder="Posez votre question..." style="flex: 1; border: 1px solid #ecf0f1; border-radius: 20px; padding: 0.8rem 1.2rem; font-size: 0.9rem; outline: none;">
+                <button id="chatbot-send" style="background: #3498db; color: white; border: none; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Toggle Sidebar Button (Mobile) -->
+    <div class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <script>
+        // Chatbot functionality
+        {% if user.is_authenticated %}
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotBox = document.getElementById('chatbot-box');
+        const chatbotClose = document.getElementById('chatbot-close');
+        const chatbotInput = document.getElementById('chatbot-input');
+        const chatbotSend = document.getElementById('chatbot-send');
+        const chatbotMessages = document.getElementById('chatbot-messages');
+
+        // Ouvrir/Fermer le chatbot
+        chatbotToggle.addEventListener('click', () => {
+            chatbotBox.classList.toggle('show');
+            chatbotToggle.classList.remove('pulse');
+            chatbotBox.style.display = chatbotBox.classList.contains('show') ? 'flex' : 'none';
+            if (chatbotBox.classList.contains('show')) {
+                chatbotInput.focus();
+            }
+        });
+        chatbotClose.addEventListener('click', () => {
+            chatbotBox.classList.remove('show');
+            chatbotBox.style.display = 'none';
+        });
+        document.addEventListener('click', (e) => {
+            if (chatbotBox && !chatbotBox.contains(e.target) && !chatbotToggle.contains(e.target)) {
+                chatbotBox.classList.remove('show');
+                chatbotBox.style.display = 'none';
+            }
+        });
+        async function sendMessage() {
+            const message = chatbotInput.value.trim();
+            if (!message) return;
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user';
+            userMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; margin-left: auto; border-radius: 12px 12px 0 12px;';
+            userMessageDiv.textContent = message;
+            chatbotMessages.appendChild(userMessageDiv);
+            chatbotInput.value = '';
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'message bot';
+            typingIndicator.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
+            typingIndicator.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+            chatbotMessages.appendChild(typingIndicator);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            try {
+                const currentPath = window.location.pathname;
+                let pageContext = 'dashboard';
+                const response = await fetch('{% url "chatbot_api" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ 
+                        message: message,
+                        page_context: pageContext,
+                        user_type: 'admin'
+                    })
+                });
+                const data = await response.json();
+                typingIndicator.remove();
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'message bot';
+                botMessageDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                botMessageDiv.textContent = data.message;
+                chatbotMessages.appendChild(botMessageDiv);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            } catch (error) {
+                console.error('Erreur:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message bot';
+                errorDiv.style = 'margin-bottom: 1rem; padding: 0.8rem 1rem; border-radius: 12px; background: white; color: #333; border: 1px solid #ecf0f1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                errorDiv.textContent = 'Désolé, une erreur s\'est produite. Veuillez réessayer.';
+                chatbotMessages.appendChild(errorDiv);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+        }
+        chatbotSend.addEventListener('click', sendMessage);
+        chatbotInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        {% endif %}
+        // Toggle sidebar on mobile
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+
+        // Active nav link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Keep client-side active-state behavior but do NOT block real navigation.
+                const href = this.getAttribute('href');
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+
+                // If this is a placeholder link, prevent navigation. Otherwise allow browser to follow the URL.
+                if (!href || href === '#' || href.trim() === '' || href === 'javascript:void(0)') {
+                    e.preventDefault();
+                }
+                // For links with target="_blank" or real paths, do nothing so navigation proceeds.
+            });
+        });
+
+        // Auto-refresh data every 60 seconds
+        function refreshData() {
+            // Vous pouvez ajouter une requête AJAX ici pour rafraîchir les données
+            console.log('Rafraîchissement des données...');
+        }
+        
+        setInterval(refreshData, 60000);
+
+        // Show notifications
+        function showSystemNotification() {
+            // Implémentez un système de notifications système ici
+            const notificationSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+            notificationSound.volume = 0.3;
+            
+            {% if reservations_en_attente > 0 %}
+            if (Notification.permission === "granted") {
+                new Notification("Nouvelles réservations", {
+                    body: "{{ reservations_en_attente }} réservation(s) en attente de confirmation",
+                    icon: "https://cdn-icons-png.flaticon.com/512/1827/1827504.png"
+                });
+                notificationSound.play();
+            }
+            {% endif %}
+        }
+
+        // Request notification permission
+        if ("Notification" in window) {
+            Notification.requestPermission();
+        }
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            const dateString = now.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Vous pouvez afficher ces informations dans le dashboard
+            console.log(`${dateString} - ${timeString}`);
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        // Chart animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                }, 100);
+            });
+        });
+
+        // Profile popup toggle
+        (function() {
+            const toggle = document.getElementById('profileToggle');
+            const popup = document.getElementById('profilePopup');
+
+            if (!toggle || !popup) return;
+
+            function openPopup() {
+                popup.classList.add('open');
+                popup.setAttribute('aria-hidden', 'false');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+
+            function closePopup() {
+                popup.classList.remove('open');
+                popup.setAttribute('aria-hidden', 'true');
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (popup.classList.contains('open')) closePopup(); else openPopup();
+            });
+
+            // Close when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!popup.contains(e.target) && !toggle.contains(e.target)) {
+                    closePopup();
+                }
+            });
+
+            // Close on Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closePopup();
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages de Contact - Administration Hôtel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --light-blue: #ecf0f1;
+            --dark-blue: #1a2530;
+            --success-green: #27ae60;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --text-dark: #333;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: var(--white);
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .header-nav a {
+            color: var(--white);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: var(--transition);
+        }
+
+        .header-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card.total { border-left: 4px solid var(--secondary-blue); }
+        .stat-card.nouveau { border-left: 4px solid var(--success-green); }
+        .stat-card.encours { border-left: 4px solid var(--warning-orange); }
+        .stat-card.urgent { border-left: 4px solid var(--danger-red); }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            margin-top: 0.5rem;
+        }
+
+        .filters-section {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.8rem;
+            border: 2px solid var(--light-blue);
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--secondary-blue);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue);
+        }
+
+        .btn-secondary {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdd;
+        }
+
+        .messages-section {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .messages-header {
+            background: var(--light-blue);
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid var(--secondary-blue);
+        }
+
+        .messages-header h2 {
+            color: var(--primary-blue);
+            margin: 0;
+        }
+
+        .messages-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-blue);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .message-item:hover {
+            background: #f8f9fa;
+        }
+
+        .message-item.unread {
+            background: #e8f4fd;
+            border-left: 4px solid var(--secondary-blue);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .message-meta {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .message-author {
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .message-date {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .message-urgency {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .urgence-normal {
+            background: var(--light-blue);
+            color: var(--text-dark);
+        }
+
+        .urgence-urgent {
+            background: var(--warning-orange);
+            color: var(--white);
+        }
+
+        .urgence-critique {
+            background: var(--danger-red);
+            color: var(--white);
+        }
+
+        .message-subject {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-blue);
+        }
+
+        .message-preview {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-nouveau {
+            background: var(--success-green);
+            color: var(--white);
+        }
+
+        .status-encours {
+            background: var(--warning-orange);
+            color: var(--white);
+        }
+
+        .status-repondu {
+            background: var(--secondary-blue);
+            color: var(--white);
+        }
+
+        .status-resolu {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--light-blue);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--light-blue);
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .pagination a {
+            background: var(--white);
+            color: var(--primary-blue);
+            border: 1px solid var(--light-blue);
+        }
+
+        .pagination a:hover {
+            background: var(--secondary-blue);
+            color: var(--white);
+        }
+
+        .pagination .current {
+            background: var(--secondary-blue);
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .message-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-envelope"></i> Messages de Contact</h1>
+            <nav class="header-nav">
+                <a href="/admin/"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="/admin/messages/"><i class="fas fa-envelope"></i> Messages</a>
+                <a href="/admin/reservations/"><i class="fas fa-calendar"></i> Réservations</a>
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Statistiques -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-icon" style="color: var(--secondary-blue);">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="stat-number">{{ stats.total }}</div>
+                <div class="stat-label">Total Messages</div>
+            </div>
+            <div class="stat-card nouveau">
+                <div class="stat-icon" style="color: var(--success-green);">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="stat-number">{{ stats.nouveau }}</div>
+                <div class="stat-label">Nouveaux</div>
+            </div>
+            <div class="stat-card encours">
+                <div class="stat-icon" style="color: var(--warning-orange);">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">{{ stats.en_cours }}</div>
+                <div class="stat-label">En cours</div>
+            </div>
+            <div class="stat-card urgent">
+                <div class="stat-icon" style="color: var(--danger-red);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-number">{{ stats.urgent|add:stats.critique }}</div>
+                <div class="stat-label">Urgents</div>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="filters-section">
+            <form method="GET" class="filters-grid">
+                <div class="filter-group">
+                    <label for="statut">Statut</label>
+                    <select name="statut" id="statut">
+                        <option value="">Tous les statuts</option>
+                        {% for statut_value, statut_label in statuts_choices %}
+                        <option value="{{ statut_value }}" {% if filtres_actuels.statut == statut_value %}selected{% endif %}>
+                            {{ statut_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="urgence">Urgence</label>
+                    <select name="urgence" id="urgence">
+                        <option value="">Tous les niveaux</option>
+                        {% for urgence_value, urgence_label in urgence_choices %}
+                        <option value="{{ urgence_value }}" {% if filtres_actuels.urgence == urgence_value %}selected{% endif %}>
+                            {{ urgence_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="search">Recherche</label>
+                    <input type="text" name="search" id="search" value="{{ filtres_actuels.search }}" placeholder="Nom, email, sujet...">
+                </div>
+                <div class="filter-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Filtrer
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <a href="/admin/messages/" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages-section">
+            <div class="messages-header">
+                <h2>
+                    {% if filtres_actuels.statut or filtres_actuels.urgence or filtres_actuels.search %}
+                        Messages filtrés
+                    {% else %}
+                        Tous les messages
+                    {% endif %}
+                    ({{ page_obj.paginator.count }})
+                </h2>
+            </div>
+            
+            <div class="messages-list">
+                {% for message in page_obj %}
+                <div class="message-item {% if message.statut == 'nouveau' %}unread{% endif %}" 
+                     onclick="window.location.href='{% url 'admin_message_detail' message.id %}'">
+                    <div class="message-header">
+                        <div class="message-meta">
+                            <div class="message-author">
+                                {{ message.nom }}
+                                {% if message.client %}
+                                <small style="color: var(--secondary-blue);">(Client)</small>
+                                {% endif %}
+                            </div>
+                            <div class="message-date">
+                                <i class="fas fa-calendar"></i> {{ message.date_envoi|date:"d/m/Y H:i" }}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <span class="message-urgence urgence-{{ message.urgence }}">
+                                {{ message.get_urgence_display }}
+                            </span>
+                            <span class="status-badge status-{{ message.statut }}">
+                                {{ message.get_statut_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="message-subject">
+                        {{ message.sujet_complet }}
+                    </div>
+                    
+                    <div class="message-preview">
+                        {{ message.message|truncatewords:20 }}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>Aucun message trouvé</h3>
+                    <p>Aucun message ne correspond à vos critères de recherche.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i> Précédent
+                </a>
+            {% endif %}
+            
+            <span class="current">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                    Suivant <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </main>
+
+    <script>
+        // Auto-rafraîchissement toutes les 30 secondes pour les nouveaux messages
+        setInterval(() => {
+            // Optionnel : recharger la page pour voir les nouveaux messages
+            // window.location.reload();
+        }, 30000);
+
+        // Confirmation avant de quitter si message non lu
+        let unreadMessages = document.querySelectorAll('.message-item.unread').length;
+        if (unreadMessages > 0) {
+            console.log(`Vous avez ${unreadMessages} message(s) non lu(s)`);
+        }
+    </script>
+</body>
+</html>

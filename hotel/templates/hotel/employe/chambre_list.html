@@ -1,0 +1,493 @@
+{% extends "hotel/employe/dashboard.html" %}
+
+{% block title %}Gestion des Chambres - Hôtel de Luxe{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="page-header">
+        <div class="page-title">
+            <i class="fas fa-bed"></i>
+            <h1>Gestion des Chambres</h1>
+        </div>
+        {% if 'edit_rooms' in user_permissions %}
+        <div class="page-actions">
+            <button class="btn btn-primary" onclick="showQuickStatusUpdate()">
+                <i class="fas fa-sync"></i>
+                Mise à jour rapide
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Filtres -->
+    <div class="card">
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="statut">Filtrer par statut</label>
+                        <select name="statut" id="statut" class="form-control">
+                            <option value="">Tous les statuts</option>
+                            <option value="libre" {% if request.GET.statut == 'libre' %}selected{% endif %}>Libre</option>
+                            <option value="occupee" {% if request.GET.statut == 'occupee' %}selected{% endif %}>Occupée</option>
+                            <option value="nettoyage" {% if request.GET.statut == 'nettoyage' %}selected{% endif %}>En nettoyage</option>
+                            <option value="maintenance" {% if request.GET.statut == 'maintenance' %}selected{% endif %}>En maintenance</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Type de chambre</label>
+                        <select name="type" id="type" class="form-control">
+                            <option value="">Tous les types</option>
+                            <option value="simple" {% if request.GET.type == 'simple' %}selected{% endif %}>Simple</option>
+                            <option value="double" {% if request.GET.type == 'double' %}selected{% endif %}>Double</option>
+                            <option value="suite" {% if request.GET.type == 'suite' %}selected{% endif %}>Suite</option>
+                            <option value="deluxe" {% if request.GET.type == 'deluxe' %}selected{% endif %}>Deluxe</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-filter"></i>
+                            Filtrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="stats-grid">
+        <div class="stat-card free">
+            <div class="stat-icon">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <div class="stat-value">{{ chambres|length }}</div>
+            <div class="stat-label">Total chambres</div>
+        </div>
+        <div class="stat-card available">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ chambres|length }}</div>
+            <div class="stat-label">Disponibles</div>
+        </div>
+        <div class="stat-card occupied">
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-value">{{ chambres|length }}</div>
+            <div class="stat-label">Occupées</div>
+        </div>
+    </div>
+
+    <!-- Liste des chambres -->
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-list"></i>
+                Liste des Chambres
+                <span class="badge">{{ chambres|length }}</span>
+            </h3>
+        </div>
+        <div class="card-body">
+            {% if chambres %}
+            <div class="rooms-grid">
+                {% for chambre in chambres %}
+                <div class="room-card {{ chambre.statut }}">
+                    <div class="room-header">
+                        <div class="room-number">
+                            <strong>Chambre {{ chambre.numero }}</strong>
+                        </div>
+                        <div class="room-status">
+                            {% if chambre.statut == 'libre' %}
+                                <span class="status-badge free">Libre</span>
+                            {% elif chambre.statut == 'occupee' %}
+                                <span class="status-badge occupied">Occupée</span>
+                            {% elif chambre.statut == 'nettoyage' %}
+                                <span class="status-badge cleaning">Nettoyage</span>
+                            {% elif chambre.statut == 'maintenance' %}
+                                <span class="status-badge maintenance">Maintenance</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="room-info">
+                        <div class="room-type">
+                            <i class="fas fa-tag"></i>
+                            {{ chambre.get_type_chambre_display }}
+                        </div>
+                        <div class="room-price">
+                            <i class="fas fa-euro-sign"></i>
+                            {{ chambre.prix_par_nuit }} / nuit
+                        </div>
+                        <div class="room-capacity">
+                            <i class="fas fa-users"></i>
+                            Max {{ chambre.capacite }} personnes
+                        </div>
+                    </div>
+                    
+                    {% if chambre.description %}
+                    <div class="room-description">
+                        <p>{{ chambre.description|truncatewords:15 }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="room-actions">
+                        {% if 'edit_rooms_status' in user_permissions %}
+                        <button class="btn btn-sm btn-primary" onclick="updateRoomStatus({{ chambre.id }}, '{{ chambre.statut }}')">
+                            <i class="fas fa-edit"></i>
+                            Modifier statut
+                        </button>
+                        {% endif %}
+                        <button class="btn btn-sm btn-info" onclick="viewRoomDetails({{ chambre.id }})">
+                            <i class="fas fa-eye"></i>
+                            Détails
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-door-closed fa-3x text-muted"></i>
+                <h4>Aucune chambre trouvée</h4>
+                <p class="text-muted">
+                    {% if request.GET.statut or request.GET.type %}
+                        Aucune chambre ne correspond aux filtres sélectionnés.
+                    {% else %}
+                        Il n'y a aucune chambre dans le système.
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-title h1 {
+    margin: 0;
+    color: var(--primary-blue);
+    font-size: 1.8rem;
+}
+
+.page-title i {
+    color: var(--secondary-blue);
+    font-size: 1.5rem;
+}
+
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-control {
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--secondary-blue);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card.free {
+    border-left: 4px solid var(--success-green);
+}
+
+.stat-card.available {
+    border-left: 4px solid var(--secondary-blue);
+}
+
+.stat-card.occupied {
+    border-left: 4px solid var(--warning-orange);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card.free .stat-icon {
+    color: var(--success-green);
+}
+
+.stat-card.available .stat-icon {
+    color: var(--secondary-blue);
+}
+
+.stat-card.occupied .stat-icon {
+    color: var(--warning-orange);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-blue);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.room-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.room-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.room-header {
+    padding: 1rem;
+    background: var(--light-blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.room-number {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--primary-blue);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.free {
+    background: var(--success-green);
+    color: white;
+}
+
+.status-badge.occupied {
+    background: var(--warning-orange);
+    color: white;
+}
+
+.status-badge.cleaning {
+    background: var(--secondary-blue);
+    color: white;
+}
+
+.status-badge.maintenance {
+    background: var(--danger-red);
+    color: white;
+}
+
+.room-info {
+    padding: 1rem;
+}
+
+.room-info > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+}
+
+.room-info i {
+    color: var(--secondary-blue);
+    width: 16px;
+}
+
+.room-description {
+    padding: 0 1rem 1rem;
+}
+
+.room-description p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.room-actions {
+    padding: 1rem;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-light);
+}
+
+.empty-state i {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h4 {
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.badge {
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .rooms-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .room-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+function updateRoomStatus(roomId, currentStatus) {
+    const statusOptions = ['libre', 'occupee', 'nettoyage', 'maintenance'];
+    const currentIndex = statusOptions.indexOf(currentStatus);
+    const nextIndex = (currentIndex + 1) % statusOptions.length;
+    const newStatus = statusOptions[nextIndex];
+    
+    if (confirm(`Changer le statut de la chambre ${roomId} vers "${newStatus}" ?`)) {
+        // Ici vous pouvez ajouter un appel AJAX pour mettre à jour le statut
+        showNotification(`Statut de la chambre ${roomId} mis à jour vers "${newStatus}"`, 'success');
+        // Recharger la page après un court délai
+        setTimeout(() => location.reload(), 1000);
+    }
+}
+
+function viewRoomDetails(roomId) {
+    showNotification(`Détails de la chambre ${roomId} - En développement`, 'info');
+}
+
+function showQuickStatusUpdate() {
+    showNotification('Mise à jour rapide des statuts - En développement', 'info');
+}
+
+function showNotification(message, type = 'info') {
+    // Créer une notification toast
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+</script>
+{% endblock %}

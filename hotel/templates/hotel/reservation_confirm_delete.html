@@ -1,0 +1,1663 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Supprimer réservation #{{ reservation.id }} - Gestion Hôtel{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-trash-alt"></i>
+<span>Supprimer une réservation</span>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <!-- Header avec avertissement -->
+    <div class="delete-header">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="header-content">
+            <h1>Confirmation de suppression</h1>
+            <p class="subtitle">Vous êtes sur le point de supprimer définitivement une réservation</p>
+        </div>
+    </div>
+
+    <!-- Panneau d'avertissement -->
+    <div class="warning-panel">
+        <div class="warning-header">
+            <div class="warning-title">
+                <i class="fas fa-radiation"></i>
+                <h3>Action critique</h3>
+            </div>
+            <div class="warning-severity">
+                <span class="severity-badge">IRRÉVERSIBLE</span>
+            </div>
+        </div>
+        <div class="warning-body">
+            <div class="warning-message">
+                <p><strong>Cette action ne peut pas être annulée.</strong> Toutes les données associées à cette réservation seront définitivement supprimées.</p>
+                <div class="warning-list">
+                    <div class="warning-item">
+                        <i class="fas fa-database"></i>
+                        <span>Toutes les informations de réservation seront perdues</span>
+                    </div>
+                    <div class="warning-item">
+                        <i class="fas fa-history"></i>
+                        <span>L'historique sera définitivement effacé</span>
+                    </div>
+                    <div class="warning-item">
+                        <i class="fas fa-euro-sign"></i>
+                        <span>Les données financières ne seront plus accessibles</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résumé de la réservation -->
+    <div class="reservation-summary">
+        <div class="summary-header">
+            <h3><i class="fas fa-file-alt"></i> Résumé de la réservation</h3>
+            <div class="summary-status status-{{ reservation.statut }}">
+                {% if reservation.statut == 'confirmee' %}
+                    <i class="fas fa-check-circle"></i> Confirmée
+                {% elif reservation.statut == 'en_cours' %}
+                    <i class="fas fa-bed"></i> En cours
+                {% elif reservation.statut == 'annulee' %}
+                    <i class="fas fa-times-circle"></i> Annulée
+                {% else %}
+                    <i class="fas fa-clock"></i> En attente
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Informations générales</span>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label">Référence</span>
+                        <span class="info-value">#{{ reservation.id }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date création</span>
+                        <span class="info-value">{{ reservation.created_at|date:"d/m/Y à H:i" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Statut actuel</span>
+                        <span class="info-value">{{ reservation.get_statut_display }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="card-header">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Client</span>
+                </div>
+                <div class="card-body">
+                    <div class="client-info">
+                        <div class="client-avatar">
+                            {{ reservation.client.nom_complet|first|upper }}
+                        </div>
+                        <div class="client-details">
+                            <h5>{{ reservation.client.nom_complet }}</h5>
+                            <div class="client-contact">
+                                <span>{{ reservation.client.email }}</span>
+                                {% if reservation.client.telephone %}
+                                <span>{{ reservation.client.telephone }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="client-stats">
+                        <div class="stat">
+                            <span class="stat-label">Total réservations</span>
+                            <span class="stat-value">{{ client_total_reservations|default:"1" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="card-header">
+                    <i class="fas fa-bed"></i>
+                    <span>Chambre</span>
+                </div>
+                <div class="card-body">
+                    <div class="room-info">
+                        <div class="room-number-badge">
+                            {{ reservation.chambre.numero }}
+                        </div>
+                        <div class="room-details">
+                            <h5>{{ reservation.chambre.get_type_chambre_display }}</h5>
+                            <div class="room-specs">
+                                <span><i class="fas fa-user"></i> {{ reservation.chambre.capacite }} pers.</span>
+                                <span><i class="fas fa-euro-sign"></i> {{ reservation.chambre.prix_par_nuit }}€/nuit</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        {% if reservation.chambre.est_disponible %}
+                        <span class="badge available">Disponible</span>
+                        {% else %}
+                        <span class="badge occupied">Occupée</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="card-header">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Séjour</span>
+                </div>
+                <div class="card-body">
+                    <div class="stay-info">
+                        <div class="date-range">
+                            <div class="date-entry">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <div>
+                                    <small>Arrivée</small>
+                                    <strong>{{ reservation.date_entree|date:"d/m/Y" }}</strong>
+                                </div>
+                            </div>
+                            <div class="date-exit">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <div>
+                                    <small>Départ</small>
+                                    <strong>{{ reservation.date_sortie|date:"d/m/Y" }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="duration">
+                            <i class="fas fa-clock"></i>
+                            <span>{{ reservation.nombre_nuits }} nuit{% if reservation.nombre_nuits > 1 %}s{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="card-header">
+                    <i class="fas fa-calculator"></i>
+                    <span>Finances</span>
+                </div>
+                <div class="card-body">
+                    <div class="price-breakdown">
+                        <div class="price-row">
+                            <span>Prix par nuit</span>
+                            <span>{{ reservation.chambre.prix_par_nuit|floatformat:2 }} €</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Nombre de nuits</span>
+                            <span>{{ reservation.nombre_nuits }}</span>
+                        </div>
+                        <div class="price-divider"></div>
+                        <div class="price-total">
+                            <strong>Total</strong>
+                            <strong>{{ reservation.prix_total|floatformat:2 }} €</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="card-header">
+                    <i class="fas fa-users"></i>
+                    <span>Occupants</span>
+                </div>
+                <div class="card-body">
+                    <div class="occupants-info">
+                        <div class="occupants-count">
+                            <div class="count">{{ reservation.nombre_personnes }}</div>
+                            <div class="label">Personne{% if reservation.nombre_personnes > 1 %}s{% endif %}</div>
+                        </div>
+                        <div class="occupants-details">
+                            {% if reservation.nombre_enfants > 0 %}
+                            <div class="detail-item">
+                                <i class="fas fa-child"></i>
+                                <span>{{ reservation.nombre_enfants }} enfant{% if reservation.nombre_enfants > 1 %}s{% endif %}</span>
+                            </div>
+                            {% endif %}
+                            {% if reservation.animaux %}
+                            <div class="detail-item">
+                                <i class="fas fa-paw"></i>
+                                <span>Avec animal</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conséquences de la suppression -->
+    <div class="consequences-section">
+        <div class="section-header">
+            <h3><i class="fas fa-exclamation-circle"></i> Conséquences de cette suppression</h3>
+        </div>
+        <div class="consequences-grid">
+            <div class="consequence-card severe">
+                <div class="consequence-icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div class="consequence-content">
+                    <h4>Données définitivement perdues</h4>
+                    <p>Toutes les informations seront effacées sans possibilité de récupération</p>
+                </div>
+            </div>
+            
+            <div class="consequence-card severe">
+                <div class="consequence-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="consequence-content">
+                    <h4>Impact sur les statistiques</h4>
+                    <p>Les rapports financiers et d'occupation seront affectés</p>
+                </div>
+            </div>
+            
+            <div class="consequence-card warning">
+                <div class="consequence-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div class="consequence-content">
+                    <h4>Historique incomplet</h4>
+                    <p>La trace de cette réservation disparaîtra de l'historique du client</p>
+                </div>
+            </div>
+            
+            <div class="consequence-card info">
+                <div class="consequence-icon">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <div class="consequence-content">
+                    <h4>Disponibilité de la chambre</h4>
+                    <p>La chambre sera automatiquement marquée comme disponible</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checklist de confirmation -->
+    <div class="confirmation-checklist">
+        <div class="checklist-header">
+            <h3><i class="fas fa-clipboard-check"></i> Confirmation finale</h3>
+            <p>Cochez toutes les cases pour confirmer la suppression</p>
+        </div>
+        
+        <div class="checklist-body">
+            <div class="checklist-item">
+                <input type="checkbox" id="check1" class="checklist-checkbox" required>
+                <label for="check1" class="checklist-label">
+                    <div class="checklist-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="checklist-content">
+                        <strong>J'ai informé le client (si nécessaire)</strong>
+                        <small>La suppression d'une réservation confirmée doit être communiquée au client</small>
+                    </div>
+                </label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="check2" class="checklist-checkbox" required>
+                <label for="check2" class="checklist-label">
+                    <div class="checklist-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="checklist-content">
+                        <strong>Je comprends que cette action est irréversible</strong>
+                        <small>Aucune donnée ne pourra être récupérée après confirmation</small>
+                    </div>
+                </label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="check3" class="checklist-checkbox" required>
+                <label for="check3" class="checklist-label">
+                    <div class="checklist-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="checklist-content">
+                        <strong>Les services additionnels seront annulés</strong>
+                        <small>Tous les services réservés seront automatiquement annulés</small>
+                    </div>
+                </label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="check4" class="checklist-checkbox" required>
+                <label for="check4" class="checklist-label">
+                    <div class="checklist-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="checklist-content">
+                        <strong>Je confirme la suppression de cette réservation</strong>
+                        <small>Dernière étape avant validation définitive</small>
+                    </div>
+                </label>
+            </div>
+        </div>
+        
+        <div class="checklist-warning">
+            <i class="fas fa-shield-alt"></i>
+            <div class="warning-text">
+                <strong>Protection des données :</strong> Cette action respecte les procédures de suppression sécurisée des données.
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions finales -->
+    <div class="final-actions">
+        <form method="post" id="deleteForm">
+            {% csrf_token %}
+            
+            <!-- Raison de la suppression (optionnel) -->
+            <div class="reason-section">
+                <label for="deleteReason" class="form-label">
+                    <i class="fas fa-comment-alt"></i>
+                    <span>Raison de la suppression (optionnel)</span>
+                </label>
+                <textarea id="deleteReason" name="delete_reason" class="form-control" 
+                          placeholder="Expliquez brièvement pourquoi cette réservation est supprimée..."
+                          rows="3"></textarea>
+                <div class="form-hint">
+                    Cette information sera enregistrée dans les logs système
+                </div>
+            </div>
+            
+            <!-- Boutons d'action -->
+            <div class="action-buttons">
+                <a href="{% url 'reservation_list' %}" class="btn btn-secondary btn-cancel">
+                    <i class="fas fa-times"></i>
+                    <span>Annuler et retourner</span>
+                </a>
+                
+                <div class="delete-confirmation">
+                    <button type="button" class="btn btn-outline-danger" id="previewDelete">
+                        <i class="fas fa-eye"></i>
+                        <span>Aperçu des conséquences</span>
+                    </button>
+                    
+                    <button type="submit" class="btn btn-danger btn-delete" id="confirmDelete" disabled>
+                        <i class="fas fa-trash"></i>
+                        <span>Confirmer la suppression</span>
+                        <div class="btn-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal d'aperçu des conséquences -->
+<div class="modal fade" id="consequencesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-radiation"></i>
+                    Aperçu des conséquences
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="consequences-preview">
+                    <h4>Que se passera-t-il après confirmation ?</h4>
+                    
+                    <div class="timeline-preview">
+                        <div class="timeline-item immediate">
+                            <div class="timeline-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Immédiatement</h6>
+                                <ul>
+                                    <li>La réservation #{{ reservation.id }} sera supprimée</li>
+                                    <li>La chambre {{ reservation.chambre.numero }} sera libérée</li>
+                                    <li>Le statut sera changé en "Supprimé"</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item short-term">
+                            <div class="timeline-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>À court terme</h6>
+                                <ul>
+                                    <li>Disparition des statistiques de cette réservation</li>
+                                    <li>Impact sur les rapports d'occupation</li>
+                                    <li>Modification du chiffre d'affaires mensuel</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item permanent">
+                            <div class="timeline-icon">
+                                <i class="fas fa-infinity"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Permanent</h6>
+                                <ul>
+                                    <li>Données définitivement effacées</li>
+                                    <li>Impossible de restaurer ou consulter</li>
+                                    <li>Trace supprimée de tous les rapports</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-warning">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="warning-text">
+                            <strong>Attention :</strong> Cette action est conçue pour les suppressions nécessaires. 
+                            En cas de doute, il est recommandé d'annuler plutôt que de supprimer.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour
+                </button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="acceptConsequences">
+                    <i class="fas fa-check"></i>
+                    J'accepte les conséquences
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Container principal */
+    .delete-container {
+        padding: 0;
+    }
+    
+    /* Header */
+    .delete-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, var(--danger-red), #c0392b);
+        color: white;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    
+    .warning-icon {
+        font-size: 3rem;
+        opacity: 0.9;
+    }
+    
+    .header-content h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+    
+    /* Warning panel */
+    .warning-panel {
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.05));
+        border: 2px solid var(--danger-red);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .warning-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: rgba(231, 76, 60, 0.1);
+        border-bottom: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .warning-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--danger-red);
+    }
+    
+    .warning-title h3 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    
+    .severity-badge {
+        background: var(--danger-red);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    
+    .warning-body {
+        padding: 1.5rem;
+    }
+    
+    .warning-message p {
+        color: var(--danger-red);
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .warning-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .warning-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--text-dark);
+    }
+    
+    .warning-item i {
+        color: var(--danger-red);
+        font-size: 1.2rem;
+    }
+    
+    /* Reservation summary */
+    .reservation-summary {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--light-blue);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--light-blue), #e9ecef);
+        border-bottom: 1px solid var(--light-blue);
+    }
+    
+    .summary-header h3 {
+        color: var(--primary-blue);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .summary-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .status-confirmee {
+        background: rgba(39, 174, 96, 0.1);
+        color: var(--success-green);
+        border: 1px solid rgba(39, 174, 96, 0.2);
+    }
+    
+    .status-en_cours {
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--secondary-blue);
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .status-annulee {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger-red);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .status-en_attente {
+        background: rgba(243, 156, 18, 0.1);
+        color: var(--warning-orange);
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+    
+    .summary-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid var(--light-blue);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .summary-card .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-bottom: 1px solid var(--light-blue);
+        color: var(--primary-blue);
+        font-weight: 600;
+    }
+    
+    .summary-card .card-body {
+        padding: 1rem;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    
+    .info-value {
+        color: var(--primary-blue);
+        font-weight: 600;
+    }
+    
+    .client-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .client-avatar {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--purple));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .client-details h5 {
+        color: var(--primary-blue);
+        margin-bottom: 0.25rem;
+    }
+    
+    .client-contact {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    .client-stats {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--light-blue);
+    }
+    
+    .stat {
+        text-align: center;
+    }
+    
+    .stat-label {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-value {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+    
+    .room-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .room-number-badge {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--accent-blue));
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .room-details h5 {
+        color: var(--primary-blue);
+        margin-bottom: 0.25rem;
+    }
+    
+    .room-specs {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    
+    .room-status {
+        text-align: center;
+    }
+    
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .badge.available {
+        background: rgba(39, 174, 96, 0.1);
+        color: var(--success-green);
+        border: 1px solid rgba(39, 174, 96, 0.2);
+    }
+    
+    .badge.occupied {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger-red);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .stay-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .date-range {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    
+    .date-entry, .date-exit {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .date-entry i {
+        color: var(--success-green);
+    }
+    
+    .date-exit i {
+        color: var(--danger-red);
+    }
+    
+    .date-entry div, .date-exit div {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .date-entry small, .date-exit small {
+        font-size: 0.75rem;
+        color: var(--text-light);
+    }
+    
+    .date-entry strong, .date-exit strong {
+        color: var(--primary-blue);
+        font-size: 0.9rem;
+    }
+    
+    .duration {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        justify-content: center;
+        padding: 0.5rem;
+        background: rgba(155, 89, 182, 0.1);
+        border-radius: 8px;
+        color: var(--purple);
+        font-weight: 600;
+    }
+    
+    .price-breakdown {
+        margin-top: 0.5rem;
+    }
+    
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    
+    .price-divider {
+        height: 1px;
+        background: var(--light-blue);
+        margin: 0.5rem 0;
+    }
+    
+    .price-total {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+        border-top: 2px solid var(--light-blue);
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+    }
+    
+    .occupants-info {
+        text-align: center;
+    }
+    
+    .occupants-count .count {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        line-height: 1;
+    }
+    
+    .occupants-count .label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+    
+    .occupants-details {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    
+    /* Consequences section */
+    .consequences-section {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--light-blue);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--light-blue), #e9ecef);
+        border-bottom: 1px solid var(--light-blue);
+    }
+    
+    .section-header h3 {
+        color: var(--primary-blue);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .consequences-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+    
+    .consequence-card {
+        border-radius: 8px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .consequence-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .consequence-card.severe {
+        background: rgba(231, 76, 60, 0.1);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .consequence-card.warning {
+        background: rgba(243, 156, 18, 0.1);
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .consequence-card.info {
+        background: rgba(52, 152, 219, 0.1);
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .consequence-icon {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .consequence-card.severe .consequence-icon {
+        color: var(--danger-red);
+        border: 2px solid var(--danger-red);
+    }
+    
+    .consequence-card.warning .consequence-icon {
+        color: var(--warning-orange);
+        border: 2px solid var(--warning-orange);
+    }
+    
+    .consequence-card.info .consequence-icon {
+        color: var(--secondary-blue);
+        border: 2px solid var(--secondary-blue);
+    }
+    
+    .consequence-content h4 {
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .consequence-content p {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    /* Confirmation checklist */
+    .confirmation-checklist {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--light-blue);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .checklist-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--light-blue), #e9ecef);
+        border-bottom: 1px solid var(--light-blue);
+    }
+    
+    .checklist-header h3 {
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .checklist-header p {
+        color: var(--text-light);
+        margin: 0;
+    }
+    
+    .checklist-body {
+        padding: 1.5rem;
+    }
+    
+    .checklist-item {
+        margin-bottom: 1rem;
+    }
+    
+    .checklist-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .checklist-checkbox {
+        display: none;
+    }
+    
+    .checklist-label {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border: 2px solid var(--light-blue);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .checklist-checkbox:checked + .checklist-label {
+        background: rgba(39, 174, 96, 0.1);
+        border-color: var(--success-green);
+    }
+    
+    .checklist-icon {
+        width: 40px;
+        height: 40px;
+        background: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-light);
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .checklist-checkbox:checked + .checklist-label .checklist-icon {
+        background: var(--success-green);
+        color: white;
+    }
+    
+    .checklist-content {
+        flex: 1;
+    }
+    
+    .checklist-content strong {
+        display: block;
+        color: var(--primary-blue);
+        margin-bottom: 0.25rem;
+    }
+    
+    .checklist-content small {
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+    
+    .checklist-warning {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background: rgba(52, 152, 219, 0.1);
+        border-top: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .checklist-warning i {
+        color: var(--secondary-blue);
+        font-size: 1.5rem;
+    }
+    
+    .warning-text {
+        color: var(--primary-blue);
+        font-size: 0.9rem;
+    }
+    
+    /* Final actions */
+    .final-actions {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--light-blue);
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .reason-section {
+        margin-bottom: 2rem;
+    }
+    
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--light-blue);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .form-hint {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-top: 0.5rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--light-blue);
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        font-family: inherit;
+    }
+    
+    .btn-cancel {
+        background: white;
+        color: var(--text-dark);
+        border: 1px solid var(--light-blue);
+    }
+    
+    .btn-cancel:hover {
+        background: #f8f9fa;
+        transform: translateX(-5px);
+    }
+    
+    .delete-confirmation {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .btn-outline-danger {
+        background: white;
+        color: var(--danger-red);
+        border: 1px solid var(--danger-red);
+    }
+    
+    .btn-outline-danger:hover {
+        background: rgba(231, 76, 60, 0.1);
+    }
+    
+    .btn-delete {
+        background: linear-gradient(135deg, var(--danger-red), #c0392b);
+        color: white;
+        position: relative;
+        min-width: 200px;
+    }
+    
+    .btn-delete:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .btn-delete:hover:not(:disabled) {
+        background: linear-gradient(135deg, #c0392b, #a93226);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .btn-loading {
+        display: none;
+        margin-left: 0.5rem;
+    }
+    
+    .btn-delete.loading .btn-loading {
+        display: inline-block;
+    }
+    
+    /* Modal */
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-header {
+        border-radius: 12px 12px 0 0;
+        padding: 1.5rem;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .consequences-preview h4 {
+        color: var(--primary-blue);
+        margin-bottom: 1.5rem;
+    }
+    
+    .timeline-preview {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline-preview::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--light-blue);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .timeline-icon {
+        position: absolute;
+        left: -1.1rem;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        border: 2px solid;
+    }
+    
+    .timeline-item.immediate .timeline-icon {
+        color: var(--danger-red);
+        border-color: var(--danger-red);
+    }
+    
+    .timeline-item.short-term .timeline-icon {
+        color: var(--warning-orange);
+        border-color: var(--warning-orange);
+    }
+    
+    .timeline-item.permanent .timeline-icon {
+        color: var(--text-light);
+        border-color: var(--text-light);
+    }
+    
+    .timeline-content {
+        margin-left: 1.5rem;
+    }
+    
+    .timeline-content h6 {
+        color: var(--primary-blue);
+        margin-bottom: 0.75rem;
+    }
+    
+    .timeline-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .timeline-content li {
+        padding: 0.25rem 0;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        position: relative;
+        padding-left: 1rem;
+    }
+    
+    .timeline-content li::before {
+        content: '•';
+        position: absolute;
+        left: 0;
+        color: var(--secondary-blue);
+    }
+    
+    .preview-warning {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 1rem;
+        background: rgba(243, 156, 18, 0.1);
+        border-radius: 8px;
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .preview-warning .warning-icon {
+        color: var(--warning-orange);
+        font-size: 1.5rem;
+        opacity: 1;
+    }
+    
+    .warning-text {
+        flex: 1;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+    
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid var(--light-blue);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .consequences-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .delete-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .summary-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .consequences-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .delete-confirmation {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-cancel, .btn-outline-danger, .btn-delete {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .date-range {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .client-info {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .room-info {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .occupants-details {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .delete-header {
+            padding: 1.5rem;
+        }
+        
+        .header-content h1 {
+            font-size: 1.5rem;
+        }
+        
+        .warning-title h3 {
+            font-size: 1.2rem;
+        }
+        
+        .checklist-label {
+            flex-direction: column;
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .checklist-content {
+            text-align: center;
+        }
+        
+        .final-actions {
+            padding: 1.5rem;
+        }
+        
+        .modal-dialog {
+            margin: 0.5rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Éléments
+        const deleteForm = document.getElementById('deleteForm');
+        const confirmButton = document.getElementById('confirmDelete');
+        const checkboxes = document.querySelectorAll('.checklist-checkbox');
+        const previewButton = document.getElementById('previewDelete');
+        const acceptButton = document.getElementById('acceptConsequences');
+        
+        // Vérifier si toutes les cases sont cochées
+        function checkCheckboxes() {
+            let allChecked = true;
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.checked) allChecked = false;
+            });
+            
+            confirmButton.disabled = !allChecked;
+        }
+        
+        // Écouteurs pour les cases à cocher
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', checkCheckboxes);
+        });
+        
+        // Initialiser l'état du bouton
+        checkCheckboxes();
+        
+        // Gestion du modal Bootstrap
+        let consequencesModal = null;
+        if (typeof bootstrap !== 'undefined') {
+            consequencesModal = new bootstrap.Modal(document.getElementById('consequencesModal'));
+        }
+        
+        // Aperçu des conséquences
+        if (previewButton) {
+            previewButton.addEventListener('click', function() {
+                if (consequencesModal) {
+                    consequencesModal.show();
+                }
+            });
+        }
+        
+        // Accepter les conséquences
+        if (acceptButton) {
+            acceptButton.addEventListener('click', function() {
+                // Coche automatiquement la dernière case
+                const lastCheckbox = document.getElementById('check4');
+                if (lastCheckbox) {
+                    lastCheckbox.checked = true;
+                    checkCheckboxes();
+                }
+                
+                // Focus sur le bouton de confirmation
+                confirmButton.focus();
+            });
+        }
+        
+        // Soumission du formulaire
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(e) {
+                // Empêcher la double soumission
+                if (confirmButton.classList.contains('loading')) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Validation finale
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                if (!allChecked) {
+                    e.preventDefault();
+                    alert('Veuillez cocher toutes les cases de confirmation avant de continuer.');
+                    return;
+                }
+                
+                // Confirmation supplémentaire
+                const confirmed = confirm(
+                    '⚠️ DERNIÈRE CONFIRMATION ⚠️\n\n' +
+                    'Êtes-vous ABSOLUMENT certain de vouloir supprimer la réservation #{{ reservation.id }} ?\n\n' +
+                    'Cette action est IRRÉVERSIBLE et toutes les données seront PERDUES.'
+                );
+                
+                if (!confirmed) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Afficher l'indicateur de chargement
+                confirmButton.classList.add('loading');
+                confirmButton.innerHTML = 
+                    '<i class="fas fa-spinner fa-spin"></i>' +
+                    '<span>Suppression en cours...</span>' +
+                    '<div class="btn-loading"></div>';
+                confirmButton.disabled = true;
+                
+                // Désactiver tous les boutons
+                document.querySelectorAll('button, input[type="submit"], a.btn').forEach(el => {
+                    if (el !== confirmButton) {
+                        el.disabled = true;
+                        el.style.opacity = '0.5';
+                        el.style.cursor = 'not-allowed';
+                    }
+                });
+            });
+        }
+        
+        // Animation d'entrée
+        const elements = document.querySelectorAll('.summary-card, .consequence-card, .checklist-item');
+        elements.forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            
+            setTimeout(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, 100 + (index * 100));
+        });
+        
+        // Compteur pour la réservation
+        const reservationId = document.querySelector('.info-row .info-value');
+        if (reservationId) {
+            reservationId.style.color = 'var(--danger-red)';
+            reservationId.style.fontWeight = '700';
+            reservationId.style.fontSize = '1.2rem';
+        }
+        
+        // Highlight du statut si la réservation est en cours
+        const statusElement = document.querySelector('.summary-status');
+        if (statusElement && '{{ reservation.statut }}' === 'en_cours') {
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'current-stay-warning';
+            warningDiv.innerHTML = `
+                <div style="background: rgba(231, 76, 60, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid rgba(231, 76, 60, 0.2);">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>Attention :</strong> Cette réservation est actuellement en cours. 
+                    La suppression libérera immédiatement la chambre.
+                </div>
+            `;
+            statusElement.parentNode.insertBefore(warningDiv, statusElement.nextSibling);
+        }
+        
+        // Timer de confirmation
+        let confirmTimer = 5;
+        const timerElement = document.createElement('div');
+        timerElement.className = 'confirmation-timer';
+        timerElement.innerHTML = `
+            <div style="background: rgba(231, 76, 60, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem; text-align: center;">
+                <i class="fas fa-hourglass-half"></i>
+                <span>Confirmation requise dans : <strong id="timerCount">${confirmTimer}</strong> secondes</span>
+            </div>
+        `;
+        
+        confirmButton.parentNode.insertBefore(timerElement, confirmButton);
+        
+        const timerInterval = setInterval(() => {
+            confirmTimer--;
+            const timerCount = document.getElementById('timerCount');
+            if (timerCount) {
+                timerCount.textContent = confirmTimer;
+                
+                if (confirmTimer <= 0) {
+                    clearInterval(timerInterval);
+                    timerElement.style.opacity = '0.5';
+                }
+            }
+        }, 1000);
+    });
+</script>
+{% endblock %}

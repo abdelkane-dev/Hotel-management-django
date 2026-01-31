@@ -1,0 +1,438 @@
+{% extends "hotel/employe/dashboard.html" %}
+
+{% block title %}Gestion des Réservations - Hôtel de Luxe{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <div class="page-header">
+        <div class="page-title">
+            <i class="fas fa-calendar-check"></i>
+            <h1>Gestion des Réservations</h1>
+            <span class="subtitle">Gestion des réservations existantes</span>
+        </div>
+        <div class="page-actions">
+            {% if 'cancel_reservations' in user_permissions %}
+            <div class="action-summary">
+                <span class="badge">{{ reservations|length }}</span>
+                <span>Réservations totales</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filtres de gestion -->
+    <div class="card">
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="statut">Statut</label>
+                        <select name="statut" id="statut" class="form-control">
+                            <option value="">Tous les statuts</option>
+                            {% for statut in statuts %}
+                            <option value="{{ statut.0 }}" {% if statut_filter == statut.0 %}selected{% endif %}>
+                                {{ statut.1 }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_today">Aujourd'hui</label>
+                        <select name="date_today" id="date_today" class="form-control">
+                            <option value="">Toutes les dates</option>
+                            <option value="arrivals" {% if request.GET.date_today == 'arrivals' %}selected{% endif %}>Arrivées aujourd'hui</option>
+                            <option value="departures" {% if request.GET.date_today == 'departures' %}selected{% endif %}>Départs aujourd'hui</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-filter"></i>
+                            Filtrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Actions rapides de gestion -->
+    {% if 'edit_reservations' in user_permissions or 'cancel_reservations' in user_permissions %}
+    <div class="quick-actions-grid">
+        {% if 'edit_reservations' in user_permissions %}
+        <div class="action-card" onclick="filterByStatus('en_attente')">
+            <i class="fas fa-clock"></i>
+            <h4>En attente</h4>
+            <p>Réservations à confirmer</p>
+        </div>
+        {% endif %}
+        {% if 'cancel_reservations' in user_permissions %}
+        <div class="action-card" onclick="filterByStatus('confirmee')">
+            <i class="fas fa-check-circle"></i>
+            <h4>Confirmées</h4>
+            <p>Réservations validées</p>
+        </div>
+        {% endif %}
+        <div class="action-card" onclick="filterToday('arrivals')">
+            <i class="fas fa-sign-in-alt"></i>
+            <h4>Arrivées</h4>
+            <p>Check-ins du jour</p>
+        </div>
+        <div class="action-card" onclick="filterToday('departures')">
+            <i class="fas fa-sign-out-alt"></i>
+            <h4>Départs</h4>
+            <p>Check-outs du jour</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Liste des réservations -->
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-list"></i>
+                Réservations à Gérer
+                <span class="badge">{{ reservations|length }}</span>
+            </h3>
+            <div class="header-actions">
+                {% if 'edit_reservations' in user_permissions %}
+                <button class="btn btn-sm btn-success" onclick="bulkCheckIn()">
+                    <i class="fas fa-check-double"></i>
+                    Check-in multiple
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            {% if reservations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                {% if 'edit_reservations' in user_permissions %}
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                {% endif %}
+                            </th>
+                            <th>#</th>
+                            <th>Client</th>
+                            <th>Chambre</th>
+                            <th>Période</th>
+                            <th>Personnes</th>
+                            <th>Prix</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservation in reservations %}
+                        <tr class="reservation-row" data-status="{{ reservation.statut }}">
+                            <td>
+                                {% if 'edit_reservations' in user_permissions %}
+                                <input type="checkbox" class="reservation-checkbox" value="{{ reservation.id }}">
+                                {% endif %}
+                            </td>
+                            <td><strong>#{{ reservation.id }}</strong></td>
+                            <td>
+                                <div class="client-info">
+                                    <strong>{{ reservation.client.nom_complet }}</strong><br>
+                                    <small class="text-muted">{{ reservation.client.email }}</small><br>
+                                    <small class="text-muted">{{ reservation.client.telephone }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="room-info">
+                                    <span class="badge badge-info">Chambre {{ reservation.chambre.numero }}</span><br>
+                                    <small>{{ reservation.chambre.get_type_chambre_display }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="date-info">
+                                    <div><i class="fas fa-calendar-plus"></i> {{ reservation.date_entree|date:"d/m/Y" }}</div>
+                                    <div><i class="fas fa-calendar-minus"></i> {{ reservation.date_sortie|date:"d/m/Y" }}</div>
+                                    <small class="text-muted">{{ reservation.nuits }} nuit(s)</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="personnes-count">{{ reservation.nombre_personnes }}</span>
+                                <i class="fas fa-users"></i>
+                            </td>
+                            <td>
+                                <div class="price-info">
+                                    <strong>{{ reservation.prix_total }}€</strong><br>
+                                    <small class="text-muted">{{ reservation.prix_par_nuit }}€/nuit</small>
+                                </div>
+                            </td>
+                            <td>
+                                {% if reservation.statut == 'confirmee' %}
+                                    <span class="status-badge confirmed">{{ reservation.get_statut_display }}</span>
+                                {% elif reservation.statut == 'en_attente' %}
+                                    <span class="status-badge pending">{{ reservation.get_statut_display }}</span>
+                                {% elif reservation.statut == 'en_cours' %}
+                                    <span class="status-badge active">{{ reservation.get_statut_display }}</span>
+                                {% elif reservation.statut == 'terminee' %}
+                                    <span class="status-badge completed">{{ reservation.get_statut_display }}</span>
+                                {% elif reservation.statut == 'annulee' %}
+                                    <span class="status-badge cancelled">{{ reservation.get_statut_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group-vertical">
+                                    {% if 'view_reservations' in user_permissions %}
+                                    <button class="btn btn-sm btn-info" onclick="viewReservationDetails({{ reservation.id }})" title="Voir détails">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% endif %}
+                                    {% if 'edit_reservations' in user_permissions %}
+                                        {% if reservation.statut == 'confirmee' %}
+                                        <button class="btn btn-sm btn-success" onclick="checkIn({{ reservation.id }})" title="Check-in">
+                                            <i class="fas fa-sign-in-alt"></i>
+                                        </button>
+                                        {% elif reservation.statut == 'en_cours' %}
+                                        <button class="btn btn-sm btn-warning" onclick="checkOut({{ reservation.id }})" title="Check-out">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                        </button>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if 'cancel_reservations' in user_permissions and reservation.statut not in 'terminee annulee' %}
+                                    <button class="btn btn-sm btn-danger" onclick="cancelReservation({{ reservation.id }})" title="Annuler">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-calendar-times fa-3x text-muted"></i>
+                <h4>Aucune réservation à gérer</h4>
+                <p class="text-muted">
+                    {% if statut_filter %}
+                        Aucune réservation avec le statut "{{ statut_filter }}".
+                    {% else %}
+                        Il n'y a aucune réservation dans le système.
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.subtitle {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-left: 1rem;
+}
+
+.action-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--light-blue);
+    border-radius: 20px;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 4px solid var(--secondary-blue);
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.action-card i {
+    font-size: 2rem;
+    color: var(--secondary-blue);
+    margin-bottom: 0.5rem;
+}
+
+.action-card h4 {
+    margin: 0.5rem 0;
+    color: var(--primary-blue);
+}
+
+.action-card p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.client-info, .room-info, .date-info, .price-info {
+    line-height: 1.2;
+}
+
+.date-info div {
+    margin-bottom: 0.25rem;
+}
+
+.date-info i {
+    color: var(--secondary-blue);
+    width: 12px;
+}
+
+.personnes-count {
+    background: var(--secondary-blue);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin-right: 0.25rem;
+}
+
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.confirmed {
+    background: var(--success-green);
+    color: white;
+}
+
+.status-badge.pending {
+    background: var(--warning-orange);
+    color: white;
+}
+
+.status-badge.active {
+    background: var(--secondary-blue);
+    color: white;
+}
+
+.status-badge.completed {
+    background: #6c757d;
+    color: white;
+}
+
+.status-badge.cancelled {
+    background: var(--danger-red);
+    color: white;
+}
+
+.btn-group-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .btn-group-vertical {
+        flex-direction: row;
+    }
+    
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+}
+</style>
+
+<script>
+function filterByStatus(status) {
+    window.location.href = `?statut=${status}`;
+}
+
+function filterToday(type) {
+    window.location.href = `?date_today=${type}`;
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.reservation-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+}
+
+function bulkCheckIn() {
+    const selected = document.querySelectorAll('.reservation-checkbox:checked');
+    if (selected.length === 0) {
+        showNotification('Veuillez sélectionner des réservations', 'warning');
+        return;
+    }
+    
+    if (confirm(`Effectuer le check-in pour ${selected.length} réservation(s) ?`)) {
+        showNotification(`Check-in effectué pour ${selected.length} réservation(s)`, 'success');
+        setTimeout(() => location.reload(), 1500);
+    }
+}
+
+function viewReservationDetails(id) {
+    showNotification(`Détails de la réservation #${id}`, 'info');
+}
+
+function checkIn(id) {
+    if (confirm('Confirmer le check-in de cette réservation ?')) {
+        showNotification(`Check-in effectué pour la réservation #${id}`, 'success');
+        setTimeout(() => location.reload(), 1000);
+    }
+}
+
+function checkOut(id) {
+    if (confirm('Confirmer le check-out de cette réservation ?')) {
+        showNotification(`Check-out effectué pour la réservation #${id}`, 'success');
+        setTimeout(() => location.reload(), 1000);
+    }
+}
+
+function cancelReservation(id) {
+    if (confirm('Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.')) {
+        showNotification(`Réservation #${id} annulée`, 'success');
+        setTimeout(() => location.reload(), 1000);
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+</script>
+{% endblock %}

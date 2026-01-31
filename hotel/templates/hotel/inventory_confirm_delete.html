@@ -1,0 +1,995 @@
+{% extends 'hotel/base.html' %}
+{% load static %}
+
+{% block title %}Supprimer {{ object.nom }} - Hôtel de Luxe Admin{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-trash-alt"></i>
+<span>Supprimer l'article</span>
+{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <!-- Navigation -->
+    <div class="breadcrumb-nav">
+        <a href="{% url 'inventory_list' %}" class="breadcrumb-link">
+            <i class="fas fa-boxes"></i> Inventaire
+        </a>
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'inventory_detail' object.pk %}" class="breadcrumb-link">
+            {{ object.nom }}
+        </a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Supprimer</span>
+    </div>
+
+    <!-- Carte de confirmation -->
+    <div class="card delete-confirmation">
+        <div class="card-header danger-header">
+            <div class="header-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Confirmation de suppression</h3>
+        </div>
+        
+        <div class="card-body">
+            <!-- Illustration d'avertissement -->
+            <div class="warning-illustration">
+                <div class="warning-icon">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <div class="warning-content">
+                    <h4>Attention !</h4>
+                    <p>Vous êtes sur le point de supprimer définitivement cet article</p>
+                </div>
+            </div>
+
+            <!-- Détails de l'article -->
+            <div class="article-details">
+                <div class="details-header">
+                    <h5>Article à supprimer :</h5>
+                    <span class="article-reference">#{{ object.reference }}</span>
+                </div>
+                
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <i class="fas fa-tag"></i> Nom
+                        </span>
+                        <span class="detail-value">{{ object.nom }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <i class="fas fa-folder"></i> Catégorie
+                        </span>
+                        <span class="detail-value">{{ object.categorie.nom }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <i class="fas fa-boxes"></i> Quantité totale
+                        </span>
+                        <span class="detail-value">{{ object.quantite_totale }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <i class="fas fa-check-circle"></i> Quantité disponible
+                        </span>
+                        <span class="detail-value text-success">{{ object.quantite_disponible }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <i class="fas fa-exchange-alt"></i> Quantité utilisée
+                        </span>
+                        <span class="detail-value text-warning">{{ object.quantite_utilisee }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <i class="fas fa-history"></i> Mouvements associés
+                        </span>
+                        <span class="detail-value">
+                            {% if object.mouvements.exists %}
+                                <span class="text-danger">{{ object.mouvements.count }}</span>
+                            {% else %}
+                                <span class="text-success">0</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alertes -->
+            {% if object.mouvements.exists %}
+                <div class="alert critical-alert">
+                    <div class="alert-icon">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h5>Suppression impossible</h5>
+                        <p>Cet article a <strong>{{ object.mouvements.count }} mouvement(s) associé(s)</strong>. 
+                           La suppression est bloquée pour préserver l'intégrité des données historiques.</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if object.quantite_utilisee > 0 %}
+                <div class="alert warning-alert">
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h5>Unités en cours d'utilisation</h5>
+                        <p><strong>{{ object.quantite_utilisee }} unité(s) sont actuellement utilisées</strong>. 
+                           Assurez-vous que ces unités ont été correctement retournées ou affectées avant de poursuivre.</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Formulaire de confirmation -->
+            <form method="post" class="confirmation-form" id="deleteForm">
+                {% csrf_token %}
+                
+                <div class="confirmation-input">
+                    <label for="confirm_text">
+                        <i class="fas fa-keyboard"></i>
+                        Tapez le nom de l'article pour confirmer :
+                    </label>
+                    <div class="input-group">
+                        <input type="text" name="confirm_text" id="confirm_text" 
+                               class="confirmation-field" 
+                               placeholder='Tapez "{{ object.nom }}"'
+                               required>
+                        <div class="input-hint">
+                            Doit correspondre exactement à : <strong>"{{ object.nom }}"</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'inventory_detail' object.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour aux détails
+                    </a>
+                    
+                    {% if object.mouvements.exists %}
+                        <button type="button" class="btn btn-danger disabled" disabled>
+                            <i class="fas fa-ban"></i> Suppression bloquée
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-danger" id="deleteButton">
+                            <i class="fas fa-trash-alt"></i> Supprimer définitivement
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Styles spécifiques à la page de confirmation de suppression */
+.content-area {
+    padding: 1.5rem;
+}
+
+/* Navigation */
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    padding: 1rem 1.5rem;
+    background: var(--light-blue);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    flex-wrap: wrap;
+}
+
+.breadcrumb-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--secondary-blue);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.breadcrumb-link:hover {
+    color: var(--accent-blue);
+}
+
+.breadcrumb-separator {
+    color: var(--text-light);
+    font-weight: 300;
+}
+
+.breadcrumb-current {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Carte de confirmation */
+.delete-confirmation {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    max-width: 800px;
+    margin: 0 auto;
+    border: 2px solid var(--danger-red);
+}
+
+.danger-header {
+    background: linear-gradient(135deg, var(--danger-red), #c0392b);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+}
+
+.header-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.danger-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+/* Illustration d'avertissement */
+.warning-illustration {
+    text-align: center;
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.05), rgba(231, 76, 60, 0.1));
+    border-radius: 10px;
+    border: 2px dashed rgba(231, 76, 60, 0.3);
+}
+
+.warning-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--danger-red), #c0392b);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.warning-content h4 {
+    color: var(--danger-red);
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.warning-content p {
+    color: var(--text-dark);
+    font-size: 1rem;
+}
+
+/* Détails de l'article */
+.article-details {
+    background: var(--light-blue);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+
+.details-header h5 {
+    margin: 0;
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+.article-reference {
+    background: var(--primary-blue);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: var(--transition);
+}
+
+.detail-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.detail-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.detail-label i {
+    color: var(--secondary-blue);
+    width: 16px;
+}
+
+.detail-value {
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.text-success {
+    color: var(--success-green) !important;
+    font-weight: 700;
+}
+
+.text-warning {
+    color: var(--warning-orange) !important;
+    font-weight: 700;
+}
+
+.text-danger {
+    color: var(--danger-red) !important;
+    font-weight: 700;
+}
+
+/* Alertes */
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    border: 2px solid;
+}
+
+.critical-alert {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: var(--danger-red);
+}
+
+.warning-alert {
+    background: rgba(243, 156, 18, 0.1);
+    border-color: var(--warning-orange);
+}
+
+.alert-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.critical-alert .alert-icon {
+    background: var(--danger-red);
+    color: white;
+}
+
+.warning-alert .alert-icon {
+    background: var(--warning-orange);
+    color: white;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-content h5 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-dark);
+    font-size: 1.1rem;
+}
+
+.alert-content p {
+    margin: 0;
+    color: var(--text-dark);
+    line-height: 1.5;
+}
+
+.alert-content strong {
+    color: inherit;
+}
+
+/* Formulaire de confirmation */
+.confirmation-form {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--light-blue);
+}
+
+.confirmation-input {
+    margin-bottom: 2rem;
+}
+
+.confirmation-input label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.confirmation-input label i {
+    color: var(--secondary-blue);
+}
+
+.confirmation-field {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--light-blue);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: var(--transition);
+    background: var(--white);
+    color: var(--text-dark);
+}
+
+.confirmation-field:focus {
+    outline: none;
+    border-color: var(--secondary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.confirmation-field:focus:invalid {
+    border-color: var(--danger-red);
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.confirmation-field:valid {
+    border-color: var(--success-green);
+}
+
+.input-hint {
+    margin-top: 0.5rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(52, 152, 219, 0.05);
+    border-radius: 6px;
+}
+
+.input-hint strong {
+    color: var(--primary-blue);
+    font-family: monospace;
+    background: var(--light-blue);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+/* Actions */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.95rem;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: var(--light-blue);
+    color: var(--text-dark);
+}
+
+.btn-secondary:hover {
+    background: #d5dbdd;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-red), #c0392b);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+}
+
+.btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-danger.disabled {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    cursor: not-allowed;
+}
+
+.btn-danger.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Animation du bouton de suppression */
+@keyframes pulseDanger {
+    0% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
+}
+
+.btn-danger:not(:disabled):hover {
+    animation: pulseDanger 2s infinite;
+}
+
+/* Ripple effect pour le bouton de suppression */
+.btn-danger::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+.btn-danger:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    20% {
+        transform: scale(25, 25);
+        opacity: 0.3;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(40, 40);
+    }
+}
+
+/* Mode sombre */
+.theme-dark .delete-confirmation {
+    background: #1e2a38;
+    border-color: var(--danger-red);
+}
+
+.theme-dark .article-details {
+    background: #2d3e50;
+}
+
+.theme-dark .detail-item {
+    background: #1e2a38;
+}
+
+.theme-dark .detail-label {
+    color: #e6eef6;
+}
+
+.theme-dark .detail-value {
+    color: #e6eef6;
+}
+
+.theme-dark .confirmation-field {
+    background: #2d3e50;
+    border-color: #3d4e60;
+    color: #e6eef6;
+}
+
+.theme-dark .input-hint {
+    background: rgba(52, 152, 219, 0.1);
+    color: #b0c4d8;
+}
+
+.theme-dark .input-hint strong {
+    background: #2d3e50;
+    color: #e6eef6;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+    .content-area {
+        padding: 1rem;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .btn {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .delete-confirmation {
+        margin: 0 -1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+}
+
+/* Animation pour l'entrée */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delete-confirmation {
+    animation: slideIn 0.4s ease;
+}
+
+/* Animation de shake pour les erreurs de saisie */
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shakeError 0.5s ease;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteForm = document.getElementById('deleteForm');
+    const confirmInput = document.getElementById('confirm_text');
+    const deleteButton = document.getElementById('deleteButton');
+    const expectedText = '{{ object.nom }}';
+    
+    // Validation en temps réel
+    confirmInput.addEventListener('input', function() {
+        const currentText = this.value.trim();
+        
+        if (currentText === expectedText) {
+            this.classList.remove('invalid');
+            this.classList.add('valid');
+            
+            if (deleteButton) {
+                deleteButton.classList.add('confirmed');
+            }
+        } else {
+            this.classList.remove('valid');
+            this.classList.add('invalid');
+            
+            if (deleteButton) {
+                deleteButton.classList.remove('confirmed');
+            }
+        }
+    });
+    
+    // Validation à la soumission
+    deleteForm.addEventListener('submit', function(e) {
+        const currentText = confirmInput.value.trim();
+        
+        if (currentText !== expectedText) {
+            e.preventDefault();
+            
+            // Animation de shake
+            confirmInput.classList.add('shake');
+            setTimeout(() => {
+                confirmInput.classList.remove('shake');
+            }, 500);
+            
+            // Message d'erreur
+            showNotification(`Le texte de confirmation ne correspond pas. Tapez exactement : "${expectedText}"`, 'error');
+            
+            // Focus sur le champ
+            confirmInput.focus();
+            confirmInput.select();
+        } else {
+            // Confirmation supplémentaire
+            e.preventDefault();
+            
+            const modalContent = `
+                <div class="final-confirmation-modal">
+                    <div class="modal-header">
+                        <div class="header-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3>Dernière confirmation</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="warning-message">
+                            <i class="fas fa-radiation-alt fa-2x"></i>
+                            <div>
+                                <h4>Êtes-vous ABSOLUMENT sûr ?</h4>
+                                <p>Cette action <strong>NE PEUT PAS</strong> être annulée.</p>
+                                <p>Toutes les données liées à cet article seront <strong>PERDUES DÉFINITIVEMENT</strong>.</p>
+                            </div>
+                        </div>
+                        <div class="confirmation-actions">
+                            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                                <i class="fas fa-times"></i> Annuler
+                            </button>
+                            <button class="btn btn-danger" onclick="submitDeleteForm()">
+                                <i class="fas fa-skull-crossbones"></i> Oui, supprimer définitivement
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = modalContent;
+            document.body.appendChild(modal);
+        }
+    });
+    
+    // Fonction pour soumettre le formulaire
+    window.submitDeleteForm = function() {
+        document.querySelector('.modal').remove();
+        deleteForm.submit();
+    };
+    
+    // Fonction pour afficher des notifications
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            min-width: 300px;
+            max-width: 400px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: slideInRight 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        `;
+        
+        const icons = {
+            success: 'check-circle',
+            error: 'times-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        
+        const colors = {
+            success: 'var(--success-green)',
+            error: 'var(--danger-red)',
+            warning: 'var(--warning-orange)',
+            info: 'var(--secondary-blue)'
+        };
+        
+        notification.style.backgroundColor = type === 'success' ? 'rgba(39, 174, 96, 0.1)' :
+                                            type === 'error' ? 'rgba(231, 76, 60, 0.1)' :
+                                            type === 'warning' ? 'rgba(243, 156, 18, 0.1)' :
+                                            'rgba(52, 152, 219, 0.1)';
+        notification.style.borderLeft = `4px solid ${colors[type]}`;
+        
+        notification.innerHTML = `
+            <i class="fas fa-${icons[type]}" style="color: ${colors[type]}; font-size: 1.2rem;"></i>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; margin-bottom: 0.25rem; color: var(--text-dark);">
+                    ${type === 'success' ? 'Succès' : 
+                      type === 'error' ? 'Erreur' : 
+                      type === 'warning' ? 'Attention' : 'Information'}
+                </div>
+                <div style="color: var(--text-dark);">${message}</div>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0.25rem;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-suppression
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 5000);
+    }
+    
+    // Ajouter les animations CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .final-confirmation-modal {
+            background: var(--white);
+            border-radius: 15px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: 2px solid var(--danger-red);
+        }
+        
+        .final-confirmation-modal .modal-header {
+            background: linear-gradient(135deg, var(--danger-red), #c0392b);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+        }
+        
+        .final-confirmation-modal .modal-body {
+            padding: 2rem;
+        }
+        
+        .warning-message {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(231, 76, 60, 0.05);
+            border-radius: 10px;
+            border: 2px solid rgba(231, 76, 60, 0.2);
+            margin-bottom: 2rem;
+        }
+        
+        .warning-message i {
+            color: var(--danger-red);
+        }
+        
+        .warning-message h4 {
+            color: var(--danger-red);
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .warning-message p {
+            color: var(--text-dark);
+            margin: 0.25rem 0;
+        }
+        
+        .confirmation-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        .btn.confirmed {
+            animation: pulseDanger 1s infinite;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Empêcher la copier-coller dans le champ de confirmation
+    confirmInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        showNotification('Le collage est désactivé pour ce champ. Tapez le nom manuellement.', 'warning');
+    });
+    
+    // Focus automatique sur le champ de confirmation
+    confirmInput.focus();
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+{% endblock %}
